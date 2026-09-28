@@ -1,0 +1,5835 @@
+{
+ "updated": "2026-09-28T21:19:24+00:00",
+ "rows": [
+  {
+   "date": "2026-09-13",
+   "time": "17:55",
+   "category": "Einsatz",
+   "keyword": "b3/manv10",
+   "event": "Gebäudebrand - Personen drohen zu springen",
+   "street": "Badenstedter Straße",
+   "district": "Badenstedt",
+   "remarks": "Fachgruppe"
+  },
+  {
+   "date": "2026-09-13",
+   "time": "17:55",
+   "category": "Einsatz",
+   "keyword": "b3/manv10",
+   "event": "Gebäudebrand - Personen drohen zu springen",
+   "street": "Badenstedter Straße",
+   "district": "Badenstedt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-09-06",
+   "time": "21:35",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "E-Call; Verkehrsunfall",
+   "street": "Velberstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-09-06",
+   "time": "19:16",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer in Tiefgarage/Gebäude",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-09-04",
+   "time": "17:51",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Rauch aus Fenstern",
+   "street": "Wittekindstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-09-03",
+   "time": "01:19",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Brandgeruch im Treppenhaus",
+   "street": "Haspelmathstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-29",
+   "time": "21:26",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Zimmerbrand, Person noch drin",
+   "street": "Wittekindstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-29",
+   "time": "09:32",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung",
+   "street": "Bünteweg",
+   "district": "Kirchrode",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-24",
+   "time": "20:25",
+   "category": "Einsatz",
+   "keyword": "erk",
+   "event": "Teile vom Giebel drohen zu fallen",
+   "street": "Haasemannstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-24",
+   "time": "01:26",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Bahnhofstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-22",
+   "time": "16:48",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Papierkorbbrand",
+   "street": "Küchengartenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-21",
+   "time": "17:06",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung 15. OG",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-16",
+   "time": "01:37",
+   "category": "Einsatz",
+   "keyword": "b2/manv öel",
+   "event": "Hilfeschreie, Flammen aus Fenster",
+   "street": "Posthornstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-14",
+   "time": "10:56",
+   "category": "Einsatz",
+   "keyword": "ba2",
+   "event": "Feldbrand // brennt Ballenpresse",
+   "street": "Goshorner Damm",
+   "district": "Vinnhorst",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-13",
+   "time": "00:41",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Person in Notlage",
+   "street": "Feuerwehrstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-12",
+   "time": "01:38",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Lagerhalle in Vollbrand",
+   "street": "Tiestestraße",
+   "district": "Südstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-12",
+   "time": "01:38",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Lagerhalle in Vollbrand",
+   "street": "Tiestestraße",
+   "district": "Südstadt",
+   "remarks": "Fachgruppe Spüren & Messen"
+  },
+  {
+   "date": "2026-08-11",
+   "time": "00:20",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Containerbrand // ins Gebäude gezogen",
+   "street": "Burgstraße",
+   "district": "Mitte",
+   "remarks": "Alarmstufenerhöhung"
+  },
+  {
+   "date": "2026-08-04",
+   "time": "19:07",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Göttinger Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-08-03",
+   "time": "22:06",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Kötnerholzweg",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-30",
+   "time": "23:59",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Osterstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-29",
+   "time": "19:21",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "CO-Austritt; 1x bewusstlos in Wohnung",
+   "street": "Celler Straße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-26",
+   "time": "23:02",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "PKW-Brand // Alarmstufenerhöhung",
+   "street": "Fössestraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-25",
+   "time": "19:35",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Zimmerbrand",
+   "street": "Hohe Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-25",
+   "time": "18:14",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Bereitstellung Polizei-Lage",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-23",
+   "time": "22:49",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch, 1x Atemnot",
+   "street": "Lavesstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-22",
+   "time": "20:16",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Verpuffung // Restaurant",
+   "street": "Rathenaustraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-15",
+   "time": "10:05",
+   "category": "Einsatz",
+   "keyword": "ba2",
+   "event": "LKW-Auflieger // Rauchentwicklung",
+   "street": "A2 AK Ost -> AK Buchholz",
+   "district": "Misburg-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Walter-Flex-Straße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Bronsartstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Wedekindstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Sedanstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Kronenstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Göhrdestraße",
+   "district": "Vahrenwald",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Pestalozzistraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Fundstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Lister Meile",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Rumannstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Fliegerstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Hallerstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Weißekreuzstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Kl. Pfahlstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Friedastraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Gartenstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Friesenstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Steintorfeldstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Kollenrodtstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Lister Straße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Cranachstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Drostestraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Bödekerstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Waldstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Borkumer Straße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Elisabeth-Grainer-Straße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Kloppstockstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Lister Kirchweg",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Jakobistraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Lister Meile",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Hohenzollernstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Ferdinand-Wallbrecht-Straße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Liebigstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Voßstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Harnischstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Jacobistraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Schützenstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Edenstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Gusindeweg",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Franz-Bork-Straße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "r",
+   "event": "Atemnot",
+   "street": "Lister Meile",
+   "district": "List",
+   "remarks": "First Responder"
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden Hotel (Unwetter)",
+   "street": "Hinüberstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Uhlestraße",
+   "district": "Groß-Buchholz",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Girlitzpark",
+   "district": "Groß-Buchholz",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Frauenhoferstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Wilhelm-Göhrs-Straße",
+   "district": "Bemerode",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Auf dem Lärchenberge",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Alte Gärtnerei",
+   "district": "Bothfeld",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Goethestraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Im Heidkamp",
+   "district": "Bothfeld",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Juister Weg",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Rühmkorffstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Gretchenstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Hannoversche Straße",
+   "district": "Misburg-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Hüttenstraße",
+   "district": "Vahrenwald",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "An der Lutherkirche",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-14",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Waldstraße",
+   "district": "Oststadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-13",
+   "time": "23:50",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Sturmschaden",
+   "street": "Gartenallee",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-13",
+   "time": "23:32",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Straße überflutet / Verkehr behindert",
+   "street": "Arndtstraße",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-13",
+   "time": "23:21",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Bremer Straße",
+   "district": "Leinhausen",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-13",
+   "time": "23:18",
+   "category": "Einsatz",
+   "keyword": "uw",
+   "event": "Wasserschaden (Unwetter)",
+   "street": "Voltastraße",
+   "district": "Vahrenwald",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-13",
+   "time": "22:59",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Dachziegel fallen vom Dach",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-13",
+   "time": "22:46",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Vollalarm FF Hannover - Unwetterlage",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/6314644"
+  },
+  {
+   "date": "2026-07-13",
+   "time": "11:24",
+   "category": "Einsatz",
+   "keyword": "ba2",
+   "event": "LKW-Brand",
+   "street": "A2 AS Herrenhasen",
+   "district": "Stöcken",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-12",
+   "time": "20:44",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Ast auf Str. // weitere drohen zu fallen",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-12",
+   "time": "17:00",
+   "category": "Sonstiges",
+   "keyword": "b",
+   "event": "Brandsicherheitswache",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-11",
+   "time": "21:51",
+   "category": "Einsatz",
+   "keyword": "r,n",
+   "event": "Reanimation",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-11",
+   "time": "17:00",
+   "category": "Sonstiges",
+   "keyword": "b",
+   "event": "Brandsicherheitswache",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-11",
+   "time": "12:16",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "Feuer in Industriehalle",
+   "street": "Göttinger Chaussee",
+   "district": "Ricklingen",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-10",
+   "time": "17:00",
+   "category": "Sonstiges",
+   "keyword": "b",
+   "event": "Brandsicherheitswache",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-09",
+   "time": "18:12",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer, Treppenhaus verraucht",
+   "street": "Marienstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-09",
+   "time": "17:00",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Brandsicherheitswache",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-09",
+   "time": "04:46",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "BMA // brennt Industrietrockner",
+   "street": "Bünteweg / TiHo",
+   "district": "Kirchrode",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-08",
+   "time": "17:56",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "E-Call -> VU 3 Fahrzeuge",
+   "street": "Berliner Allee",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-08",
+   "time": "17:00",
+   "category": "Sonstiges",
+   "keyword": "b",
+   "event": "Brandsicherheitswache",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-07",
+   "time": "17:00",
+   "category": "Sonstiges",
+   "keyword": "b",
+   "event": "Brandsicherheitswache",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-06",
+   "time": "23:47",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer im Schnellimbiss",
+   "street": "Georgstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-06",
+   "time": "17:00",
+   "category": "Sonstiges",
+   "keyword": "b",
+   "event": "Brandsicherheitswache",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-05",
+   "time": "07:30",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Absicherung Schützenausmarsch",
+   "street": "Innenstadt",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-05",
+   "time": "02:37",
+   "category": "Einsatz",
+   "keyword": "bg2",
+   "event": "Gasaustritt aus Tankstelle",
+   "street": "Davenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-04",
+   "time": "17:00",
+   "category": "Sonstiges",
+   "keyword": "b",
+   "event": "Brandsicherheitswache",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-07-03",
+   "time": "17:00",
+   "category": "Sonstiges",
+   "keyword": "b",
+   "event": "Brandsicherheitswache",
+   "street": "Schützenplatz",
+   "district": "",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-30",
+   "time": "05:28",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Tonstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-28",
+   "time": "10:03",
+   "category": "Einsatz",
+   "keyword": "bi2",
+   "event": "Rauchentwicklung im Bus",
+   "street": "Haltenhoffstraße",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-27",
+   "time": "21:44",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "CO-Melder ausgelöst",
+   "street": "Posthornstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-27",
+   "time": "11:48",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Ungerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-27",
+   "time": "10:58",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauch aus DG-Fenster; RWM",
+   "street": "Minister-Stüve-Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-26",
+   "time": "18:53",
+   "category": "Einsatz",
+   "keyword": "ba2",
+   "event": "Flächenbrand",
+   "street": "A2 Herrenhausen -> Garbsen",
+   "district": "Stöcken",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-24",
+   "time": "18:03",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasaustritt im Gebäude",
+   "street": "Ritter-Brüning-Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-23",
+   "time": "23:19",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuerschein in Bungerlow",
+   "street": "Brüderstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-22",
+   "time": "20:11",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Person in Notlage auf Parkdeck",
+   "street": "Ernst-August-Platz",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-21",
+   "time": "16:06",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "über 20 Brandmelder ausgelöst",
+   "street": "Georgstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-21",
+   "time": "03:12",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Großkopfstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-20",
+   "time": "19:56",
+   "category": "Einsatz",
+   "keyword": "hw2",
+   "event": "Kind im Wasser vermisst",
+   "street": "Strandleben (Ihme)",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-20",
+   "time": "16:35",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Gekrümelbrand, greift auf Fassade über",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-19",
+   "time": "20:22",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gaswarnanlage ausgelöst",
+   "street": "Vahrenwalder Straße",
+   "district": "Vahrenwald",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-13",
+   "time": "19:53",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Behnsenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-13",
+   "time": "16:45",
+   "category": "Einsatz",
+   "keyword": "hw1",
+   "event": "Person im Wasser",
+   "street": "Walter-Besemer-Ufer",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-10",
+   "time": "02:17",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch in Wohnung",
+   "street": "Noltestraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-08",
+   "time": "18:50",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Rauchentwicklung",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-04",
+   "time": "01:21",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Person in Notlage",
+   "street": "Schwarzer Bär",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-02",
+   "time": "01:04",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Kanalstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-06-01",
+   "time": "19:47",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch",
+   "street": "SV Linden 07",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-30",
+   "time": "13:02",
+   "category": "Einsatz",
+   "keyword": "hw1",
+   "event": "Person im Wasser vermisst",
+   "street": "Maschteich",
+   "district": "Mitte",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/6285015"
+  },
+  {
+   "date": "2026-05-29",
+   "time": "21:12",
+   "category": "Einsatz",
+   "keyword": "o",
+   "event": "BMA-Alarm // brennt Papier",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-29",
+   "time": "20:12",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "Lagerhallenbrand, NAFO FG SpMe",
+   "street": "Lohweg",
+   "district": "Anderten",
+   "remarks": "ABC-Erkunder"
+  },
+  {
+   "date": "2026-05-29",
+   "time": "19:47",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Wachbesetzung",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": "MLF + ABC-Erkunder"
+  },
+  {
+   "date": "2026-05-29",
+   "time": "19:28",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "Flammen & Knallgeräusche aus Lagerhalle",
+   "street": "Lohweg",
+   "district": "Anderten",
+   "remarks": "HLF + Dekon-G https://www.presseportal.de/blaulicht/pm/169586/6284828"
+  },
+  {
+   "date": "2026-05-28",
+   "time": "18:03",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Unklare Rauchentwicklung",
+   "street": "Goethestraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-26",
+   "time": "20:43",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Celler Straße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-25",
+   "time": "23:17",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Ritter-Brühning-Str.",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-11",
+   "time": "04:34",
+   "category": "Einsatz",
+   "keyword": "ba2",
+   "event": "LKW-Brand",
+   "street": "A2 AK Ost -> AK Buchholz",
+   "district": "Misburg-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-10",
+   "time": "20:58",
+   "category": "Einsatz",
+   "keyword": "hm2",
+   "event": "Person unter Zug (Tunnel)",
+   "street": "Steintor [U]",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-09",
+   "time": "17:23",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Garagenbrand",
+   "street": "Fortunastraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-09",
+   "time": "01:26",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung nach Einbruch",
+   "street": "Goethestraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-07",
+   "time": "06:00",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Brand Restaurant",
+   "street": "Osterstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-02",
+   "time": "18:37",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM § Brandgeruch",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-05-01",
+   "time": "08:31",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Person droht zu springen",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-30",
+   "time": "18:41",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Steigerthalstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-29",
+   "time": "03:44",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Heiligerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-28",
+   "time": "19:17",
+   "category": "Einsatz",
+   "keyword": "ba2",
+   "event": "LKW-Brand; Müll geladen",
+   "street": "A2 Langenhagen FR Berlin",
+   "district": "Vahrenheide",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-26",
+   "time": "13:40",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Vegetationsbrand 500 qm²",
+   "street": "Mergelgrube",
+   "district": "Anderten",
+   "remarks": "Nachalarmierung"
+  },
+  {
+   "date": "2026-04-25",
+   "time": "20:05",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Berdingstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-22",
+   "time": "19:07",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Elsa-Brändström-Str",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-19",
+   "time": "11:22",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "CO-Melder im Keller",
+   "street": "Weddigenufer",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-19",
+   "time": "05:52",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Egestorffstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-19",
+   "time": "03:30",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "CO-Melder ausgelöst",
+   "street": "Rodenstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-18",
+   "time": "12:21",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Akku-Brand; alle Fenster geborsten",
+   "street": "Albertstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-18",
+   "time": "02:59",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Kellerbrand",
+   "street": "Lange Laube",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-16",
+   "time": "09:49",
+   "category": "Einsatz",
+   "keyword": "bi2",
+   "event": "Rauchentwicklung Linienbus",
+   "street": "Ernst-August-Platz",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-10",
+   "time": "00:44",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Tonstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-05",
+   "time": "18:39",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "E-Call, Verkehrsunfall",
+   "street": "Am Marstall",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-05",
+   "time": "16:21",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "VU 2 PKW; 4 Verletzte, 2x eingeklemmt",
+   "street": "Fössestraße",
+   "district": "Linden-Nord",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/6249693"
+  },
+  {
+   "date": "2026-04-05",
+   "time": "14:42",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Nordfelder Reihe",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-04",
+   "time": "22:09",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Hanomagstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-04-02",
+   "time": "18:17",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer in Wohnung",
+   "street": "Falkenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-28",
+   "time": "13:24",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung, NAFO v. HLF 2A",
+   "street": "Rodenstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-19",
+   "time": "20:38",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch aus Baustelle, Pol v Ort",
+   "street": "Velberstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-16",
+   "time": "08:20",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Öl auf Gewässer",
+   "street": "Am Bachlauf",
+   "district": "Sahlkamp",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-16",
+   "time": "07:01",
+   "category": "Einsatz",
+   "keyword": "ba2",
+   "event": "LKW-Brand",
+   "street": "BAB 2 Bothfeld -> Berlin",
+   "district": "Sahlkamp",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-15",
+   "time": "18:24",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Schwarzer Rauch aus DG",
+   "street": "Kurt-Schumacher-Straße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-14",
+   "time": "00:36",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Bahnhofstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-09",
+   "time": "01:27",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "CO-Warnmelder ausgelöst",
+   "street": "Nikolaistraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-05",
+   "time": "18:06",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "Person unter Zug",
+   "street": "Hauptbahnhof",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-04",
+   "time": "18:37",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Am hohen Ufer",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-03-03",
+   "time": "01:21",
+   "category": "Einsatz",
+   "keyword": "hm2",
+   "event": "VU, 2x eingeklemmt, PKW brennt",
+   "street": "Deisterkreisel",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-26",
+   "time": "18:08",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Davenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-22",
+   "time": "18:52",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung Treppenraum",
+   "street": "Braunstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-22",
+   "time": "04:08",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Wohnungsbrand mit Menschenrettung",
+   "street": "Braunstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-21",
+   "time": "21:24",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "Feuer Pflegeheim, Person brennt",
+   "street": "Fischerstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-14",
+   "time": "15:48",
+   "category": "Einsatz",
+   "keyword": "o",
+   "event": "BMA-Alarm",
+   "street": "Ernst-August-Platz",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-13",
+   "time": "20:22",
+   "category": "Einsatz",
+   "keyword": "bi2",
+   "event": "Rauchentwicklung im Bus",
+   "street": "Moltkeplatz (Bus)",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-09",
+   "time": "20:31",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Hennigestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-07",
+   "time": "22:53",
+   "category": "Einsatz",
+   "keyword": "bi2",
+   "event": "Rauchentwicklung S-Bahn",
+   "street": "Mainzer Straße",
+   "district": "Südstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-07",
+   "time": "11:10",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauch aus Gebäude",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-05",
+   "time": "20:07",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Küchenbrand, wird evakuiert",
+   "street": "Königsstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-05",
+   "time": "03:40",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Heiligerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-02-03",
+   "time": "22:20",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch (Gebäude)",
+   "street": "Nikolaistraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-31",
+   "time": "23:37",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung",
+   "street": "Dreyerstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-27",
+   "time": "19:16",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Wohnungsbrand mit Menschenrettung",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-25",
+   "time": "16:37",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Königsworther Straße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-24",
+   "time": "04:23",
+   "category": "Einsatz",
+   "keyword": "ba2",
+   "event": "LKW-Brand",
+   "street": "BAB 2 AK Ost -> AK Buchholz",
+   "district": "Misburg-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-20",
+   "time": "17:11",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Lampestraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-18",
+   "time": "15:02",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer in Gaststätte",
+   "street": "Selmastraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-17",
+   "time": "21:33",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung (Gebäude)",
+   "street": "Brackebuschstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-17",
+   "time": "18:17",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauch und Feuerschein",
+   "street": "Fortunastraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-14",
+   "time": "00:27",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Ferdinandstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-10",
+   "time": "18:08",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Wohnungsbrand",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-10",
+   "time": "11:31",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasaustritt",
+   "street": "Blumenauer Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-07",
+   "time": "11:14",
+   "category": "Einsatz",
+   "keyword": "bi2",
+   "event": "LKW-Brand",
+   "street": "Hansastraße",
+   "district": "Nordhafen",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-06",
+   "time": "17:23",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Schwarzer Rauch aus Dach",
+   "street": "Königsworther Platz",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "03:15",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Gerümpelbrand",
+   "street": "Elisenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "02:58",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Gerümpelbrand",
+   "street": "Hennigestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "02:36",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Kötnerholzweg",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "01:43",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Geveker Kamp",
+   "district": "Ahlem",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "01:37",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "div. Containerbrände",
+   "street": "Planetenring",
+   "district": "Marienwerder",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "01:35",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Feuer auf Straße",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "01:00",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Kellerraum in Vollbrand",
+   "street": "Bethlehemplatz",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "00:55",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Guts-Muts-Straße",
+   "district": "Vahrenwald",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "00:51",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennt Einkaufswagen",
+   "street": "Bömelburgstraße",
+   "district": "Hainholz",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "00:43",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennt Baum",
+   "street": "Culenmannstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "00:37",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennt Baum auf Bahnstrecke",
+   "street": "Schulenburger Landstraße",
+   "district": "Hainholz",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "00:34",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Weddigenufer",
+   "street": "Heckenbrand",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2026-01-01",
+   "time": "00:24",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-31",
+   "time": "23:50",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Ricklinger Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-31",
+   "time": "21:42",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Feuer an Kirche",
+   "street": "Marienstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-31",
+   "time": "21:38",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Gerümpelbrand",
+   "street": "Bauweg",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-31",
+   "time": "17:00",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Silvesterbereitschaft",
+   "street": "Feuerwehrhaus",
+   "district": "Linden-Mitte",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/6188384"
+  },
+  {
+   "date": "2025-12-29",
+   "time": "22:42",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung",
+   "street": "Blumenauer Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-27",
+   "time": "15:52",
+   "category": "Einsatz",
+   "keyword": "o",
+   "event": "BMA-Alarm",
+   "street": "Schmiedestraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-27",
+   "time": "14:32",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Flammen aus Zwischendecke/Dach",
+   "street": "Inge-Machts-Weg",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-26",
+   "time": "22:19",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Küchenbrand",
+   "street": "Ricklinger Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-20",
+   "time": "14:36",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Postkamp",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-17",
+   "time": "00:03",
+   "category": "Einsatz",
+   "keyword": "bi2",
+   "event": "PKW-Brand nahe Gaslager",
+   "street": "Entenfangweg",
+   "district": "Ledeburg",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-14",
+   "time": "23:25",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & riecht komisch",
+   "street": "Goethestraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-08",
+   "time": "20:45",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Laportestraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-07",
+   "time": "07:41",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung im Flur",
+   "street": "Blumenstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-04",
+   "time": "20:33",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung Treppenhaus",
+   "street": "Humboldtstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-12-02",
+   "time": "21:33",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Starker Brandgeruch",
+   "street": "Kl. Packhofstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-11-30",
+   "time": "23:32",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM // Rauch aus Zimmer",
+   "street": "Hanomagstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-11-30",
+   "time": "00:15",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Brand Grundschule",
+   "street": "Beuthener Straße",
+   "district": "Mittelfeld",
+   "remarks": ""
+  },
+  {
+   "date": "2025-11-29",
+   "time": "09:05",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "Verpuffung im Labor // 1x NAP",
+   "street": "Medizinische Hochschule",
+   "district": "Groß-Buchholz",
+   "remarks": "Alarmübung"
+  },
+  {
+   "date": "2025-11-24",
+   "time": "18:59",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "Rauchentwicklung im Parkhaus",
+   "street": "Mehlstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-11-23",
+   "time": "19:51",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "brennt Backofen",
+   "street": "Körnerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-11-22",
+   "time": "15:58",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "brennt Zwischenboden",
+   "street": "Gerberstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-11-21",
+   "time": "23:32",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasaustritt in Bar, 1x verletzt",
+   "street": "Elisenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-11-11",
+   "time": "19:28",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Badenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-11-10",
+   "time": "20:03",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer greift auf Gebäude über // Alarmstufenerhöhung",
+   "street": "Lavesstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-11-01",
+   "time": "10:45",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Falkenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-10-29",
+   "time": "03:00",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Brandgeruch // Alarmstufenerhöhung",
+   "street": "Otto-Wels-Straße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-10-24",
+   "time": "13:00",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gefahrstoffaustritt",
+   "street": "Stiftstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-10-23",
+   "time": "17:59",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM im Seniorenzentrum",
+   "street": "Pfarrlandstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-10-18",
+   "time": "18:06",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Schornsteinbrand",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-10-18",
+   "time": "16:13",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Heiligerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-10-14",
+   "time": "21:46",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch (Gebäude)",
+   "street": "Lavesstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-10-12",
+   "time": "07:19",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Flammen aus dem Backofen",
+   "street": "Bennostraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-10-01",
+   "time": "00:11",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Brand Ladengeschäft",
+   "street": "Lange Laube",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-09-23",
+   "time": "15:55",
+   "category": "Einsatz",
+   "keyword": "b2/manv10",
+   "event": "Feuer Krankenhaus",
+   "street": "Stadionbrücke",
+   "district": "Linden-Süd",
+   "remarks": "Alarmübung"
+  },
+  {
+   "date": "2025-09-23",
+   "time": "00:39",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Hengstmannstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-09-20",
+   "time": "11:56",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Hausnotruf // RWM zu hören",
+   "street": "Bennostraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-09-11",
+   "time": "20:31",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Steigerthalstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-09-07",
+   "time": "16:46",
+   "category": "Einsatz",
+   "keyword": "b2/öel",
+   "event": "Rauchentwicklung Seniorenzentrum",
+   "street": "Pfarrlandstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-09-07",
+   "time": "14:32",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Feuer in Gewerbehalle",
+   "street": "Davenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-09-06",
+   "time": "15:30",
+   "category": "Einsatz",
+   "keyword": "fr",
+   "event": "First Responder",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-09-06",
+   "time": "15:14",
+   "category": "Einsatz",
+   "keyword": "abc",
+   "event": "Flusssäreanschlag S-Bahn",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-09-06",
+   "time": "14:14",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Gaswarnanlage Labor",
+   "street": "Ricklinger Stadtweg",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-09-03",
+   "time": "21:11",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-31",
+   "time": "19:30",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "Verkehrsunfall, E-Call",
+   "street": "Friedrichswall",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-26",
+   "time": "17:10",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Davenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-21",
+   "time": "18:26",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-20",
+   "time": "19:32",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Laubenbrand",
+   "street": "Badenstedter Straße",
+   "district": "Badenstedt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-16",
+   "time": "20:04",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-12",
+   "time": "20:38",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch in Wohnung",
+   "street": "Allerweg",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-09",
+   "time": "12:16",
+   "category": "Einsatz",
+   "keyword": "o",
+   "event": "BMA-Alarm",
+   "street": "Ernst-August-Platz",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-09",
+   "time": "09:00",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Wachbesetzung",
+   "street": "FRW 1",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-07",
+   "time": "23:27",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Person droht zu springen",
+   "street": "DB HBF -> Ri Norden",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-08-02",
+   "time": "18:09",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Stephanusstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-31",
+   "time": "19:40",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Waterloostraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-26",
+   "time": "02:50",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Ritter-Brühning-Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-25",
+   "time": "20:13",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm im Hotel",
+   "street": "Seilwinderstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-23",
+   "time": "00:39",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung aus Gebäude",
+   "street": "Posthornstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-20",
+   "time": "23:11",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Steigerthalstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-20",
+   "time": "19:03",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Zimmerbrand",
+   "street": "Falkenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-20",
+   "time": "15:26",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Elisenstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-20",
+   "time": "14:18",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "CO-Austritt, XXX ppm",
+   "street": "Gerberstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-19",
+   "time": "17:31",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Rauch aus Wohnung",
+   "street": "Stärkestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-15",
+   "time": "21:15",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Ricklinger Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-14",
+   "time": "18:02",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-13",
+   "time": "05:35",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung aus Fenster",
+   "street": "Roscherstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-11",
+   "time": "04:51",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer im Hausflur",
+   "street": "Lavesstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-07",
+   "time": "01:40",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-06",
+   "time": "08:15",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Absicherung Schützenausmarsch",
+   "street": "Innenstadt",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-05",
+   "time": "11:16",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Steigerthalstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-05",
+   "time": "11:06",
+   "category": "Einsatz",
+   "keyword": "o",
+   "event": "BMA-Alarm",
+   "street": "Rudolf-Diesel-Weg",
+   "district": "Vinnhorst",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-05",
+   "time": "09:00",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Wachbesetzung FRW1",
+   "street": "Weidendamm",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-03",
+   "time": "19:19",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Robert-Enke-Straße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-03",
+   "time": "01:05",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Rauch aus Wohnung, Person noch drin",
+   "street": "Nedderfeldstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-02",
+   "time": "17:14",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer im Kühlraum",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-01",
+   "time": "20:19",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "brennt Trockner, 1x verletzt",
+   "street": "Minister-Stüve-Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-07-01",
+   "time": "18:57",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "E-Call, VU 2 PKW / 2 Verletzte",
+   "street": "Stadionbrücke",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-29",
+   "time": "12:43",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Bereitstellung Polizei-Lage",
+   "street": "Leinstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-28",
+   "time": "12:40",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder, über HNR",
+   "street": "Mathildenstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-22",
+   "time": "07:02",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Zimmerbrand",
+   "street": "Fössestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-22",
+   "time": "06:42",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Dieterichstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-21",
+   "time": "19:03",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung Keller",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-20",
+   "time": "21:02",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM / Rauch aus Tür",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-20",
+   "time": "02:39",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasaustritt // Stickstoffgemisch",
+   "street": "Knochenhauerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-19",
+   "time": "14:56",
+   "category": "Einsatz",
+   "keyword": "fr",
+   "event": "First Responder",
+   "street": "Alte Stöckener Straße",
+   "district": "Stöcken",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-16",
+   "time": "00:48",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Rückertstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-15",
+   "time": "02:14",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Baum auf Straße",
+   "street": "Badenstedter Straße",
+   "district": "Badenstedt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-15",
+   "time": "01:31",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Laubenbrand",
+   "street": "Im Born",
+   "district": "Badenstedt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-13",
+   "time": "17:13",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer Gleis/Bahnsteig",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-08",
+   "time": "08:08",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer an ICE",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-06",
+   "time": "01:48",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Knochenhauerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-01",
+   "time": "20:21",
+   "category": "Einsatz",
+   "keyword": "bi2",
+   "event": "Explosion an Gleisanlage/ Böschungsbrand",
+   "street": "DB Höhe Herschelstraße",
+   "district": "Mitte",
+   "remarks": "Alarmstufenerhöhung"
+  },
+  {
+   "date": "2025-06-01",
+   "time": "20:00",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Von-Alten-Allee",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-06-01",
+   "time": "18:51",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Blumenauer Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-31",
+   "time": "13:20",
+   "category": "Einsatz",
+   "keyword": "r",
+   "event": "Neurologischer Notfall",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": "First Responder"
+  },
+  {
+   "date": "2025-05-31",
+   "time": "09:47",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasserschaden",
+   "street": "Hagenstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-31",
+   "time": "09:00",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Wachbesetzung",
+   "street": "FRW 1",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-26",
+   "time": "00:23",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Kötnerholzweg",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-25",
+   "time": "17:13",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Austritt Chlorgas",
+   "street": "Rundestraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-24",
+   "time": "12:08",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer in Abrisshaus",
+   "street": "Pavillonstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-24",
+   "time": "07:04",
+   "category": "Einsatz",
+   "keyword": "hm3",
+   "event": "Kinderwagen von Zug erfasst",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-24",
+   "time": "00:29",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Markthalle/Landtag [U]",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-21",
+   "time": "22:16",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm // Rauch aus Fenster",
+   "street": "Hanomagstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-21",
+   "time": "17:54",
+   "category": "Einsatz",
+   "keyword": "fr",
+   "event": "Verkehrsunfall",
+   "street": "NieschlagS/WittekindS",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-21",
+   "time": "00:14",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Kabelbrand Restaurant",
+   "street": "Knochenhauerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-17",
+   "time": "17:14",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Kellerbrand",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-17",
+   "time": "09:00",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Wachbesetzung",
+   "street": "FRW 4",
+   "district": "Bornum",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-16",
+   "time": "16:14",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Wachbesetzung",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/6036073"
+  },
+  {
+   "date": "2025-05-14",
+   "time": "22:11",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Küchenbrand",
+   "street": "Am Taubenfelde",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-09",
+   "time": "23:50",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung und Feuerschein 3. OG",
+   "street": "Küchengartenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-08",
+   "time": "20:46",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "VU, E-Call ausgelöst",
+   "street": "Rathenaustraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-06",
+   "time": "00:19",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm Hotel",
+   "street": "Hanomagstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-03",
+   "time": "16:10",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Theodorstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-03",
+   "time": "15:03",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gageruch (nicht brennbar)",
+   "street": "Vahrenwalder Straße",
+   "district": "Vahrenwald",
+   "remarks": ""
+  },
+  {
+   "date": "2025-05-02",
+   "time": "20:38",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Anforderung der Polizei",
+   "street": "DB HBF -> Ri Norden",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-04-22",
+   "time": "19:58",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm/ Löschanlage aktiv",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-04-20",
+   "time": "17:55",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Fössestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-04-20",
+   "time": "11:59",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Dachstuhlbrand",
+   "street": "Pfarrlandplatz",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-04-12",
+   "time": "06:03",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Knallgeräusche // Rauchentwicklung Treppenhaus",
+   "street": "Ricklinger Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-04-08",
+   "time": "20:08",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung Industriegebiet",
+   "street": "Badenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-04-05",
+   "time": "21:28",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Steigerthalstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-04-03",
+   "time": "21:55",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Mehlstraße",
+   "street": "Qualm aus alter Spielhalle",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-30",
+   "time": "09:05",
+   "category": "Einsatz",
+   "keyword": "hw2",
+   "event": "Person im Wasser (Leine)",
+   "street": "Franz-Mock-Weg",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-29",
+   "time": "18:30",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Feuer im Pflegeheim, NAFO",
+   "street": "Bodestraße",
+   "district": "Nordstadt",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/6001573"
+  },
+  {
+   "date": "2025-03-29",
+   "time": "16:52",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Wachbesetzung",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": "Feuer im Pflegeheim"
+  },
+  {
+   "date": "2025-03-29",
+   "time": "16:26",
+   "category": "Einsatz",
+   "keyword": "manv10",
+   "event": "LNA-Zubringer // MANV-Einsatz",
+   "street": "Bodestraße",
+   "district": "Nordstadt",
+   "remarks": "Feuer im Pflegeheim"
+  },
+  {
+   "date": "2025-03-24",
+   "time": "01:44",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Ricklinger Stadtweg",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-23",
+   "time": "11:49",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Berhard-Caspar-Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-23",
+   "time": "07:01",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "brennt Markise vom Döner-Laden",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-23",
+   "time": "03:46",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer im Müllschacht",
+   "street": "Georgstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-16",
+   "time": "12:42",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Körnerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-09",
+   "time": "18:59",
+   "category": "Einsatz",
+   "keyword": "hbi",
+   "event": "Ölspur (innerorts)",
+   "street": "Fössestraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-09",
+   "time": "18:37",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "Person von ICE erfasst",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-06",
+   "time": "22:50",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Davenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-05",
+   "time": "02:44",
+   "category": "Einsatz",
+   "keyword": "o",
+   "event": "BMA-Alarm",
+   "street": "Fernroder Straße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-03-01",
+   "time": "11:30",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Absicherung Karnevalsumzug",
+   "street": "Bereich Innenstadt",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-02-23",
+   "time": "13:37",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM in Seniorenzentrum",
+   "street": "Blumenauer Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-02-16",
+   "time": "05:42",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuerschein nach Knall",
+   "street": "Hennigestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-02-15",
+   "time": "00:08",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Zimmerbrand mit Tierrettung",
+   "street": "Pfarrlandplatz",
+   "district": "Linden-Nord",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/5972013"
+  },
+  {
+   "date": "2025-02-13",
+   "time": "04:08",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Steigerthalstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-02-09",
+   "time": "14:04",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Dachstuhlbrand",
+   "street": "Badenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/5967136"
+  },
+  {
+   "date": "2025-02-09",
+   "time": "11:02",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Volgersweg",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-02-02",
+   "time": "11:27",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung aus Wohnung",
+   "street": "Godehardistraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-30",
+   "time": "17:20",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch im Keller",
+   "street": "Marienstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-23",
+   "time": "22:38",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Gustav-Bradtke-Allee",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-18",
+   "time": "18:49",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "VU Stadtbahn vs. PKW",
+   "street": "Goethestraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-12",
+   "time": "11:59",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch (Gebäude)",
+   "street": "Nedderfeldstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-07",
+   "time": "03:29",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "brennt Holzhütte",
+   "street": "Strandleben",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-06",
+   "time": "19:37",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Schild ragt in die Fahrbahn",
+   "street": "Gustav-Bratke-Allee",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-06",
+   "time": "19:03",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Gebäudeteil abgebrochen",
+   "street": "Knochenhauerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-06",
+   "time": "18:56",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Metallteil droht von Dach zu fallen",
+   "street": "Gr. Packhofstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-06",
+   "time": "18:44",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Diverse Absperrzäune auf Str",
+   "street": "Spinnereibrücke",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-06",
+   "time": "18:29",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Lose Teile am Gebäude",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-06",
+   "time": "18:28",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Feuerwehrhaus besetzen",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": "Sturmtief Bernd"
+  },
+  {
+   "date": "2025-01-01",
+   "time": "03:24",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Deeveser Straße",
+   "district": "Wettbergen",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "03:00",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Falkenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "02:30",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennt Gebüsch",
+   "street": "Spinnereistraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "02:08",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennen Feuerwerkskörper",
+   "street": "Speichernstraße",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "02:03",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Große Barlinge",
+   "district": "Südstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "01:35",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennt Sonnenschirm",
+   "street": "Lister Meile",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "01:20",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Mülltonnenbrand",
+   "street": "HinüberS/Schiffgraben",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "01:13",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Deisterplatz",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "01:07",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennender Müllberg",
+   "street": "RicklingerS/HaspelmathS",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "01:04",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Hengstmannstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "01:00",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Gronostraße",
+   "district": "Oberricklingen",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "00:57",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Gerümpelbrand an Bäumen",
+   "street": "KötnerholzW/VelbertS",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "00:53",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Mülltonnenbrand",
+   "street": "Geibelstraße",
+   "district": "Südstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "00:50",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Feuerschein",
+   "street": "Am hohen Ufer",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "00:37",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Gerümpelbrand",
+   "street": "BerlinerA/MarienS",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "00:34",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Gerümpelbrand",
+   "street": "An der Erlöserkirche",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "00:30",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennt Waschmaschine",
+   "street": "Franzstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "00:28",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Stephansplatz",
+   "district": "Südstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2025-01-01",
+   "time": "00:17",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennt Unrat",
+   "street": "Braunstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-31",
+   "time": "23:51",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Goetheplatz",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-31",
+   "time": "21:40",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Zimmerbrand",
+   "street": "Seifeldstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-31",
+   "time": "17:00",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Silvesterbereitschaft",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/5940786"
+  },
+  {
+   "date": "2024-12-29",
+   "time": "19:29",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Kellerbrand",
+   "street": "Königsstraße",
+   "district": "Mitte",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/5939516"
+  },
+  {
+   "date": "2024-12-28",
+   "time": "19:54",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Brand Tattoostudio",
+   "street": "Celler Straße",
+   "district": "Mitte",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/5939225"
+  },
+  {
+   "date": "2024-12-28",
+   "time": "17:32",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Küchenbrand",
+   "street": "Fössestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-15",
+   "time": "10:43",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Sudersenstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-14",
+   "time": "04:42",
+   "category": "Einsatz",
+   "keyword": "ob/öel",
+   "event": "Brand Krankenhaus",
+   "street": "Humboldtstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": "https://www.presseportal.de/blaulicht/pm/169586/5930616"
+  },
+  {
+   "date": "2024-12-14",
+   "time": "00:45",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Rampenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-14",
+   "time": "00:18",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Georgstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-11",
+   "time": "20:09",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "brennt Mikrowelle",
+   "street": "Braunstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-10",
+   "time": "03:18",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Steigerthalstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-09",
+   "time": "20:26",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung",
+   "street": "Berdingstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-08",
+   "time": "03:12",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "Person unter Zug (unterirdisch)",
+   "street": "Steintor [U] Ri. Nordstadt",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-07",
+   "time": "01:00",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Rauchentwicklung",
+   "street": "Nieschlagstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-06",
+   "time": "11:16",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Keller steht voll Heizöl, Tank defekt",
+   "street": "Kirchbichlerstraße",
+   "district": "Wülferode",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-12-05",
+   "time": "21:12",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gasgeruch (nicht brennbar)",
+   "street": "Washingtonweg",
+   "district": "Mittelfeld",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-12-02",
+   "time": "17:32",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Zimmerbrand",
+   "street": "Nieschlagstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-12-01",
+   "time": "09:11",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Flammen aus dem Schornstein",
+   "street": "Wilhelm-Bluhm-Straße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-11-30",
+   "time": "20:43",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder, Hund in der Whg",
+   "street": "Noltestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-11-30",
+   "time": "17:05",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "E-Call > Stadtbahn vs. PKW",
+   "street": "Schwarzer Bär",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-11-30",
+   "time": "06:15",
+   "category": "Einsatz",
+   "keyword": "erk",
+   "event": "Krampfmittelbeseitigung",
+   "street": "Carl-Neuberg-Straße",
+   "district": "Groß-Buchholz",
+   "remarks": ""
+  },
+  {
+   "date": "2024-11-29",
+   "time": "20:26",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "VU, E-Call ausgelöst",
+   "street": "TürkStr./ArndtStr.",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-11-23",
+   "time": "10:00",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Anwohnerinformation Kampfmittelbeseitigung",
+   "street": "Carl-Neuberg-Straße",
+   "district": "Groß-Buchholz",
+   "remarks": ""
+  },
+  {
+   "date": "2024-11-20",
+   "time": "04:33",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Brand Ladengeschäft",
+   "street": "Posthornstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-11-03",
+   "time": "04:25",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Klewergarten",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-11-02",
+   "time": "00:29",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Magnusstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-31",
+   "time": "19:37",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Rauchentwicklung mit Menschengefährdung",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-26",
+   "time": "14:52",
+   "category": "Einsatz",
+   "keyword": "hw1",
+   "event": "Torso im Wasser",
+   "street": "Leinewehr",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-24",
+   "time": "07:10",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Chlorgasaustritt im Schwimmbad",
+   "street": "Kneippweg",
+   "district": "Ricklingen",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-10-22",
+   "time": "20:52",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung aus Lackiererei",
+   "street": "Davenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-22",
+   "time": "02:06",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster RWM & Brandgeruch",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-19",
+   "time": "18:26",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Anforderung Pol-Lage",
+   "street": "Goethestraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-18",
+   "time": "18:05",
+   "category": "Einsatz",
+   "keyword": "fr",
+   "event": "Fahrradsturz",
+   "street": "Spinnereistraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-18",
+   "time": "17:33",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "BMA-Alarm, Rauch aus Keller",
+   "street": "Nikolaistraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-17",
+   "time": "14:24",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gasgeruch (nicht brennbar)",
+   "street": "Jacobistraße",
+   "district": "List",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-10-13",
+   "time": "04:12",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Erneute Rauchentwicklung",
+   "street": "Escherstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-13",
+   "time": "00:35",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Verrauchung im Treppenhaus",
+   "street": "Escherstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-12",
+   "time": "09:30",
+   "category": "Übungsdienst",
+   "keyword": "",
+   "event": "ABC Dekontamination",
+   "street": "Lange Feld Straße",
+   "district": "Bemerode",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-11",
+   "time": "19:00",
+   "category": "Übungsdienst",
+   "keyword": "",
+   "event": "Quartalsübung Brandbekämpfung",
+   "street": "Schulenburger Landstraße",
+   "district": "Nordhafen",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-11",
+   "time": "01:54",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung 10.OG",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-06",
+   "time": "19:22",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Wohnungsbrand, schwarzer Rauch aus Fenstern",
+   "street": "Goethestraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-04",
+   "time": "18:31",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung im Bürogebäude",
+   "street": "Schillerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-03",
+   "time": "19:25",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder & Brandgeruch",
+   "street": "Albertstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-03",
+   "time": "11:22",
+   "category": "Einsatz",
+   "keyword": "o",
+   "event": "BMA-Alarm",
+   "street": "Kurt-Schumacher-Straße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-10-01",
+   "time": "19:21",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch",
+   "street": "Egestorffstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-28",
+   "time": "07:15",
+   "category": "Einsatz",
+   "keyword": "erk",
+   "event": "Kampfmittelbeseitigung",
+   "street": "Langenforther Straße",
+   "district": "Bothfeld",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-26",
+   "time": "23:16",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Herrschelstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-23",
+   "time": "16:15",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Anwohnerinformation Kampfmittelbeseitigung",
+   "street": "Langenforther Straße",
+   "district": "Bothfeld",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-22",
+   "time": "18:46",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch im Mehrfamilienhaus",
+   "street": "Noltestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-22",
+   "time": "11:13",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-22",
+   "time": "01:39",
+   "category": "Einsatz",
+   "keyword": "o",
+   "event": "BMA-Alarm",
+   "street": "Königsworther Platz [U]",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-21",
+   "time": "07:15",
+   "category": "Einsatz",
+   "keyword": "manv50",
+   "event": "Anti-Terror-Übung // Schießerei",
+   "street": "Gustav-Bratke-Allee",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-21",
+   "time": "04:25",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "Tiefgaragenbrand",
+   "street": "Brühlstraße",
+   "district": "Mitte",
+   "remarks": "Alarmstufenerhöhung nach BMA-Alarm"
+  },
+  {
+   "date": "2024-09-16",
+   "time": "22:34",
+   "category": "Einsatz",
+   "keyword": "b1 / öel",
+   "event": "brennt Motorrad, Alarmstufenerhöhung",
+   "street": "Braunstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-15",
+   "time": "10:34",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Ritter-Brühning-Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-15",
+   "time": "04:15",
+   "category": "Einsatz",
+   "keyword": "b2 / öel",
+   "event": "Feuer in Haftzelle",
+   "street": "Waterloostraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-14",
+   "time": "06:20",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "CO-Alarm",
+   "street": "Davenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-13",
+   "time": "21:03",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Schwarzer Rauch aus Fenstern",
+   "street": "Goethestraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-12",
+   "time": "20:43",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-12",
+   "time": "18:35",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Balkonbrand",
+   "street": "Bauweg",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-11",
+   "time": "17:34",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauch aus Dach",
+   "street": "Otto-Brenner-Straße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-08",
+   "time": "19:39",
+   "category": "Einsatz",
+   "keyword": "bu1",
+   "event": "Containerbrand",
+   "street": "Kröpcke [U]",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-08",
+   "time": "05:08",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-07",
+   "time": "07:55",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Kötnerholzweg",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-07",
+   "time": "04:05",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung im Treppenhaus",
+   "street": "Allerweg",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-05",
+   "time": "23:43",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Brand Restaurant",
+   "street": "Münzstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-09-01",
+   "time": "04:39",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "CO-Austritt im Gebäude",
+   "street": "Davenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-31",
+   "time": "19:35",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Brandgeruch im Seniorenzentrum",
+   "street": "Pfarrlandstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-31",
+   "time": "10:33",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Bergmannstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-31",
+   "time": "01:50",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Kaplanstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-30",
+   "time": "20:24",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Herbartstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-30",
+   "time": "15:00",
+   "category": "Veranstaltung",
+   "keyword": "",
+   "event": "Lindener Schützenfest",
+   "street": "Küchengarten",
+   "district": "Linden-Mitte",
+   "remarks": "Fahrzeugausstellung und Aktionen für Kinder im Rahmen des Kindernachmittags"
+  },
+  {
+   "date": "2024-08-29",
+   "time": "19:40",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Person auf Baukran, 30m Höhe",
+   "street": "Eleonorenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-29",
+   "time": "17:47",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasaustritt, defekte Therme",
+   "street": "Weckenstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-26",
+   "time": "17:39",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "CO-Warner ausgelöst",
+   "street": "Limburgstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-25",
+   "time": "17:51",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Zimmerbrand",
+   "street": "Ricklinger Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-21",
+   "time": "11:10",
+   "category": "Einsatz",
+   "keyword": "abc2",
+   "event": "Gefahrstoffaustritt aus LKW",
+   "street": "An der Schleuse",
+   "district": "Anderten",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-08-21",
+   "time": "11:10",
+   "category": "Einsatz",
+   "keyword": "abc2",
+   "event": "Gefahrstoffaustritt aus LKW",
+   "street": "An der Schleuse",
+   "district": "Anderten",
+   "remarks": "FG Spüren & Messen"
+  },
+  {
+   "date": "2024-08-20",
+   "time": "22:40",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch im Gebäude",
+   "street": "Goetheplatz",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-08-17",
+   "time": "15:00",
+   "category": "Veranstaltung",
+   "keyword": "",
+   "event": "Haasemannstraßenfest",
+   "street": "Haasemannstraße",
+   "district": "Linden-Mitte",
+   "remarks": "Ausstellung unseres HLF"
+  },
+  {
+   "date": "2024-08-17",
+   "time": "09:24",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Zimmerbrand, Flammen aus Fenster",
+   "street": "Falkenstraße",
+   "district": "Linden-Mitte",
+   "remarks": "Pressebericht der Feuerwehr Hannover: https://www.presseportal.de/blaulicht/pm/169586/5845456"
+  },
+  {
+   "date": "2024-08-11",
+   "time": "09:00",
+   "category": "Veranstaltung",
+   "keyword": "",
+   "event": "HAZ sicherer Schulweg",
+   "street": "Platz der Menschenrechte",
+   "district": "Mitte",
+   "remarks": "Unsere JF veranstaltete Spiele"
+  },
+  {
+   "date": "2024-08-04",
+   "time": "12:00",
+   "category": "Veranstaltung",
+   "keyword": "",
+   "event": "Lindener Butjerfest",
+   "street": "Faustwiese",
+   "district": "Linden-Nord",
+   "remarks": "Ausstellung unseres HLF"
+  },
+  {
+   "date": "2024-08-03",
+   "time": "05:23",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer, 1 verletzte Person",
+   "street": "Fröbelstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-29",
+   "time": "17:04",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung",
+   "street": "Marktstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-27",
+   "time": "21:56",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Brandgeruch",
+   "street": "Ricklinger Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-27",
+   "time": "20:17",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "VU E-Call, nur Schreie hörbar",
+   "street": "Arndtstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-27",
+   "time": "15:54",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Herbartstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-21",
+   "time": "11:44",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasgeruch im Keller",
+   "street": "Albertstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-19",
+   "time": "17:51",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster RWM & Brandgeruch",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-17",
+   "time": "18:35",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "PKW überschlagen, Person eingeklemmt",
+   "street": "Brühlstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-15",
+   "time": "18:32",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster RWM & Brandgeruch",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "23:16",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Fahrbahn überflutet",
+   "street": "Nieburger Straße",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "22:31",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasser im Keller",
+   "street": "Hegebläch",
+   "district": "Herrenhausen",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "22:23",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "brennt Waschmaschine",
+   "street": "Franziusweg",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "22:07",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasser im Keller",
+   "street": "Kochstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "21:55",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasser im Keller",
+   "street": "Fössestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "21:44",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasser im Keller",
+   "street": "Mandelsloh Straße",
+   "district": "Herrenhausen",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "21:35",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasser im Büro",
+   "street": "Große Packhofstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "21:28",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasser im Keller",
+   "street": "Wittekindstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "21:20",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasserschaden",
+   "street": "Lampestraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "21:15",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasserschaden",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "21:10",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasser im Keller",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "21:09",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasserschaden",
+   "street": "Kochstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "20:59",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Wasser im Keller",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "20:59",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Feuerwehrhaus besetzen / Unwetterlage",
+   "street": "Teichstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-10",
+   "time": "19:02",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder, Rauch aus Fenster",
+   "street": "Laportestraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-09",
+   "time": "22:23",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster RWM & Brandgeruch",
+   "street": "Hagenstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-08",
+   "time": "03:31",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "ausgelöster Gefahrenmelder",
+   "street": "Feuerwehrstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-07",
+   "time": "21:02",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm, erneuter Anruf",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-07",
+   "time": "20:30",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Absicherung Fackelumzug",
+   "street": "Innenstadt",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-07",
+   "time": "20:30",
+   "category": "Einsatz",
+   "keyword": "erk",
+   "event": "BMA-Alarm",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-07",
+   "time": "19:54",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster RWM & Brandgeruch",
+   "street": "Arndtstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-07-01",
+   "time": "01:14",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Plinkestraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-30",
+   "time": "08:34",
+   "category": "Einsatz",
+   "keyword": "fr",
+   "event": "First Responder",
+   "street": "Schwarzer Bär",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-30",
+   "time": "08:00",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Absicherung Schützenausmarsch",
+   "street": "Innenstadt",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-28",
+   "time": "22:40",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Wilhelm-Bluhm-Straße",
+   "district": "Linden-Nord",
+   "remarks": "Paralleleinsatz"
+  },
+  {
+   "date": "2024-06-28",
+   "time": "20:06",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Otto-Wels-Straße",
+   "district": "Linden-Nord",
+   "remarks": "Paralleleinsatz"
+  },
+  {
+   "date": "2024-06-28",
+   "time": "19:55",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Dachstuhlbrand",
+   "street": "Grabbestraße",
+   "district": "Vahrenwald",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-26",
+   "time": "19:36",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "E-Call, schwerer Verkehrsunfall",
+   "street": "Lavesallee",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-26",
+   "time": "11:04",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gefahrstoffaustritt, 2 Verletzte",
+   "street": "Feodor-Lynen-Straße",
+   "district": "Groß-Buchholz",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-06-25",
+   "time": "19:46",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Davenstedter Straße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-25",
+   "time": "18:00",
+   "category": "Sonstiges",
+   "keyword": "",
+   "event": "Jahreshauptversammlung des Fördervereins",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-25",
+   "time": "15:15",
+   "category": "Einsatz",
+   "keyword": "erk",
+   "event": "Kampfmittelbeseitigung",
+   "street": "Zur Stadtgärtnerei",
+   "district": "Bothfeld",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-23",
+   "time": "22:07",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM & Rauchentwicklung",
+   "street": "Grotefendstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-22",
+   "time": "18:59",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauch aus Fenster, RWM piepen",
+   "street": "Ricklinger Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-19",
+   "time": "17:39",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Anforderung Material Dekon-G",
+   "street": "Friedrichswall",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-17",
+   "time": "21:12",
+   "category": "Einsatz",
+   "keyword": "bg1",
+   "event": "Gasaustritt im Gebäude",
+   "street": "Tonstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-15",
+   "time": "17:06",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Küchenbrand mit Menschengefährdung",
+   "street": "Röttgerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-15",
+   "time": "16:40",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Berliner Allee",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-15",
+   "time": "13:22",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Schwarzer Rauch aus Keller",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-05",
+   "time": "22:24",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Unklare Rauchentwicklung",
+   "street": "Bornumer Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-05",
+   "time": "07:58",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "CO2-Austritt im Keller",
+   "street": "Karmarschstraße",
+   "district": "Mitte",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-06-02",
+   "time": "19:10",
+   "category": "Einsatz",
+   "keyword": "b2 / öel",
+   "event": "Brand Personenzug",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-06-02",
+   "time": "05:29",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder -> Wohnungsbrand",
+   "street": "Theodor-Krüger-Straße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-31",
+   "time": "19:01",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Strousbergstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-29",
+   "time": "23:42",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Brand Trafo",
+   "street": "Trammplatz",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-24",
+   "time": "21:51",
+   "category": "Einsatz",
+   "keyword": "b3 / öel",
+   "event": "Wohnungsbrand Hochhaus",
+   "street": "Ihmepassage",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-24",
+   "time": "05:26",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Küchenbrand Seniorenwohnanlage",
+   "street": "Stärkestraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-18",
+   "time": "04:53",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Zimmerbrand",
+   "street": "Haasemannstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-17",
+   "time": "20:05",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Werkstattbrand",
+   "street": "Bauweg",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-10",
+   "time": "23:17",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Wachbesetzung",
+   "street": "Feuer- und Rettungswache 1",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-09",
+   "time": "19:20",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Celler Straße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-09",
+   "time": "17:11",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Godehardistraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-09",
+   "time": "15:19",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Gefahrenmelder",
+   "street": "Striehlstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-05-03",
+   "time": "22:25",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung im Kiosk",
+   "street": "Schwarzer Bär",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-26",
+   "time": "00:05",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster RWM & Brandgeruch",
+   "street": "Selmastraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-25",
+   "time": "17:37",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster RWM & Brandgeruch",
+   "street": "Körnerstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-24",
+   "time": "20:33",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-22",
+   "time": "00:21",
+   "category": "Einsatz",
+   "keyword": "bu1",
+   "event": "BMA, starke Rauchentwicklung",
+   "street": "Kröpcke [U]",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-21",
+   "time": "08:22",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Plinkestraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-12",
+   "time": "21:23",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "VU PKW, eingeklemmte Person",
+   "street": "Aegidientorplatz",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-06",
+   "time": "23:25",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Egestorffstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-06",
+   "time": "10:23",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Person droht zu springen",
+   "street": "Nikolaistraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-04",
+   "time": "23:54",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Deisterstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-04-01",
+   "time": "06:27",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Gewerbehalle in Vollbrand",
+   "street": "Masurenweg",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-31",
+   "time": "22:44",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "brennt Holzterasse",
+   "street": "Theodorstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-30",
+   "time": "23:16",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung im Innenhof",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-29",
+   "time": "23:02",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Kötnerholzweg",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-29",
+   "time": "14:28",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gefahrstoffaustritt aus LKW",
+   "street": "BAB 2 Langenhagen -> Bothfeld",
+   "district": "Bothfeld",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-03-29",
+   "time": "08:01",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Egestorffstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-25",
+   "time": "10:26",
+   "category": "Einsatz",
+   "keyword": "abc2",
+   "event": "Salpetersäure aus Güterwaggon",
+   "street": "Güterbahnhof Linden",
+   "district": "Linden-Süd",
+   "remarks": "FG Dekon und FG Spüren & Messen"
+  },
+  {
+   "date": "2024-03-19",
+   "time": "20:56",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Gefahrenmelder",
+   "street": "Volgersweg",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-17",
+   "time": "05:17",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Wielandstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-16",
+   "time": "22:53",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster RWM & Brandgeruch",
+   "street": "Hainhölzer Straße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-15",
+   "time": "18:03",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Wohnungsbrand",
+   "street": "Ahrbergstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-11",
+   "time": "19:52",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung aus Wohnung",
+   "street": "Brackebuschstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-10",
+   "time": "18:04",
+   "category": "Einsatz",
+   "keyword": "bu1",
+   "event": "Mülleimerbrand (unterirdisch)",
+   "street": "Kröpcke [U]",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-09",
+   "time": "19:00",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Ricklinger Straße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-03-09",
+   "time": "13:05",
+   "category": "Einsatz",
+   "keyword": "h",
+   "event": "Erkundung Wasserschaden",
+   "street": "Ihmeufer",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-02-23",
+   "time": "00:33",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "BMA-Alarm",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-02-21",
+   "time": "03:49",
+   "category": "Einsatz",
+   "keyword": "hw2",
+   "event": "Person im Wasser",
+   "street": "Leinertbrücke",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-02-21",
+   "time": "03:46",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster RWM & Brandgeruch",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-02-17",
+   "time": "10:33",
+   "category": "Einsatz",
+   "keyword": "hu1",
+   "event": "Person unter Betonteilen verschüttet",
+   "street": "Brüderstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-02-08",
+   "time": "19:10",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Falkenstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-02-02",
+   "time": "17:28",
+   "category": "Einsatz",
+   "keyword": "b2",
+   "event": "Kellerbrand",
+   "street": "Limmerstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-27",
+   "time": "00:24",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Escherstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-25",
+   "time": "00:32",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Ubbenstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-19",
+   "time": "01:42",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung",
+   "street": "Elisenstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-18",
+   "time": "04:32",
+   "category": "Einsatz",
+   "keyword": "fr",
+   "event": "Frist Responder",
+   "street": "Braunstraße",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-18",
+   "time": "04:03",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "E-PKW brennt am Gebäude",
+   "street": "Bhf. Glocksee",
+   "district": "Calenberger Neustadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-09",
+   "time": "22:04",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gasgeruch (nicht brennbar)",
+   "street": "Waldhausenstraße",
+   "district": "Waldhausen",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-01-09",
+   "time": "05:10",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Charlottenstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-08",
+   "time": "18:32",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gasgeruch (nicht brennbar)",
+   "street": "Wittinger Straße",
+   "district": "Misburg-Nord",
+   "remarks": "FG Dekon"
+  },
+  {
+   "date": "2024-01-06",
+   "time": "19:45",
+   "category": "Einsatz",
+   "keyword": "bi1",
+   "event": "PKW in Vollbrand",
+   "street": "Steigerthalstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-02",
+   "time": "17:32",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Ausgelöster Rauchwarnmelder",
+   "street": "Kirchstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "02:30",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Feuer am/im Gebäude",
+   "street": "Erderstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "02:24",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "PKW-Brand",
+   "street": "Elisenstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "01:34",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennen Kartons auf Pipeline",
+   "street": "Fröbelstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "01:24",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennt Feuerwerksbatterie",
+   "street": "Lister Kirchweg",
+   "district": "List",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "01:11",
+   "category": "Einsatz",
+   "keyword": "bi1",
+   "event": "PKW-Brand",
+   "street": "Engelbosteler Damm",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "00:57",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennende Möbel",
+   "street": "Am Kläperberg",
+   "district": "Nordstadt",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "00:54",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "brennende Container",
+   "street": "Gronostraße",
+   "district": "Oberricklingen",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "00:51",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Ihmeplatz",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "00:42",
+   "category": "Einsatz",
+   "keyword": "b",
+   "event": "Containerbrand",
+   "street": "Ihmeplatz",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "00:25",
+   "category": "Einsatz",
+   "keyword": "o",
+   "event": "BMA-Alarm",
+   "street": "Joachimstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "00:05",
+   "category": "Einsatz",
+   "keyword": "fr",
+   "event": "Frist Responder",
+   "street": "Lichtenbergplatz",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2024-01-01",
+   "time": "00:00",
+   "category": "Einsatz",
+   "keyword": "vs",
+   "event": "Wachbesetzung",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": "Silvesterbereitschaft"
+  }
+ ]
+}

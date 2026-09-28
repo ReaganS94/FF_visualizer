@@ -1,0 +1,32 @@
+name: Einsätze aktualisieren
+
+on:
+  schedule:
+    - cron: "15 4 * * *" # daily, 06:15 Hannover summer time
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch alarm list
+        run: python scraper/scrape.py
+      - name: Commit new alarms
+        run: |
+          # Only commit when rows changed, not just the timestamp.
+          if git diff --quiet -I '"updated"' -- docs/data/alarms.json; then
+            echo "No new alarms."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/alarms.json
+          git commit -m "Neue Einsätze $(date -u +%F)"
+          git push
