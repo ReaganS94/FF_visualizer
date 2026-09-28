@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FF Linden Einsatzstatistik</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>FF Linden Einsatzstatistik</h1>
+  <p class="sub">Daten aus der <a href="https://www.ff-linden.de/veranstaltungsliste/">Aktivitätenliste</a> · Stand <span id="updated">…</span></p>
+</header>
+
+<nav id="views" aria-label="Ansicht wählen">
+  <button data-view="overview" class="active">Übersicht</button>
+  <button data-view="calendar">Kalender</button>
+  <button data-view="hours">Tageszeit</button>
+  <button data-view="keywords">Stichworte</button>
+  <button data-view="districts">Stadtteile</button>
+  <button data-view="list">Liste</button>
+  <button data-view="chance">Einsatz heute?</button>
+</nav>
+
+<div id="filters">
+  <label>Jahr <select id="f-year"><option value="">Alle</option></select></label>
+  <label><input type="checkbox" id="f-standby"> Wachbesetzungen (vs) mitzählen</label>
+  <label><input type="checkbox" id="f-storm" checked> Großlagen mitzählen</label>
+</div>
+
+<main>
+  <section data-view="overview" class="active">
+    <div class="tiles" id="tiles"></div>
+    <h2>Einsätze pro Monat</h2>
+    <div class="chart" id="c-months"></div>
+  </section>
+
+  <section data-view="calendar">
+    <h2>Einsätze pro Tag</h2>
+    <div id="c-calendar"></div>
+  </section>
+
+  <section data-view="hours">
+    <h2>Wochentag × Uhrzeit</h2>
+    <p class="note">Einträge mit Platzhalter-Uhrzeit 00:00 an Großlage-Tagen sind hier ausgelassen, weil die echte Uhrzeit unbekannt ist.</p>
+    <div class="chart" id="c-heat"></div>
+    <h2>Nach Uhrzeit</h2>
+    <div class="chart" id="c-hours"></div>
+  </section>
+
+  <section data-view="keywords">
+    <h2>Häufigste Stichworte</h2>
+    <p class="note">Stichwort ohne Zusatz (z. B. „b3/manv10“ zählt als „b3“).</p>
+    <div class="chart" id="c-keywords"></div>
+  </section>
+
+  <section data-view="districts">
+    <h2>Einsätze nach Stadtteil</h2>
+    <div class="chart" id="c-districts"></div>
+  </section>
+
+  <section data-view="list">
+    <input type="search" id="q" placeholder="Suchen (Stichwort, Ereignis, Straße, Stadtteil)">
+    <p class="note" id="list-count"></p>
+    <div class="table-wrap"><table id="t-list">
+      <thead><tr><th>Datum</th><th>Zeit</th><th>Stichwort</th><th>Ereignis</th><th>Straße</th><th>Stadtteil</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section data-view="chance">
+    <div class="disclaimer"><strong>Nur eine Schätzung.</strong> Diese Zahl wird aus vergangenen Einsätzen berechnet und sagt nichts darüber, was heute wirklich passiert. Bitte nicht zur Planung oder Einsatzbereitschaft verwenden.</div>
+    <div class="tiles" id="chance"></div>
+    <p class="note" id="chance-method"></p>
+  </section>
+</main>
+
+<div id="tip" role="tooltip" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
