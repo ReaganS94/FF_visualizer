@@ -166,16 +166,6 @@ body > footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(-
 
 #c-map { height: min(70vh, 560px); border-radius: 10px; border: 1px solid var(--border); margin-top: 8px; }
 .leaflet-container { background: var(--empty); }
-#c-map3d { height: min(70vh, 560px); border-radius: 10px; border: 1px solid var(--border); margin-top: 8px; overflow: hidden; background: var(--empty); }
-#c-map3d[hidden] { display: none; }
-#map-mode { margin-top: 0; }
-/* the map library's own stylesheet loads later, so these name the container to win */
-#c-map3d .maplibregl-popup-content { background: var(--panel); color: var(--text); font: .85rem/1.4 system-ui, sans-serif; border-radius: 8px; padding: 8px 26px 8px 10px; }
-#c-map3d .maplibregl-popup-close-button { color: var(--text-2); font-size: 18px; }
-#c-map3d .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--panel); }
-#c-map3d .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--panel); }
-#c-map3d .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--panel); }
-#c-map3d .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--panel); }
 
 .replay { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin: 4px 0 10px; color: var(--text-2); font-size: .9rem; }
 .replay button {

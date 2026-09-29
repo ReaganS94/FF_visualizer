@@ -98,11 +98,6 @@
   <section data-view="map">
     <h2>Wo gab es die meisten Einsätze?</h2>
     <p class="note" id="map-note"></p>
-    <div class="seg" id="map-mode" role="group" aria-label="Kartenansicht">
-      <button type="button" data-mode="flat" class="active">Flach</button>
-      <button type="button" data-mode="3d">3D-Säulen</button>
-    </div>
-    <p class="note" id="map3d-note" hidden></p>
     <div class="replay">
       <button type="button" id="rp-play" class="primary">▶ Zeitraffer abspielen</button>
       <label>Tempo <select id="rp-speed">
@@ -114,11 +109,6 @@
       <button type="button" id="rp-reset" hidden>Zurück zur Übersicht</button>
     </div>
     <div id="c-map"></div>
-    <div id="c-map3d" hidden></div>
-    <div id="map3d-key" hidden>
-      <div class="legend">Einsätze pro Feld: <i style="background:var(--heat-1)"></i>1 <i style="background:var(--heat-2)"></i>2–3 <i style="background:var(--heat-3)"></i>4–7 <i style="background:var(--heat-4)"></i>8+</div>
-      <p class="note">Jede Säule ist ein Feld von etwa 260 m Breite. Je höher und dunkler, desto mehr Einsätze. Antippen zeigt die Straßen. Mit zwei Fingern (am Computer mit der rechten Maustaste) lässt sich die Karte drehen und kippen.</p>
-    </div>
   </section>
 
   <section data-view="weather">
@@ -182,11 +172,12 @@
     <div class="disclaimer" id="chance-weather" hidden></div>
     <p class="note" id="chance-method"></p>
     <h2>Wie gut lag die Schätzung bisher?</h2>
+    <p class="note" id="backtest-note"></p>
+    <p class="note" id="backtest-example"></p>
     <div class="table-wrap"><table id="t-backtest">
-      <thead><tr><th>Geschätzt</th><th>Anzahl Schätzungen</th><th>Tatsächlich mit Einsatz</th></tr></thead>
+      <thead><tr><th>Die Seite sagte</th><th>So oft</th><th>Davon wirklich mit Einsatz</th><th>Passt?</th></tr></thead>
       <tbody></tbody>
     </table></div>
-    <p class="note" id="backtest-note"></p>
   </section>
 </main>
 
