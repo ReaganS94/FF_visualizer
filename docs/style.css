@@ -119,8 +119,9 @@ td:nth-child(1), td:nth-child(2) { white-space: nowrap; font-variant-numeric: ta
   border: 1px solid var(--border); background: var(--panel); color: var(--text);
 }
 .print-only { display: none; }
+body > footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--border); }
 @media print {
-  header nav, nav, #filters, .year-head, #tip { display: none !important; }
+  header nav, nav, #filters, .year-head, #tip, body > footer { display: none !important; }
   .print-only { display: block; }
   body { max-width: none; background: #fff; }
 }
