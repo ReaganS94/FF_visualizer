@@ -268,6 +268,11 @@ function renderList(rows) {
 const MIN_DAYS = 20;
 const PRIOR = 10;
 const monthDist = (a, b) => Math.min(Math.abs(a - b), 12 - Math.abs(a - b));
+// Nights that are busy every year whatever the weekday (Silvester: 20 alarms in 2024, 14 in 2025).
+// They get no percentage: the page shows the same night of earlier years instead, and they are
+// left out when estimating ordinary nights.
+const SPECIAL_NIGHTS = { "12-31": ["Silvesternacht", "Silvesternächten"] };
+const specialNight = (iso) => SPECIAL_NIGHTS[iso.slice(5)];
 
 function alarmWindows() {
   const inDay = new Set(), inNight = new Set();
@@ -295,17 +300,19 @@ function estimate(target, first, last, win) {
   if (days.length < MIN_DAYS) { strict = false; days = pick(false); }
   // With only ~30 comparable days a single lucky week swings the result a lot, so blend in the
   // rate over all days (as if we had seen PRIOR extra average days). The backtest showed this helps.
-  let total = 0, totDay = 0, totNight = 0;
+  let total = 0, totDay = 0, totalNights = 0, totNight = 0;
   for (let d = first; d <= last; d = addDays(d, 1)) {
     const k = isoDate(d);
-    total++; totDay += win.inDay.has(k); totNight += win.inNight.has(k);
+    total++; totDay += win.inDay.has(k);
+    if (!specialNight(k)) { totalNights++; totNight += win.inNight.has(k); }
   }
-  const blend = (hits, base) => (days.length + PRIOR ? (hits + PRIOR * base) / (days.length + PRIOR) : 0);
+  const blend = (hits, n, base) => (n + PRIOR ? (hits + PRIOR * base) / (n + PRIOR) : 0);
+  const nights = days.filter((d) => !specialNight(d));
   const day = days.filter((d) => win.inDay.has(d)).length;
-  const night = days.filter((d) => win.inNight.has(d)).length;
+  const night = nights.filter((d) => win.inNight.has(d)).length;
   return {
-    strict, n: days.length, day, night,
-    pDay: blend(day, totDay / total), pNight: blend(night, totNight / total),
+    strict, n: days.length, nNight: nights.length, day, night,
+    pDay: blend(day, days.length, totDay / total), pNight: blend(night, nights.length, totNight / totalNights),
   };
 }
 
@@ -317,6 +324,7 @@ function backtest(first, last, win) {
     const e = estimate(t, first, addDays(t, -2), win);
     if (!e.n) continue;
     for (const [k, set, day] of [["day", win.inDay, isoDate(t)], ["night", win.inNight, isoDate(t)]]) {
+      if (k === "night" && specialNight(day)) continue; // the page shows no percentage for these
       const p = 100 * e[k === "day" ? "pDay" : "pNight"];
       const b = bins.find((b) => p >= b.lo && p < b.hi);
       b.n++; b.sum += p; if (set.has(day)) b.hit++;
@@ -339,15 +347,38 @@ function renderChance() {
   const scope = est.strict
     ? `${WEEKDAYS_LONG[weekday(today)]}e im ${MONTHS[(today.getMonth() + 11) % 12]}–${MONTHS[(today.getMonth() + 1) % 12]}`
     : `alle ${WEEKDAYS_LONG[weekday(today)]}e`;
-  $("#chance").innerHTML = [
-    ["Heute tagsüber", "06–22 Uhr", est.day, est.pDay],
-    ["Heute Nacht", "22–6 Uhr", est.night, est.pNight],
-  ].map(([l, w, k, p]) => `<div class="tile"><div class="l">${l} (${w})</div><div class="v">~${Math.round(100 * p)} %</div><div class="d">an ${k} von ${est.n} vergleichbaren Tagen gab es mindestens einen Einsatz</div></div>`).join("");
+  const tile = (l, w, v, d) => `<div class="tile"><div class="l">${l} (${w})</div><div class="v${/\d/.test(v) ? "" : " word"}">${v}</div><div class="d">${d}</div></div>`;
+  const special = specialNight(isoDate(today));
+  let nightTile = tile("Heute Nacht", "22–6 Uhr", `~${Math.round(100 * est.pNight)} %`,
+    `an ${est.night} von ${est.nNight} vergleichbaren Tagen gab es mindestens einen Einsatz`);
+  if (special) {
+    const [name, plural] = special;
+    // the same night in earlier years, if the data covers it completely
+    const past = [];
+    for (let y = first.getFullYear(); y < today.getFullYear(); y++) {
+      const d = new Date(y, today.getMonth(), today.getDate());
+      if (d < first || d > last) continue;
+      const k = isoDate(d), next = isoDate(addDays(d, 1));
+      const n = ALL.filter((r) => !r.standby && !r.timeUnknown &&
+        ((r.date === k && r.hour >= NIGHT_START) || (r.date === next && r.hour < DAY_START))).length;
+      past.push([y, n]);
+    }
+    const hits = past.filter(([, n]) => n > 0).length;
+    if (past.length) {
+      const which = hits === past.length ? (past.length === 1 ? "in der letzten" : past.length === 2 ? "in beiden bisherigen" : `in allen ${past.length} bisherigen`)
+        : `in ${hits} von ${past.length} bisherigen`;
+      nightTile = tile(`Heute: ${name}`, "22–6 Uhr", hits === past.length ? "sehr wahrscheinlich" : `${hits} von ${past.length}`,
+        `${which} ${past.length === 1 ? name : plural} gab es Einsätze (${past.map(([y, n]) => `${y}: ${n}`).join(", ")})`);
+    }
+  }
+  $("#chance").innerHTML = tile("Heute tagsüber", "06–22 Uhr", `~${Math.round(100 * est.pDay)} %`,
+    `an ${est.day} von ${est.n} vergleichbaren Tagen gab es mindestens einen Einsatz`) + nightTile;
   $("#chance-method").textContent =
+    (special ? `Die ${special[0]} wird nicht mit anderen Nächten verglichen, sondern nur mit derselben Nacht in den Vorjahren. ` : "") +
     `So wird gerechnet: Vergleichbare Tage sind ${scope} seit ${fmtDate(isoDate(first))}. ` +
     `Gezählt wird, an wie vielen davon im jeweiligen Zeitfenster mindestens ein Einsatz war. ` +
     `Weil das nur wenige Tage sind, wird der Wert etwas zum Durchschnitt aller Tage hin ausgeglichen ` +
-    `(so, als kämen ${PRIOR} durchschnittliche Tage dazu). Wachbesetzungen zählen nicht.`;
+    `(so, als kämen ${PRIOR} durchschnittliche Tage dazu). Wachbesetzungen zählen nicht, die Silvesternacht zählt nicht als vergleichbare Nacht.`;
 
   const w = WEATHER[isoDate(today)];
   const warn = w && (w.gust >= 60 || w.rain >= 20);
