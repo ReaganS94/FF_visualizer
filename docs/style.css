@@ -14,6 +14,7 @@
   --warn-border: #eda100;
   --heat-0: #fde2c4; --heat-1: #f9bd8f; --heat-2: #f08f5a; --heat-3: #d9542c; --heat-4: #a3160d;
   --band-day: #e9a100; --band-night: #2c3e78;
+  --dot-brand: #eb6834; --dot-hilfe: #2a78d6; --dot-unwetter: #1baf7a; --dot-other: #a8a7a1;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -32,6 +33,7 @@
     --warn-border: #c98500;
     --heat-0: #fde2c4; --heat-1: #f7b98a; --heat-2: #ee8d57; --heat-3: #de5f35; --heat-4: #c62d1f;
     --band-day: #f2b632; --band-night: #7d93dd;
+    --dot-brand: #d95926; --dot-hilfe: #3987e5; --dot-unwetter: #199e70; --dot-other: #6f6e69;
   }
 }
 :root[data-theme="dark"] {
@@ -50,6 +52,7 @@
   --warn-border: #c98500;
   --heat-0: #fde2c4; --heat-1: #f7b98a; --heat-2: #ee8d57; --heat-3: #de5f35; --heat-4: #c62d1f;
   --band-day: #f2b632; --band-night: #7d93dd;
+  --dot-brand: #d95926; --dot-hilfe: #3987e5; --dot-unwetter: #199e70; --dot-other: #6f6e69;
 }
 
 * { box-sizing: border-box; }
@@ -272,6 +275,43 @@ body.story-open { overflow: hidden; }
 @keyframes st-draw { from { stroke-dashoffset: 1; } }
 @keyframes st-fade { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .story *, .story-frame { animation: none !important; transition: none !important; } }
+
+/* ---------- Punktewand ---------- */
+.seg { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 8px; color: var(--text-2); font-size: .9rem; }
+.seg span { margin-right: 4px; }
+.seg button {
+  font: inherit; padding: 5px 12px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+.seg button.active { background: var(--text); color: var(--surface); border-color: var(--text); }
+.dots-legend { flex-wrap: wrap; gap: 4px 14px; margin-bottom: 8px; }
+.dots-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dots-legend i { border-radius: 50%; width: 11px; height: 11px; }
+#c-dots svg { width: 100%; height: auto; display: block; overflow: visible; }
+#c-dots text.count { fill: var(--text); font-size: 11px; font-weight: 600; }
+#c-dots text.muted { fill: var(--muted); font-size: 11px; }
+.dot {
+  stroke: transparent; stroke-width: 3; cursor: pointer;
+  transition: transform .9s cubic-bezier(.3, .7, .2, 1) var(--d, 0ms);
+}
+.dot.brand, .dots-legend .brand { fill: var(--dot-brand); background: var(--dot-brand); }
+.dot.hilfe, .dots-legend .hilfe { fill: var(--dot-hilfe); background: var(--dot-hilfe); }
+.dot.unwetter, .dots-legend .unwetter { fill: var(--dot-unwetter); background: var(--dot-unwetter); }
+.dot.other, .dots-legend .other { fill: var(--dot-other); background: var(--dot-other); }
+.dot:hover, .dot.on { stroke: var(--text); stroke-width: 2; }
+.dot-labels { animation: fade-in .6s ease-out; }
+@keyframes fade-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .dot { transition: none; } .dot-labels { animation: none; } }
+#dots-detail { min-height: 2.6em; }
+
+/* ---------- Jahresspirale ---------- */
+#c-spiral svg { display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; }
+#c-spiral .day-seg { stroke-width: .6; }
+#c-spiral .day-seg.unlisted { opacity: .45; }
+#c-spiral .day-seg:hover { stroke: var(--text); stroke-width: 1.5; }
+#c-spiral text.year-mark { fill: var(--text); font-size: 10.5px; font-weight: 700; }
+#c-spiral text.center { fill: var(--text); font-size: 15px; font-weight: 700; }
+#c-spiral .legend { justify-content: center; }
 
 .form { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 .form.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }

@@ -22,7 +22,9 @@
 
 <nav id="views" aria-label="Ansicht wählen">
   <button data-view="overview" class="active">Übersicht</button>
+  <button data-view="dots">Punktewand</button>
   <button data-view="calendar">Kalender</button>
+  <button data-view="spiral">Jahresspirale</button>
   <button data-view="hours">Tageszeit</button>
   <button data-view="keywords">Stichworte</button>
   <button data-view="districts">Stadtteile</button>
@@ -49,6 +51,27 @@
   <section data-view="calendar">
     <h2>Einsätze pro Tag</h2>
     <div id="c-calendar"></div>
+  </section>
+
+  <section data-view="dots">
+    <h2>Jeder Einsatz ein Punkt</h2>
+    <div class="seg" id="dots-by" role="group" aria-label="Gruppieren nach">
+      <span>Gruppieren nach</span>
+      <button type="button" data-by="month" class="active">Monat</button>
+      <button type="button" data-by="type">Einsatzart</button>
+      <button type="button" data-by="district">Stadtteil</button>
+      <button type="button" data-by="hour">Uhrzeit</button>
+    </div>
+    <div class="legend dots-legend"><span><i class="brand"></i>Brand</span><span><i class="hilfe"></i>Technische Hilfe</span><span><i class="unwetter"></i>Unwetter</span><span><i class="other"></i>Andere</span></div>
+    <div class="chart" id="c-dots"></div>
+    <p class="note" id="dots-detail" aria-live="polite"></p>
+    <p class="note">Grau sind Gas &amp; Gefahrstoffe, Rettungsdienst und Sonstiges. Monate zählen über alle gewählten Jahre zusammen. „?“ bei der Uhrzeit sind Einsätze einer Großlage, die ohne echte Uhrzeit eingetragen wurden.</p>
+  </section>
+
+  <section data-view="spiral">
+    <h2>Das Jahr als Spirale</h2>
+    <p class="note" id="spiral-note"></p>
+    <div class="chart" id="c-spiral"></div>
   </section>
 
   <section data-view="hours">
