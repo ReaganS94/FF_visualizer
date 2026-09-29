@@ -1,1 +1,14 @@
-{"rows": []}
+{
+ "rows": [
+  {
+   "date": "2026-09-14",
+   "time": "20:50",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "RWM piept",
+   "street": "Nordfelder Reihe",
+   "district": "Mitte",
+   "remarks": ""
+  }
+ ]
+}
