@@ -8,6 +8,7 @@ const DAY_START = 6;      // "tagsüber" = 06:00–21:59, "nachts" = 22:00–05:
 const NIGHT_START = 22;
 
 let ALL = [];             // cleaned alarms
+let KW = { groups: {}, codes: {} }; // keyword names, from data/keywords.json
 let UPDATED = new Date(); // when the data was last scraped
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -30,7 +31,11 @@ function clean(rows) {
     if (seen.has(k)) continue;
     seen.add(k);
     const base = r.keyword.split("/")[0].trim().toLowerCase() || "?";
-    out.push({ ...r, base, standby: base === "vs", hour: Number(r.time.slice(0, 2)) });
+    const info = KW.codes[base] || {};
+    out.push({
+      ...r, base, standby: base === "vs", hour: Number(r.time.slice(0, 2)),
+      name: info.name || base, group: KW.groups[info.group] || "Unbekannt",
+    });
   }
   const perDay = {};
   for (const r of out) if (!r.standby) perDay[r.date] = (perDay[r.date] || 0) + 1;
@@ -93,8 +98,8 @@ function columnChart(el, items, { height = 220 } = {}) {
 }
 
 // Horizontal ranked bars with the value at the end.
-function barList(el, items) {
-  const W = el.clientWidth || 1000, row = 26, L = Math.min(170, W * 0.38), R = 40;
+function barList(el, items, { labelWidth = 170 } = {}) {
+  const W = el.clientWidth || 1000, row = 26, L = Math.min(labelWidth, W * 0.5), R = 40;
   const H = items.length * row + 4;
   const max = Math.max(1, ...items.map((d) => d.value));
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
@@ -215,10 +220,14 @@ function topCounts(rows, key, n = 15) {
 }
 
 function renderKeywords(rows) {
+  barList($("#c-groups"), topCounts(rows, (r) => r.group).map(([g, list]) => {
+    const codes = topCounts(list, (r) => r.base, 4).map(([c, l]) => `${esc(c)} ${esc(l[0].name)} (${l.length})`).join("<br>");
+    return { label: g, value: list.length, tip: `<b>${esc(g)}</b> · ${list.length} Einsätze<br>${codes}` };
+  }));
   barList($("#c-keywords"), topCounts(rows, (r) => r.base).map(([k, list]) => {
     const events = topCounts(list, (r) => r.event, 3).map(([e, l]) => `${esc(e)} (${l.length})`).join("<br>");
-    return { label: k, value: list.length, tip: `<b>${esc(k)}</b> · ${list.length} Einsätze<br>${events}` };
-  }));
+    return { label: `${k} · ${list[0].name}`, value: list.length, tip: `<b>${esc(k)}</b> ${esc(list[0].name)} · ${list.length} Einsätze<br>${events}` };
+  }), { labelWidth: 330 });
 }
 
 function renderDistricts(rows) {
@@ -233,54 +242,147 @@ function renderList(rows) {
   const hits = q ? rows.filter((r) => [r.keyword, r.event, r.street, r.district, r.remarks].join(" ").toLowerCase().includes(q)) : rows;
   $("#list-count").textContent = `${hits.length} Einsätze`;
   $("#t-list tbody").innerHTML = hits.map((r) =>
-    `<tr><td>${fmtDate(r.date)}</td><td>${r.timeUnknown ? "?" : esc(r.time)}</td><td>${esc(r.keyword)}</td><td>${esc(r.event)}</td><td>${esc(r.street)}</td><td>${esc(r.district)}</td></tr>`).join("");
+    `<tr><td>${fmtDate(r.date)}</td><td>${r.timeUnknown ? "?" : esc(r.time)}</td><td title="${esc(r.name)}">${esc(r.keyword)}</td><td>${esc(r.event)}</td><td>${esc(r.street)}</td><td>${esc(r.district)}</td></tr>`).join("");
 }
 
 // ---------- "Einsatz heute?" ----------
 // Share of comparable past days (same weekday, month within ±1) that had at least one alarm
 // in the window. Deliberately simple so anyone can check it by hand.
-function renderChance() {
-  const alarms = ALL.filter((r) => !r.standby);
+const MIN_DAYS = 20;
+const PRIOR = 10;
+const monthDist = (a, b) => Math.min(Math.abs(a - b), 12 - Math.abs(a - b));
+
+function alarmWindows() {
   const inDay = new Set(), inNight = new Set();
-  for (const r of alarms) {
-    const d = parseDate(r.date);
+  for (const r of ALL) {
+    if (r.standby) continue;
     if (r.timeUnknown || (r.hour >= DAY_START && r.hour < NIGHT_START)) inDay.add(r.date);
     else if (r.hour >= NIGHT_START) inNight.add(r.date);
-    else inNight.add(isoDate(addDays(d, -1))); // 00:00–05:59 belongs to the previous evening's night
+    else inNight.add(isoDate(addDays(parseDate(r.date), -1))); // 00:00–05:59 belongs to the previous evening's night
   }
+  return { inDay, inNight };
+}
+
+// Uses only days from `first` to `last`, so the backtest can hide the future from itself.
+function estimate(target, first, last, win) {
+  const pick = (strict) => {
+    const days = [];
+    // walk back from `last` to the newest same weekday, then in weekly steps
+    let d = addDays(last, -((weekday(last) - weekday(target) + 7) % 7));
+    for (; d >= first; d = addDays(d, -7)) {
+      if (!strict || monthDist(d.getMonth(), target.getMonth()) <= 1) days.push(isoDate(d));
+    }
+    return days;
+  };
+  let strict = true, days = pick(true);
+  if (days.length < MIN_DAYS) { strict = false; days = pick(false); }
+  // With only ~30 comparable days a single lucky week swings the result a lot, so blend in the
+  // rate over all days (as if we had seen PRIOR extra average days). The backtest showed this helps.
+  let total = 0, totDay = 0, totNight = 0;
+  for (let d = first; d <= last; d = addDays(d, 1)) {
+    const k = isoDate(d);
+    total++; totDay += win.inDay.has(k); totNight += win.inNight.has(k);
+  }
+  const blend = (hits, base) => (days.length + PRIOR ? (hits + PRIOR * base) / (days.length + PRIOR) : 0);
+  const day = days.filter((d) => win.inDay.has(d)).length;
+  const night = days.filter((d) => win.inNight.has(d)).length;
+  return {
+    strict, n: days.length, day, night,
+    pDay: blend(day, totDay / total), pNight: blend(night, totNight / total),
+  };
+}
+
+// Would the page have been right? Replays the estimate for every past day using only older data.
+function backtest(first, last, win) {
+  const bins = [[0, 10], [10, 20], [20, 30], [30, 40], [40, 101]].map(([lo, hi]) => ({ lo, hi, n: 0, hit: 0, sum: 0 }));
+  let n = 0;
+  for (let t = addDays(first, 182); t <= last; t = addDays(t, 1)) {
+    const e = estimate(t, first, addDays(t, -2), win);
+    if (!e.n) continue;
+    for (const [k, set, day] of [["day", win.inDay, isoDate(t)], ["night", win.inNight, isoDate(t)]]) {
+      const p = 100 * e[k === "day" ? "pDay" : "pNight"];
+      const b = bins.find((b) => p >= b.lo && p < b.hi);
+      b.n++; b.sum += p; if (set.has(day)) b.hit++;
+      n++;
+    }
+  }
+  return { bins: bins.filter((b) => b.n), n };
+}
+
+function renderChance() {
+  const win = alarmWindows();
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const first = parseDate(alarms[alarms.length - 1].date);
+  const first = parseDate(ALL[ALL.length - 1].date);
   // Only count days the data fully covers: yesterday's night ends this morning, and days after the
   // last scrape would otherwise look alarm-free.
   const scraped = new Date(UPDATED); scraped.setHours(0, 0, 0, 0);
-  const lastComplete = addDays(scraped < today ? scraped : today, -2);
-  const monthDist = (a, b) => Math.min(Math.abs(a - b), 12 - Math.abs(a - b));
+  const last = addDays(scraped < today ? scraped : today, -2);
 
-  function estimate(strict) {
-    const days = [];
-    for (let d = first; d <= lastComplete; d = addDays(d, 1)) {
-      if (weekday(d) !== weekday(today)) continue;
-      if (strict && monthDist(d.getMonth(), today.getMonth()) > 1) continue;
-      days.push(isoDate(d));
-    }
-    return {
-      n: days.length,
-      day: days.filter((d) => inDay.has(d)).length,
-      night: days.filter((d) => inNight.has(d)).length,
-    };
-  }
-  let est = estimate(true), scope = `${WEEKDAYS_LONG[weekday(today)]}e im ${MONTHS[(today.getMonth() + 11) % 12]}–${MONTHS[(today.getMonth() + 1) % 12]}`;
-  if (est.n < 20) { est = estimate(false); scope = `alle ${WEEKDAYS_LONG[weekday(today)]}e`; }
-  const pct = (k) => (est.n ? Math.round((100 * k) / est.n) : 0);
-
+  const est = estimate(today, first, last, win);
+  const scope = est.strict
+    ? `${WEEKDAYS_LONG[weekday(today)]}e im ${MONTHS[(today.getMonth() + 11) % 12]}–${MONTHS[(today.getMonth() + 1) % 12]}`
+    : `alle ${WEEKDAYS_LONG[weekday(today)]}e`;
   $("#chance").innerHTML = [
-    ["Heute tagsüber", "06–22 Uhr", est.day],
-    ["Heute Nacht", "22–6 Uhr", est.night],
-  ].map(([l, w, k]) => `<div class="tile"><div class="l">${l} (${w})</div><div class="v">~${pct(k)} %</div><div class="d">an ${k} von ${est.n} vergleichbaren Tagen gab es mindestens einen Einsatz</div></div>`).join("");
+    ["Heute tagsüber", "06–22 Uhr", est.day, est.pDay],
+    ["Heute Nacht", "22–6 Uhr", est.night, est.pNight],
+  ].map(([l, w, k, p]) => `<div class="tile"><div class="l">${l} (${w})</div><div class="v">~${Math.round(100 * p)} %</div><div class="d">an ${k} von ${est.n} vergleichbaren Tagen gab es mindestens einen Einsatz</div></div>`).join("");
   $("#chance-method").textContent =
     `So wird gerechnet: Vergleichbare Tage sind ${scope} seit ${fmtDate(isoDate(first))}. ` +
     `Gezählt wird, an wie vielen davon im jeweiligen Zeitfenster mindestens ein Einsatz war. ` +
-    `Wachbesetzungen zählen nicht. Mit nur wenigen Jahren Daten schwankt diese Zahl stark.`;
+    `Weil das nur wenige Tage sind, wird der Wert etwas zum Durchschnitt aller Tage hin ausgeglichen ` +
+    `(so, als kämen ${PRIOR} durchschnittliche Tage dazu). Wachbesetzungen zählen nicht.`;
+
+  const bt = backtest(first, last, win);
+  $("#t-backtest tbody").innerHTML = bt.bins.map((b) =>
+    `<tr><td>${b.hi > 100 ? `ab ${b.lo}` : `${b.lo}–${b.hi}`} %</td><td>${b.n}</td><td>${Math.round((100 * b.hit) / b.n)} %</td></tr>`).join("");
+  $("#backtest-note").textContent =
+    `Für jeden Tag und jede Nacht ab ${fmtDate(isoDate(addDays(first, 182)))} wurde nachgerechnet, was die Seite ` +
+    `damals nur mit älteren Daten geschätzt hätte (${bt.n} Schätzungen). Eine gute Schätzung liegt in jeder Zeile ` +
+    `ungefähr im Bereich der linken Spalte.`;
+}
+
+// ---------- Jahresrückblick ----------
+// Keywords worth listing individually in the annual report.
+const NOTABLE = /^(b2|b3|ob|ba2|bg2|abc2|hm2|hm3|hw\d|hu\d|manv\d*)$/;
+
+function renderYear() {
+  const year = $("#y-year").value;
+  const alarms = ALL.filter((r) => !r.standby);
+  const rows = alarms.filter((r) => r.date.startsWith(year));
+  const prev = alarms.filter((r) => r.date.startsWith(String(year - 1)));
+  const lastDate = rows.length ? rows[0].date : "";
+  const partial = lastDate && lastDate < `${year}-12-01`;
+  // Compare a running year with the same period of the previous year.
+  const prevSame = partial ? prev.filter((r) => r.date.slice(5) <= lastDate.slice(5)) : prev;
+
+  const byDay = topCounts(rows, (r) => r.date, 1)[0];
+  const byMonth = topCounts(rows, (r) => r.date.slice(5, 7), 1)[0];
+  const known = rows.filter((r) => !r.timeUnknown);
+  const night = known.filter((r) => r.hour >= NIGHT_START || r.hour < DAY_START).length;
+  const delta = prevSame.length ? Math.round((100 * (rows.length - prevSame.length)) / prevSame.length) : null;
+  const tiles = [
+    ["Einsätze", rows.length, prevSame.length ? `${delta >= 0 ? "+" : ""}${delta} % gegenüber ${year - 1}${partial ? " (gleicher Zeitraum)" : ""}` : ""],
+    ["Stärkster Tag", byDay ? fmtDate(byDay[0]) : "–", byDay ? `${byDay[1].length} Einsätze` : ""],
+    ["Stärkster Monat", byMonth ? MONTHS[Number(byMonth[0]) - 1] : "–", byMonth ? `${byMonth[1].length} Einsätze` : ""],
+    ["Nachts", known.length ? Math.round((100 * night) / known.length) + " %" : "–", "zwischen 22 und 6 Uhr"],
+  ];
+  $("#y-tiles").innerHTML = tiles.map(([l, v, d]) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+  $("#y-partial").textContent = partial ? `Das Jahr ${year} läuft noch: Daten bis ${fmtDate(lastDate)}.` : "";
+
+  const months = Array(12).fill(0);
+  for (const r of rows) months[Number(r.date.slice(5, 7)) - 1]++;
+  columnChart($("#y-months"), months.map((n, m) => ({ value: n, tip: `${MONTHS[m]} ${year}: <b>${n}</b> Einsätze`, tick: MONTHS[m] })), { height: 180 });
+
+  const prevGroups = {};
+  for (const r of prevSame) prevGroups[r.group] = (prevGroups[r.group] || 0) + 1;
+  barList($("#y-groups"), topCounts(rows, (r) => r.group).map(([g, list]) => ({
+    label: g, value: list.length, tip: `<b>${esc(g)}</b>: ${list.length} Einsätze<br>${year - 1}${partial ? " (gleicher Zeitraum)" : ""}: ${prevGroups[g] || 0}`,
+  })));
+
+  const notable = rows.filter((r) => NOTABLE.test(r.base) || /presseportal/.test(r.remarks));
+  $("#y-notable tbody").innerHTML = notable.map((r) =>
+    `<tr><td>${fmtDate(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.event)}</td><td>${esc(r.street)}, ${esc(r.district)}</td></tr>`).join("")
+    || `<tr><td colspan="4">Keine</td></tr>`;
 }
 
 // ---------- wiring ----------
@@ -292,23 +394,27 @@ function render() {
   renderKeywords(rows);
   renderDistricts(rows);
   renderList(rows);
+  renderYear();
 }
 
 function showView(v) {
   document.querySelectorAll("[data-view]").forEach((el) => el.classList.toggle("active", el.dataset.view === v));
-  $("#filters").style.display = v === "chance" ? "none" : "";
+  $("#filters").style.display = v === "chance" || v === "year" ? "none" : "";
   try { localStorage.setItem("view", v); } catch {}
   if (ALL.length) render(); // hidden sections have no width, so draw charts once visible
 }
 
-fetch("data/alarms.json")
-  .then((r) => r.json())
-  .then((data) => {
+Promise.all(["data/alarms.json", "data/keywords.json"].map((u) => fetch(u).then((r) => r.json())))
+  .then(([data, kw]) => {
+    KW = kw;
     ALL = clean(data.rows);
     UPDATED = new Date(data.updated);
     $("#updated").textContent = new Date(data.updated).toLocaleDateString("de-DE");
     const years = [...new Set(ALL.map((r) => r.date.slice(0, 4)))].sort().reverse();
     $("#f-year").innerHTML += years.map((y) => `<option>${y}</option>`).join("");
+    $("#y-year").innerHTML = years.map((y) => `<option>${y}</option>`).join("");
+    $("#y-year").addEventListener("change", renderYear);
+    $("#y-print").addEventListener("click", () => window.print());
     document.querySelectorAll("#filters input, #filters select").forEach((el) => el.addEventListener("change", render));
     $("#q").addEventListener("input", () => renderList(selection()));
     document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => showView(b.dataset.view)));
