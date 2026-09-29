@@ -431,7 +431,7 @@ async function renderMap(rows) {
   }
   $("#map-note").textContent = Object.keys(GEO).length
     ? `${points.length} Einsätze auf der Karte. ${missing} ohne bekannte Adresse (z. B. Autobahn) fehlen.`
-    : "Die Adressen werden beim nächsten täglichen Update-Lauf nachgeschlagen, danach erscheint hier die Karte.";
+    : "Die Karte erscheint nach der nächsten täglichen Aktualisierung.";
   el.hidden = !points.length;
   if (!points.length || !el.offsetWidth) {
     // A heat layer on a hidden map has zero size and throws on redraw, so drop it until visible.
@@ -468,7 +468,7 @@ function renderWeather(rows, year, dropped) {
   const box = $("#c-weather");
   const days = Object.keys(WEATHER);
   if (!days.length) {
-    box.innerHTML = `<p class="note">Die Wetterdaten werden beim nächsten täglichen Update-Lauf geladen.</p>`;
+    box.innerHTML = `<p class="note">Die Wetterdaten erscheinen nach der nächsten täglichen Aktualisierung.</p>`;
     return;
   }
   const perDay = {};
