@@ -12,6 +12,9 @@ let KW = { groups: {}, codes: {} }; // keyword names, from data/keywords.json
 let GEO = {};             // "street|district" -> [lat, lon], from data/geo.json
 let WEATHER = {};         // "YYYY-MM-DD" -> {tmax, tmin, rain, gust}, from data/weather.json
 let UPDATED = new Date(); // when the data was last scraped
+// The website's list isn't always current (in September 2026 it stopped at 13.09. for weeks). Days
+// after its newest entry would look alarm-free, so counts of empty days end the day before it.
+let LISTED = new Date();  // newest date on the website's list
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -21,6 +24,8 @@ const isoDate = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStar
 const addDays = (dt, n) => new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() + n);
 const weekday = (dt) => (dt.getDay() + 6) % 7; // Monday = 0
 const fmtDate = (iso) => iso.split("-").reverse().join(".");
+const minDate = (a, b) => (a < b ? a : b);
+const listBehind = () => addDays(LISTED, 2) < UPDATED; // the website hasn't listed anything for days
 
 // ---------- load & clean ----------
 // The website writes "Straße"; entries typed by hand may say "Strasse" or "Str.". One spelling keeps
@@ -434,9 +439,9 @@ function renderChance() {
   const yesterday = addDays(today, -1);
   const first = parseDate(ALL[ALL.length - 1].date);
   // Only count days the data fully covers: yesterday's night ends this morning, and days after the
-  // last scrape would otherwise look alarm-free.
+  // last scrape or after the website's newest entry would otherwise look alarm-free.
   const scraped = new Date(UPDATED); scraped.setHours(0, 0, 0, 0);
-  const lastFor = (d) => addDays(scraped < d ? scraped : d, -2);
+  const lastFor = (d) => minDate(addDays(minDate(scraped, d), -2), addDays(LISTED, -1));
   const last = lastFor(today);
 
   const est = estimate(today, first, last, win);
@@ -469,10 +474,13 @@ function renderChance() {
     ? ["Diese Nacht", niY.v, "läuft noch"]
     : ["Letzte Nacht", niY.v, count(alarmsIn(iy, true))]);
   $("#t-yesterday tbody").innerHTML = rows.map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  $("#yesterday-listed").textContent = yesterday > LISTED
+    ? `Die Website hat bisher nur Einsätze bis ${fmtDate(isoDate(LISTED))} eingetragen. Hier zählen deshalb nur die von Hand nachgetragenen.`
+    : "";
 
   $("#chance-method").textContent =
     (ni.name ? `Die ${ni.name} wird nicht mit anderen Nächten verglichen, sondern nur mit derselben Nacht in den Vorjahren. ` : "") +
-    `So wird gerechnet: Vergleichbare Tage sind ${scope} seit ${fmtDate(isoDate(first))}. ` +
+    `So wird gerechnet: Vergleichbare Tage sind ${scope} vom ${fmtDate(isoDate(first))} bis ${fmtDate(isoDate(last))}. ` +
     `Gezählt wird, an wie vielen davon im jeweiligen Zeitfenster mindestens ein Einsatz war. ` +
     `Weil das nur wenige Tage sind, wird der Wert etwas zum Durchschnitt aller Tage hin ausgeglichen ` +
     `(so, als kämen ${PRIOR} durchschnittliche Tage dazu). Wachbesetzungen zählen nicht, die Silvesternacht zählt nicht als vergleichbare Nacht.`;
@@ -506,24 +514,32 @@ function renderYear() {
   const prev = alarms.filter((r) => r.date.startsWith(String(year - 1)));
   const lastDate = rows.length ? rows[0].date : "";
   const partial = lastDate && Number(year) >= new Date().getFullYear();
-  // Compare a running year with the same period of the previous year.
-  const prevSame = partial ? prev.filter((r) => r.date.slice(5) <= lastDate.slice(5)) : prev;
+  // Compare a running year with the same period of the previous year, and only up to the website's
+  // newest entry: later alarms exist only where they were entered by hand.
+  const listed = isoDate(LISTED);
+  const cutDate = partial ? minDate(lastDate, listed) : `${year}-12-31`;
+  const cut = cutDate.startsWith(year) ? cutDate.slice(5) : "";
+  const cmpRows = rows.filter((r) => r.date.slice(5) <= cut);
+  const prevSame = partial ? prev.filter((r) => r.date.slice(5) <= cut) : prev;
 
   const byDay = topCounts(rows, (r) => r.date, 1)[0];
   const byMonth = topCounts(rows, (r) => r.date.slice(5, 7), 1)[0];
   const known = rows.filter((r) => !r.timeUnknown);
   const night = known.filter((r) => r.hour >= NIGHT_START || r.hour < DAY_START).length;
-  const delta = prevSame.length ? Math.round((100 * (rows.length - prevSame.length)) / prevSame.length) : null;
+  const delta = prevSame.length && cut ? Math.round((100 * (cmpRows.length - prevSame.length)) / prevSame.length) : null;
+  const period = partial ? ` (jeweils bis ${fmtDate(cutDate).slice(0, 6)})` : "";
   const tiles = [
-    ["Einsätze", rows.length, prevSame.length ? `${delta >= 0 ? "+" : ""}${delta} % gegenüber ${year - 1}${partial ? " (gleicher Zeitraum)" : ""}` : ""],
+    ["Einsätze", rows.length, delta !== null ? `${delta >= 0 ? "+" : ""}${delta} % gegenüber ${year - 1}${period}` : ""],
     ["Stärkster Tag", byDay ? fmtDate(byDay[0]) : "–", byDay ? `${byDay[1].length} Einsätze` : ""],
     ["Stärkster Monat", byMonth ? MONTHS[Number(byMonth[0]) - 1] : "–", byMonth ? `${byMonth[1].length} Einsätze` : ""],
     ["Nachts", known.length ? Math.round((100 * night) / known.length) + " %" : "–", "zwischen 22 und 6 Uhr"],
   ];
   $("#y-tiles").innerHTML = tiles.map(([l, v, d]) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
-  $("#y-partial").textContent = partial ? `Das Jahr ${year} läuft noch: Daten bis ${fmtDate(lastDate)}.` : "";
+  const byHand = rows.filter((r) => r.date > listed).length;
+  $("#y-partial").textContent = !partial ? ""
+    : byHand ? `Das Jahr ${year} läuft noch. Die Website listet Einsätze bis ${fmtDate(listed)}, ${byHand} spätere ${byHand === 1 ? "ist" : "sind"} von Hand nachgetragen.`
+    : `Das Jahr ${year} läuft noch: Daten bis ${fmtDate(lastDate)}.`;
   // Named on screen and on the printout, so a reader knows whether the storm is in the numbers.
-  const cut = partial ? lastDate.slice(5) : "12-31";
   const inView = (r) => r.date.startsWith(year) || (r.date.startsWith(String(year - 1)) && r.date.slice(5) <= cut);
   const big = topCounts(ALL.filter((r) => !r.standby && r.bigDay && inView(r)), (r) => r.date)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -537,7 +553,7 @@ function renderYear() {
   const prevGroups = {};
   for (const r of prevSame) prevGroups[r.group] = (prevGroups[r.group] || 0) + 1;
   barList($("#y-groups"), topCounts(rows, (r) => r.group).map(([g, list]) => ({
-    label: g, value: list.length, tip: `<b>${esc(g)}</b>: ${list.length} Einsätze<br>${year - 1}${partial ? " (gleicher Zeitraum)" : ""}: ${prevGroups[g] || 0}`,
+    label: g, value: list.length, tip: `<b>${esc(g)}</b>: ${list.length} Einsätze<br>${year - 1}${partial ? ` bis ${fmtDate(cutDate).slice(0, 6)}` : ""}: ${prevGroups[g] || 0}`,
   })));
 
   const notable = rows.filter((r) => NOTABLE.test(r.base) || /presseportal/.test(r.remarks));
@@ -611,7 +627,7 @@ function renderWeather(rows, year, dropped) {
   const perDay = {};
   for (const r of rows) perDay[r.date] = (perDay[r.date] || 0) + 1;
   const first = rows.length ? rows[rows.length - 1].date : "";
-  const last = isoDate(addDays(UPDATED, -1));
+  const last = isoDate(minDate(addDays(UPDATED, -1), addDays(LISTED, -1)));
   // Only days the selection covers: the chosen year, and not the Großlage days that were filtered out
   // (they'd otherwise count as stormy days without alarms).
   const covered = days.filter((d) => d >= first && d <= last && (!year || d.startsWith(year)) && !dropped.has(d));
@@ -668,7 +684,14 @@ Promise.all([
     WEATHER = weather.days;
     ALL = clean(mergeManual(data.rows, manual.rows));
     UPDATED = new Date(data.updated);
+    // Only alarms: events (Veranstaltung) can be listed ahead of time.
+    const newest = data.rows.reduce((m, r) => (r.category === "Einsatz" && r.date > m ? r.date : m), "");
+    LISTED = newest ? parseDate(newest) : UPDATED;
     $("#updated").textContent = new Date(data.updated).toLocaleDateString("de-DE");
+    if (listBehind()) {
+      const byHand = ALL.some((r) => r.manual && parseDate(r.date) > LISTED);
+      $("#listed").textContent = ` · Die Website listet Einsätze bis ${fmtDate(newest)}${byHand ? ", neuere sind von Hand nachgetragen" : ""}.`;
+    }
     const years = [...new Set(ALL.map((r) => r.date.slice(0, 4)))].sort().reverse();
     $("#f-year").innerHTML += years.map((y) => `<option>${y}</option>`).join("");
     $("#y-year").innerHTML = years.map((y) => `<option>${y}</option>`).join("");

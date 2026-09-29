@@ -44,6 +44,9 @@ Settings → Pages → Build and deployment → "Deploy from a branch" → `main
 - "Strasse" and "Str." are shown as "Straße", so one street spelled two ways is grouped and found as one.
   Map positions stay stored under the original spelling; a new spelling falls back to the known one.
 - "vs" (Wachbesetzung, standby) is excluded unless the checkbox is ticked.
+- The website's list is sometimes weeks behind. Everything that counts days without alarms (estimate,
+  backtest, weather view, the Jahresrückblick comparison) stops at the day before its newest alarm, and the
+  page says how far the list reaches when it's more than two days behind.
 - A day with 10 or more alarms is a "Großlage" (e.g. the storm on 14.07.2026), except 01.01, which Silvester
   fills every year. The storm's rows were entered with the placeholder time 00:00, so they are left out of the
   time-of-day charts. The Jahresrückblick has its own "Großlagen mitzählen" checkbox and names the Großlage days.
