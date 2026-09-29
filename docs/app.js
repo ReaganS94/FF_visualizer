@@ -334,47 +334,135 @@ function backtest(first, last, win) {
   return { bins: bins.filter((b) => b.n), n };
 }
 
+// 24-hour ring: one segment per hour, darker = more alarms at that time of day since the data
+// starts. The centre shows the estimate for the window we're in, a pointer marks the current time.
+function drawRing() {
+  const m = chanceModel;
+  if (!m) return;
+  const hours = Array(24).fill(0);
+  for (const r of ALL) if (!r.standby && !r.timeUnknown) hours[r.hour]++;
+  const max = Math.max(1, ...hours);
+  const C = 190, R0 = 88, R1 = 138, RB = 146;
+  const pt = (deg, r) => { const a = ((deg - 90) * Math.PI) / 180; return [C + r * Math.cos(a), C + r * Math.sin(a)]; };
+  const f = (n) => n.toFixed(1);
+  const arc = (a0, a1, r0, r1) => {
+    const [x0, y0] = pt(a0, r1), [x1, y1] = pt(a1, r1), [x2, y2] = pt(a1, r0), [x3, y3] = pt(a0, r0);
+    const big = a1 - a0 > 180 ? 1 : 0;
+    return `M${f(x0)} ${f(y0)}A${r1} ${r1} 0 ${big} 1 ${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}A${r0} ${r0} 0 ${big} 0 ${f(x3)} ${f(y3)}Z`;
+  };
+  const since = m.first.getFullYear();
+  const now = new Date(), t = now.getHours() + now.getMinutes() / 60, a = t * 15;
+  const text = (x, y, str, cls = "", size = 11, anchor = "middle") =>
+    `<text x="${f(x)}" y="${f(y)}" text-anchor="${anchor}" style="font-size:${size}px" class="${cls}">${str}</text>`;
+  let s = `<svg viewBox="0 0 380 380" role="img" aria-label="Einsätze je Uhrzeit. ${esc(m.cur.label)}: ${esc(m.cur.v)}">`;
+  hours.forEach((n, h) => {
+    const step = Math.min(4, Math.floor((n / max) * 5));
+    s += `<path class="seg" d="${arc(h * 15, h * 15 + 15, R0, R1)}" fill="var(--heat-${step})" data-tip="${h}–${h + 1} Uhr: <b>${n}</b> Einsätze seit ${since}"/>`;
+  });
+  s += `<path d="${arc(DAY_START * 15, NIGHT_START * 15, RB, RB + 5)}" fill="var(--band-day)"/>`;
+  s += `<path d="${arc(NIGHT_START * 15, (24 + DAY_START) * 15, RB, RB + 5)}" fill="var(--band-night)"/>`;
+  for (const h of [0, 6, 12, 18]) { const [x, y] = pt(h * 15, R0 - 12); s += text(x, y + 4, String(h).padStart(2, "0"), "muted"); }
+  // "jetzt": a hand across the ring plus a marker outside it
+  const [nx0, ny0] = pt(a, R0 - 2), [nx1, ny1] = pt(a, R1 + 2);
+  const [tx, ty] = pt(a, RB + 7), [lx, ly] = pt(a - 5, RB + 20), [rx, ry] = pt(a + 5, RB + 20), [jx, jy] = pt(a, RB + 30);
+  s += `<line class="hand" x1="${f(nx0)}" y1="${f(ny0)}" x2="${f(nx1)}" y2="${f(ny1)}"/>`;
+  s += `<path class="hand-mark" d="M${f(tx)} ${f(ty)}L${f(lx)} ${f(ly)}L${f(rx)} ${f(ry)}Z"/>` + text(jx, jy + 4, "jetzt", "strong");
+  // centre
+  s += text(C, C - 30, esc(m.cur.label), "", 12);
+  if (/\d/.test(m.cur.v)) s += text(C, C + 12, esc(m.cur.v), "big", 34);
+  else m.cur.v.split(" ").forEach((w, i, all) => { s += text(C, C + 6 + (i - (all.length - 1) / 2) * 20, esc(w), "big", 16); });
+  if (m.other) s += text(C, C + 38, `${m.other.short}: ${esc(m.other.v)}`, "", 11);
+  $("#chance-ring").innerHTML = s + "</svg>";
+  $("#ring-legend").innerHTML = `<div class="legend">weniger ${[0, 1, 2, 3, 4].map((i) => `<i style="background:var(--heat-${i})"></i>`).join("")} mehr</div>` +
+    `<div class="legend"><i class="band" style="background:var(--band-day)"></i>Tag 06–22 <i class="band" style="background:var(--band-night)"></i>Nacht 22–06</div>` +
+    `<p class="note">Jedes Stück ist eine Stunde. Je dunkler, desto mehr Einsätze gab es seit ${since} zu dieser Uhrzeit.</p>`;
+}
+
+// Keep the "jetzt" hand moving; a new window (6 or 22 Uhr) or a new day needs the full update.
+setInterval(() => {
+  if (!chanceModel) return;
+  const now = new Date(), h = now.getHours();
+  const key = `${isoDate(now)}-${h >= DAY_START && h < NIGHT_START}`;
+  if (key !== chanceModel.key) renderChance(); else drawRing();
+}, 60 * 1000);
+
+// Alarms in a day (06–22) or night (22–06, into the next morning) window of `iso`.
+function alarmsIn(iso, night) {
+  const next = isoDate(addDays(parseDate(iso), 1));
+  return ALL.filter((r) => !r.standby && (night
+    ? !r.timeUnknown && ((r.date === iso && r.hour >= NIGHT_START) || (r.date === next && r.hour < DAY_START))
+    : r.date === iso && (r.timeUnknown || (r.hour >= DAY_START && r.hour < NIGHT_START)))).length;
+}
+
+// What the page says about the night of `date`: a percentage, or for a special night the same
+// night in earlier years.
+function nightInfo(date, est, first, last) {
+  const pct = { v: `~${Math.round(100 * est.pNight)} %`, d: `an ${est.night} von ${est.nNight} vergleichbaren Tagen gab es mindestens einen Einsatz` };
+  const special = specialNight(isoDate(date));
+  if (!special) return pct;
+  const [name, plural] = special;
+  const past = [];
+  for (let y = first.getFullYear(); y < date.getFullYear(); y++) {
+    const d = new Date(y, date.getMonth(), date.getDate());
+    if (d >= first && d <= last) past.push([y, alarmsIn(isoDate(d), true)]); // only nights the data fully covers
+  }
+  if (!past.length) return pct;
+  const hits = past.filter(([, n]) => n > 0).length;
+  const which = hits === past.length ? (past.length === 1 ? "in der letzten" : past.length === 2 ? "in beiden bisherigen" : `in allen ${past.length} bisherigen`)
+    : `in ${hits} von ${past.length} bisherigen`;
+  return {
+    name, v: hits === past.length ? "sehr wahrscheinlich" : `${hits} von ${past.length}`,
+    d: `${which} ${past.length === 1 ? name : plural} gab es Einsätze (${past.map(([y, n]) => `${y}: ${n}`).join(", ")})`,
+  };
+}
+
+let chanceModel = null;
+
 function renderChance() {
   const win = alarmWindows();
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const today = new Date(now); today.setHours(0, 0, 0, 0);
+  const yesterday = addDays(today, -1);
   const first = parseDate(ALL[ALL.length - 1].date);
   // Only count days the data fully covers: yesterday's night ends this morning, and days after the
   // last scrape would otherwise look alarm-free.
   const scraped = new Date(UPDATED); scraped.setHours(0, 0, 0, 0);
-  const last = addDays(scraped < today ? scraped : today, -2);
+  const lastFor = (d) => addDays(scraped < d ? scraped : d, -2);
+  const last = lastFor(today);
 
   const est = estimate(today, first, last, win);
+  const estY = estimate(yesterday, first, lastFor(yesterday), win); // what the page said yesterday
   const scope = est.strict
     ? `${WEEKDAYS_LONG[weekday(today)]}e im ${MONTHS[(today.getMonth() + 11) % 12]}–${MONTHS[(today.getMonth() + 1) % 12]}`
     : `alle ${WEEKDAYS_LONG[weekday(today)]}e`;
-  const tile = (l, w, v, d) => `<div class="tile"><div class="l">${l} (${w})</div><div class="v${/\d/.test(v) ? "" : " word"}">${v}</div><div class="d">${d}</div></div>`;
-  const special = specialNight(isoDate(today));
-  let nightTile = tile("Heute Nacht", "22–6 Uhr", `~${Math.round(100 * est.pNight)} %`,
-    `an ${est.night} von ${est.nNight} vergleichbaren Tagen gab es mindestens einen Einsatz`);
-  if (special) {
-    const [name, plural] = special;
-    // the same night in earlier years, if the data covers it completely
-    const past = [];
-    for (let y = first.getFullYear(); y < today.getFullYear(); y++) {
-      const d = new Date(y, today.getMonth(), today.getDate());
-      if (d < first || d > last) continue;
-      const k = isoDate(d), next = isoDate(addDays(d, 1));
-      const n = ALL.filter((r) => !r.standby && !r.timeUnknown &&
-        ((r.date === k && r.hour >= NIGHT_START) || (r.date === next && r.hour < DAY_START))).length;
-      past.push([y, n]);
-    }
-    const hits = past.filter(([, n]) => n > 0).length;
-    if (past.length) {
-      const which = hits === past.length ? (past.length === 1 ? "in der letzten" : past.length === 2 ? "in beiden bisherigen" : `in allen ${past.length} bisherigen`)
-        : `in ${hits} von ${past.length} bisherigen`;
-      nightTile = tile(`Heute: ${name}`, "22–6 Uhr", hits === past.length ? "sehr wahrscheinlich" : `${hits} von ${past.length}`,
-        `${which} ${past.length === 1 ? name : plural} gab es Einsätze (${past.map(([y, n]) => `${y}: ${n}`).join(", ")})`);
-    }
-  }
-  $("#chance").innerHTML = tile("Heute tagsüber", "06–22 Uhr", `~${Math.round(100 * est.pDay)} %`,
-    `an ${est.day} von ${est.n} vergleichbaren Tagen gab es mindestens einen Einsatz`) + nightTile;
+  const day = { short: "Tag", label: "Heute tagsüber", time: "06–22 Uhr", v: `~${Math.round(100 * est.pDay)} %`, d: `an ${est.day} von ${est.n} vergleichbaren Tagen gab es mindestens einen Einsatz` };
+  const ni = nightInfo(today, est, first, last);
+  const night = { short: "Nacht", label: ni.name ? `Heute: ${ni.name}` : "Heute Nacht", time: "22–6 Uhr", v: ni.v, d: ni.d };
+  const niY = nightInfo(yesterday, estY, first, lastFor(yesterday));
+  const running = { short: "Nacht", label: niY.name ? `Diese ${niY.name}` : "Diese Nacht", time: "seit 22 Uhr", v: niY.v, d: niY.d };
+
+  // The window we're in right now: before 6 it's still last night.
+  const h = now.getHours();
+  const cur = h < DAY_START ? running : h < NIGHT_START ? day : night;
+  const other = h < DAY_START ? day : h < NIGHT_START ? night : null;
+  chanceModel = { key: `${isoDate(today)}-${cur === day}`, cur, other, first };
+  drawRing();
+
+  const tile = (w, active) => `<div class="tile${active ? " now" : ""}"><div class="l">${w.label} (${w.time})${active ? " · jetzt" : ""}</div>` +
+    `<div class="v${/\d/.test(w.v) ? "" : " word"}">${w.v}</div><div class="d">${w.d}</div></div>`;
+  $("#chance").innerHTML = tile(day, cur === day) + tile(night, cur === night);
+
+  // Yesterday: what the page estimated against what has been entered since.
+  const count = (n) => (n ? `${n} ${n === 1 ? "Einsatz" : "Einsätze"}` : "keiner");
+  const iy = isoDate(yesterday);
+  const rows = [["Gestern tagsüber", `~${Math.round(100 * estY.pDay)} %`, count(alarmsIn(iy, false))]];
+  rows.push(h < DAY_START
+    ? ["Diese Nacht", niY.v, "läuft noch"]
+    : ["Letzte Nacht", niY.v, count(alarmsIn(iy, true))]);
+  $("#t-yesterday tbody").innerHTML = rows.map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+
   $("#chance-method").textContent =
-    (special ? `Die ${special[0]} wird nicht mit anderen Nächten verglichen, sondern nur mit derselben Nacht in den Vorjahren. ` : "") +
+    (ni.name ? `Die ${ni.name} wird nicht mit anderen Nächten verglichen, sondern nur mit derselben Nacht in den Vorjahren. ` : "") +
     `So wird gerechnet: Vergleichbare Tage sind ${scope} seit ${fmtDate(isoDate(first))}. ` +
     `Gezählt wird, an wie vielen davon im jeweiligen Zeitfenster mindestens ein Einsatz war. ` +
     `Weil das nur wenige Tage sind, wird der Wert etwas zum Durchschnitt aller Tage hin ausgeglichen ` +

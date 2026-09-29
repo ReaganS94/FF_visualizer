@@ -50,6 +50,11 @@ Comparable days are past days with the same weekday within one month of today's 
 same weekdays if there are fewer than 20). The page shows the share of those days that had at least
 one alarm during the day (06–22) and at night (22–06). It is a rough guess, not a forecast.
 
+The page shows the estimate for the current window in the middle of a 24-hour ring. Each hour of the
+ring is shaded by how many alarms happened at that time of day since the data starts, and a hand
+marks the current time. Below the tiles, a small table compares yesterday's day and night estimate
+with the alarms entered since. One day proves nothing either way; the backtest table is the real check.
+
 Silvester night (31.12., 22–06) is busy every year (20 alarms in 2024, 14 in 2025), so it gets no
 percentage. On 31.12. the page shows how many alarms the same night had in earlier years, and that
 night is left out when estimating ordinary nights and in the backtest. More such nights can be
