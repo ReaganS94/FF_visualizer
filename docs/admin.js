@@ -38,8 +38,10 @@ function encode(text) {
   return btoa(bin);
 }
 
+// GitHub lets browsers keep this answer for a minute. Without "no-store" a second change within that
+// minute starts from the old list and GitHub rejects it ("does not match <sha>").
 async function readManual() {
-  const file = await gh(`/contents/${FILE}?ref=main`);
+  const file = await gh(`/contents/${FILE}?ref=main`, { cache: "no-store" });
   return { sha: file.sha, rows: JSON.parse(decode(file.content)).rows };
 }
 
@@ -49,6 +51,7 @@ async function updateManual(change, message) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const { sha, rows } = await readManual();
     const next = change(rows).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+    if (JSON.stringify(next) === JSON.stringify(rows)) return next; // e.g. entry already deleted: no empty commit
     try {
       await gh(`/contents/${FILE}`, {
         method: "PUT",
@@ -56,7 +59,9 @@ async function updateManual(change, message) {
       });
       return next;
     } catch (e) {
-      if (e.status !== 409 || attempt === 2) throw e;
+      if (e.status !== 409) throw e;
+      if (attempt === 2) throw new Error("Die Liste wurde gerade woanders geändert. Bitte die Seite neu laden und noch einmal versuchen.");
+      await new Promise((r) => setTimeout(r, 1000));
     }
   }
 }
