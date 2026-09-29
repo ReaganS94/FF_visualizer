@@ -124,3 +124,23 @@ td:nth-child(1), td:nth-child(2) { white-space: nowrap; font-variant-numeric: ta
   .print-only { display: block; }
   body { max-width: none; background: #fff; }
 }
+
+#c-map { height: min(70vh, 560px); border-radius: 10px; border: 1px solid var(--border); margin-top: 8px; }
+.leaflet-container { background: var(--empty); }
+
+.form { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.form.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.form label { display: flex; flex-direction: column; gap: 4px; color: var(--text-2); font-size: .88rem; }
+.form .wide { grid-column: 1 / -1; }
+.form input {
+  font: inherit; padding: 7px 9px; border-radius: 6px; min-width: 0;
+  border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+#f-login input { flex: 1 1 260px; }
+.form button {
+  font: inherit; padding: 7px 16px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--text); background: var(--text); color: var(--surface);
+}
+.form button:disabled { opacity: .5; cursor: wait; }
+.msg { min-height: 1.4em; color: var(--text-2); }
+button.link { font: inherit; background: none; border: none; padding: 0; color: var(--series); cursor: pointer; text-decoration: underline; }

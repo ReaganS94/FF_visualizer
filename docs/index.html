@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FF Linden Einsatzstatistik</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,6 +19,8 @@
   <button data-view="hours">Tageszeit</button>
   <button data-view="keywords">Stichworte</button>
   <button data-view="districts">Stadtteile</button>
+  <button data-view="map">Karte</button>
+  <button data-view="weather">Wetter</button>
   <button data-view="list">Liste</button>
   <button data-view="year">Jahresrückblick</button>
   <button data-view="chance">Einsatz heute?</button>
@@ -62,6 +65,17 @@
     <div class="chart" id="c-districts"></div>
   </section>
 
+  <section data-view="map">
+    <h2>Wo gab es die meisten Einsätze?</h2>
+    <p class="note" id="map-note"></p>
+    <div id="c-map"></div>
+  </section>
+
+  <section data-view="weather">
+    <p class="note">Durchschnittliche Einsätze pro Tag, je nach Wetter in Hannover (Daten: Open-Meteo). Wenige Tage in einer Zeile bedeuten eine unsichere Zahl.</p>
+    <div id="c-weather"></div>
+  </section>
+
   <section data-view="list">
     <input type="search" id="q" placeholder="Suchen (Stichwort, Ereignis, Straße, Stadtteil)">
     <p class="note" id="list-count"></p>
@@ -94,6 +108,7 @@
   <section data-view="chance">
     <div class="disclaimer"><strong>Nur eine Schätzung.</strong> Diese Zahl wird aus vergangenen Einsätzen berechnet und sagt nichts darüber, was heute wirklich passiert. Bitte nicht zur Planung oder Einsatzbereitschaft verwenden.</div>
     <div class="tiles" id="chance"></div>
+    <div class="disclaimer" id="chance-weather" hidden></div>
     <p class="note" id="chance-method"></p>
     <h2>Wie gut lag die Schätzung bisher?</h2>
     <div class="table-wrap"><table id="t-backtest">

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>FF Linden Admin</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Einsatz nachtragen</h1>
+  <p class="sub">Einträge hier erscheinen sofort in der Statistik, bis die Aktivitätenliste denselben Einsatz zeigt. Danach zählt nur noch der Eintrag von der Website. · <a href="./">Zur Statistik</a></p>
+</header>
+
+<section id="login">
+  <h2>Anmelden</h2>
+  <p class="note">Zum Speichern braucht diese Seite einen GitHub-Schlüssel (Fine-grained Personal Access Token), der nur auf dieses Repository schreiben darf. Er bleibt nur in diesem Browser gespeichert.</p>
+  <ol class="note">
+    <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Neuen Token anlegen</a>.</li>
+    <li>Repository access: „Only select repositories“ → <b>FF_visualizer</b>.</li>
+    <li>Permissions → Repository permissions → <b>Contents: Read and write</b>. Sonst nichts.</li>
+    <li>Token erzeugen, kopieren und hier einfügen.</li>
+  </ol>
+  <form id="f-login" class="form">
+    <input type="password" id="token" placeholder="github_pat_…" autocomplete="off" required>
+    <button type="submit">Anmelden</button>
+  </form>
+  <p class="msg" id="login-msg"></p>
+</section>
+
+<section id="editor">
+  <form id="f-alarm" class="form grid">
+    <label>Datum <input type="date" name="date" required></label>
+    <label>Uhrzeit <input type="time" name="time" required></label>
+    <label>Stichwort <input name="keyword" list="kw-list" placeholder="z. B. b1" required autocomplete="off"></label>
+    <label class="wide">Ereignis <input name="event" placeholder="z. B. Rauchwarnmelder" required></label>
+    <label>Straße <input name="street" required></label>
+    <label>Stadtteil <input name="district" list="district-list" required autocomplete="off"></label>
+    <label class="wide">Bemerkungen <input name="remarks"></label>
+    <div class="wide"><button type="submit" id="save">Speichern</button></div>
+  </form>
+  <datalist id="kw-list"></datalist>
+  <datalist id="district-list"></datalist>
+  <p class="msg" id="save-msg"></p>
+
+  <h2>Nachgetragene Einsätze</h2>
+  <div class="table-wrap"><table id="t-manual">
+    <thead><tr><th>Datum</th><th>Zeit</th><th>Stichwort</th><th>Ereignis</th><th>Ort</th><th>Status</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <p class="note"><button type="button" id="logout" class="link">Abmelden</button> (entfernt den Schlüssel aus diesem Browser)</p>
+</section>
+
+<script src="admin.js"></script>
+</body>
+</html>

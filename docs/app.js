@@ -9,6 +9,8 @@ const NIGHT_START = 22;
 
 let ALL = [];             // cleaned alarms
 let KW = { groups: {}, codes: {} }; // keyword names, from data/keywords.json
+let GEO = {};             // "street|district" -> [lat, lon], from data/geo.json
+let WEATHER = {};         // "YYYY-MM-DD" -> {tmax, tmin, rain, gust}, from data/weather.json
 let UPDATED = new Date(); // when the data was last scraped
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -21,6 +23,17 @@ const weekday = (dt) => (dt.getDay() + 6) % 7; // Monday = 0
 const fmtDate = (iso) => iso.split("-").reverse().join(".");
 
 // ---------- load & clean ----------
+// A manual entry (admin page) is dropped once the website lists the same alarm: same day and
+// keyword, time within an hour. Until then it fills the gap.
+function mergeManual(scraped, manual) {
+  const minutes = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const base = (k) => k.split("/")[0].trim().toLowerCase();
+  const pending = manual.filter((m) => !scraped.some((r) =>
+    r.date === m.date && base(r.keyword) === base(m.keyword) && Math.abs(minutes(r.time) - minutes(m.time)) <= 60));
+  return [...scraped, ...pending.map((m) => ({ ...m, manual: true }))]
+    .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+}
+
 function clean(rows) {
   const seen = new Set();
   const out = [];
@@ -107,7 +120,7 @@ function barList(el, items, { labelWidth = 170 } = {}) {
     const y = i * row + 4, w = ((W - L - R) * d.value) / max;
     s += `<text x="${L - 8}" y="${y + 15}" text-anchor="end">${esc(d.label)}</text>`;
     s += `<path class="bar" d="${roundRight(L, y + 3, w, row - 8, 4)}"/>`;
-    s += `<text x="${L + w + 6}" y="${y + 15}">${d.value}</text>`;
+    s += `<text x="${L + w + 6}" y="${y + 15}">${d.display ?? d.value}</text>`;
     s += `<rect class="hit" x="0" y="${y}" width="${W}" height="${row}" data-tip="${esc(d.tip)}"/>`;
   });
   el.innerHTML = s + "</svg>";
@@ -332,6 +345,14 @@ function renderChance() {
     `Weil das nur wenige Tage sind, wird der Wert etwas zum Durchschnitt aller Tage hin ausgeglichen ` +
     `(so, als kämen ${PRIOR} durchschnittliche Tage dazu). Wachbesetzungen zählen nicht.`;
 
+  const w = WEATHER[isoDate(today)];
+  const warn = w && (w.gust >= 60 || w.rain >= 20);
+  $("#chance-weather").hidden = !warn;
+  if (warn) {
+    $("#chance-weather").textContent = `Wetter heute laut Vorhersage: Böen bis ${Math.round(w.gust)} km/h, ${w.rain.toFixed(1).replace(".", ",")} mm Regen. ` +
+      `Bei solchem Wetter gab es bisher deutlich mehr Einsätze als sonst (siehe Ansicht „Wetter“). Die Zahlen oben berücksichtigen das nicht.`;
+  }
+
   const bt = backtest(first, last, win);
   $("#t-backtest tbody").innerHTML = bt.bins.map((b) =>
     `<tr><td>${b.hi > 100 ? `ab ${b.lo}` : `${b.lo}–${b.hi}`} %</td><td>${b.n}</td><td>${Math.round((100 * b.hit) / b.n)} %</td></tr>`).join("");
@@ -385,6 +406,86 @@ function renderYear() {
     || `<tr><td colspan="4">Keine</td></tr>`;
 }
 
+// ---------- Karte ----------
+let map, heat;
+
+function loadScript(src) {
+  return new Promise((ok, fail) => {
+    const s = document.createElement("script");
+    s.src = src; s.onload = ok; s.onerror = fail;
+    document.head.appendChild(s);
+  });
+}
+
+async function renderMap(rows) {
+  const el = $("#c-map");
+  const points = [];
+  let missing = 0;
+  for (const r of rows) {
+    const p = GEO[`${r.street}|${r.district}`];
+    if (p) points.push([p[0], p[1], 1]); else missing++;
+  }
+  $("#map-note").textContent = Object.keys(GEO).length
+    ? `${points.length} Einsätze auf der Karte. ${missing} ohne bekannte Adresse (z. B. Autobahn) fehlen.`
+    : "Die Adressen werden beim nächsten täglichen Update-Lauf nachgeschlagen, danach erscheint hier die Karte.";
+  el.hidden = !points.length;
+  if (!points.length || !el.offsetWidth) {
+    // A heat layer on a hidden map has zero size and throws on redraw, so drop it until visible.
+    if (heat) { map.removeLayer(heat); heat = null; }
+    return;
+  }
+  if (!window.L) {
+    await loadScript("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js");
+    await loadScript("https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js");
+  }
+  if (!map) {
+    map = L.map(el).setView([52.37, 9.73], 13);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+  }
+  map.invalidateSize();
+  if (heat) map.removeLayer(heat);
+  // One warm hue from faint to strong; brighter = more alarms nearby.
+  heat = L.heatLayer(points, {
+    radius: 22, blur: 18, minOpacity: 0.25, max: 4,
+    gradient: { 0.2: "#fde2c4", 0.45: "#f7a35c", 0.7: "#e4572e", 1: "#a3160d" },
+  }).addTo(map);
+}
+
+// ---------- Wetter ----------
+const WEATHER_BUCKETS = [
+  ["Windböen", "gust", [[0, 40, "unter 40 km/h"], [40, 60, "40–60 km/h"], [60, 80, "60–80 km/h"], [80, 999, "ab 80 km/h"]]],
+  ["Niederschlag", "rain", [[0, 0.1, "trocken"], [0.1, 5, "bis 5 mm"], [5, 20, "5–20 mm"], [20, 999, "über 20 mm"]]],
+  ["Höchsttemperatur", "tmax", [[-99, 0, "unter 0 °C"], [0, 10, "0–10 °C"], [10, 20, "10–20 °C"], [20, 30, "20–30 °C"], [30, 99, "ab 30 °C"]]],
+];
+
+function renderWeather(rows) {
+  const box = $("#c-weather");
+  const days = Object.keys(WEATHER);
+  if (!days.length) {
+    box.innerHTML = `<p class="note">Die Wetterdaten werden beim nächsten täglichen Update-Lauf geladen.</p>`;
+    return;
+  }
+  const perDay = {};
+  for (const r of rows) perDay[r.date] = (perDay[r.date] || 0) + 1;
+  const first = rows.length ? rows[rows.length - 1].date : "";
+  const last = isoDate(addDays(UPDATED, -1));
+  const covered = days.filter((d) => d >= first && d <= last);
+  box.innerHTML = WEATHER_BUCKETS.map(([title, , ], i) => `<h2>${title}</h2><div class="chart" id="c-weather-${i}"></div>`).join("");
+  WEATHER_BUCKETS.forEach(([title, field, buckets], i) => {
+    barList($(`#c-weather-${i}`), buckets.map(([lo, hi, label]) => {
+      const ds = covered.filter((d) => WEATHER[d][field] >= lo && WEATHER[d][field] < hi);
+      const n = ds.reduce((a, d) => a + (perDay[d] || 0), 0);
+      const avg = ds.length ? n / ds.length : 0;
+      return {
+        label, value: Math.round(avg * 100) / 100, display: ds.length ? avg.toFixed(2).replace(".", ",") : "keine Tage",
+        tip: `<b>${label}</b><br>${ds.length} Tage, ${n} Einsätze<br>Ø ${avg.toFixed(2).replace(".", ",")} pro Tag`,
+      };
+    }));
+  });
+}
+
 // ---------- wiring ----------
 function render() {
   const rows = selection();
@@ -395,6 +496,8 @@ function render() {
   renderDistricts(rows);
   renderList(rows);
   renderYear();
+  renderMap(rows);
+  renderWeather(rows.filter((r) => !r.standby));
 }
 
 function showView(v) {
@@ -404,10 +507,17 @@ function showView(v) {
   if (ALL.length) render(); // hidden sections have no width, so draw charts once visible
 }
 
-Promise.all(["data/alarms.json", "data/keywords.json"].map((u) => fetch(u).then((r) => r.json())))
-  .then(([data, kw]) => {
+const getJSON = (u, fallback) => fetch(u).then((r) => (r.ok ? r.json() : fallback)).catch(() => fallback);
+
+Promise.all([
+  getJSON("data/alarms.json"), getJSON("data/keywords.json", KW), getJSON("data/manual.json", { rows: [] }),
+  getJSON("data/geo.json", {}), getJSON("data/weather.json", { days: {} }),
+])
+  .then(([data, kw, manual, geo, weather]) => {
     KW = kw;
-    ALL = clean(data.rows);
+    GEO = geo;
+    WEATHER = weather.days;
+    ALL = clean(mergeManual(data.rows, manual.rows));
     UPDATED = new Date(data.updated);
     $("#updated").textContent = new Date(data.updated).toLocaleDateString("de-DE");
     const years = [...new Set(ALL.map((r) => r.date.slice(0, 4)))].sort().reverse();
