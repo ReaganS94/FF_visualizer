@@ -38,6 +38,7 @@
   "r":      { "name": "Rettungsdienst", "group": "rettung" },
   "r,n":    { "name": "Rettungsdienst mit Notarzt", "group": "rettung" },
   "manv10": { "name": "MANV (bis 10 Verletzte)", "group": "rettung" },
+  "manv öel": { "name": "MANV, örtliche Einsatzleitung (LNA + OrgL)", "group": "rettung" },
   "manv50": { "name": "MANV (bis 50 Verletzte)", "group": "rettung" },
   "erk":    { "name": "Erkundung / Kampfmittel", "group": "sonstiges" },
   "vs":     { "name": "Wachbesetzung / Bereitschaft", "group": "sonstiges" }
