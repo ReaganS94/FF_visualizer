@@ -25,11 +25,15 @@ const fmtDate = (iso) => iso.split("-").reverse().join(".");
 // ---------- load & clean ----------
 // A manual entry (admin page) is dropped once the website lists the same alarm: same day and
 // keyword, time within an hour. Until then it fills the gap.
-function mergeManual(scraped, manual) {
-  const minutes = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+function sameAlarm(a, b) {
+  // compare full timestamps so 23:50 and 00:10 the next day still match
+  const at = (r) => new Date(`${r.date}T${r.time}`).getTime();
   const base = (k) => k.split("/")[0].trim().toLowerCase();
-  const pending = manual.filter((m) => !scraped.some((r) =>
-    r.date === m.date && base(r.keyword) === base(m.keyword) && Math.abs(minutes(r.time) - minutes(m.time)) <= 60));
+  return base(a.keyword) === base(b.keyword) && Math.abs(at(a) - at(b)) <= 60 * 60 * 1000;
+}
+
+function mergeManual(scraped, manual) {
+  const pending = manual.filter((m) => !scraped.some((r) => sameAlarm(r, m)));
   return [...scraped, ...pending.map((m) => ({ ...m, manual: true }))]
     .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
 }
@@ -195,7 +199,7 @@ function renderCalendar(rows) {
       const tipText = `<b>${fmtDate(isoDate(d))}</b> · ${list.length} Einsätze` +
         list.slice(0, 6).map((r) => `<br>${esc(r.time)} ${esc(r.keyword)} – ${esc(r.event)}`).join("") +
         (list.length > 6 ? `<br>… und ${list.length - 6} weitere` : "");
-      s += `<rect class="cell" x="${L + col * (C + G)}" y="${T + row * (C + G)}" width="${C}" height="${C}" rx="3" fill="${colors[bin(list.length)]}" data-tip="${tipText}"/>`;
+      s += `<rect class="cell" x="${L + col * (C + G)}" y="${T + row * (C + G)}" width="${C}" height="${C}" rx="3" fill="${colors[bin(list.length)]}" data-tip="${esc(tipText)}"/>`;
     }
     html += `<div class="year-label">${y}</div>${s}</svg>`;
   }
@@ -372,7 +376,7 @@ function renderYear() {
   const rows = alarms.filter((r) => r.date.startsWith(year));
   const prev = alarms.filter((r) => r.date.startsWith(String(year - 1)));
   const lastDate = rows.length ? rows[0].date : "";
-  const partial = lastDate && lastDate < `${year}-12-01`;
+  const partial = lastDate && Number(year) >= new Date().getFullYear();
   // Compare a running year with the same period of the previous year.
   const prevSame = partial ? prev.filter((r) => r.date.slice(5) <= lastDate.slice(5)) : prev;
 
@@ -460,7 +464,7 @@ const WEATHER_BUCKETS = [
   ["Höchsttemperatur", "tmax", [[-99, 0, "unter 0 °C"], [0, 10, "0–10 °C"], [10, 20, "10–20 °C"], [20, 30, "20–30 °C"], [30, 99, "ab 30 °C"]]],
 ];
 
-function renderWeather(rows) {
+function renderWeather(rows, year, dropped) {
   const box = $("#c-weather");
   const days = Object.keys(WEATHER);
   if (!days.length) {
@@ -471,7 +475,9 @@ function renderWeather(rows) {
   for (const r of rows) perDay[r.date] = (perDay[r.date] || 0) + 1;
   const first = rows.length ? rows[rows.length - 1].date : "";
   const last = isoDate(addDays(UPDATED, -1));
-  const covered = days.filter((d) => d >= first && d <= last);
+  // Only days the selection covers: the chosen year, and not the Großlage days that were filtered out
+  // (they'd otherwise count as stormy days without alarms).
+  const covered = days.filter((d) => d >= first && d <= last && (!year || d.startsWith(year)) && !dropped.has(d));
   box.innerHTML = WEATHER_BUCKETS.map(([title, , ], i) => `<h2>${title}</h2><div class="chart" id="c-weather-${i}"></div>`).join("");
   WEATHER_BUCKETS.forEach(([title, field, buckets], i) => {
     barList($(`#c-weather-${i}`), buckets.map(([lo, hi, label]) => {
@@ -497,7 +503,8 @@ function render() {
   renderList(rows);
   renderYear();
   renderMap(rows);
-  renderWeather(rows.filter((r) => !r.standby));
+  const dropped = new Set($("#f-storm").checked ? [] : ALL.filter((r) => r.bigDay).map((r) => r.date));
+  renderWeather(rows.filter((r) => !r.standby), $("#f-year").value, dropped);
 }
 
 function showView(v) {
@@ -507,7 +514,8 @@ function showView(v) {
   if (ALL.length) render(); // hidden sections have no width, so draw charts once visible
 }
 
-const getJSON = (u, fallback) => fetch(u).then((r) => (r.ok ? r.json() : fallback)).catch(() => fallback);
+// GitHub Pages lets browsers cache files for 10 minutes; "no-cache" revalidates so new alarms show promptly.
+const getJSON = (u, fallback) => fetch(u, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : fallback)).catch(() => fallback);
 
 Promise.all([
   getJSON("data/alarms.json"), getJSON("data/keywords.json", KW), getJSON("data/manual.json", { rows: [] }),
