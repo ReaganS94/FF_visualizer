@@ -114,7 +114,21 @@
 
   <section data-view="chance">
     <div class="disclaimer"><strong>Nur eine Schätzung.</strong> Diese Zahl wird aus vergangenen Einsätzen berechnet und sagt nichts darüber, was heute wirklich passiert. Bitte nicht zur Planung oder Einsatzbereitschaft verwenden.</div>
-    <div class="tiles" id="chance"></div>
+    <div class="chance-grid">
+      <div>
+        <div id="chance-ring"></div>
+        <div id="ring-legend"></div>
+      </div>
+      <div>
+        <div class="tiles" id="chance"></div>
+        <h2>Gestern</h2>
+        <div class="table-wrap"><table id="t-yesterday">
+          <thead><tr><th>Zeitfenster</th><th>Geschätzt</th><th>Eingetragen</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <p class="note">Ein einzelner Tag sagt wenig darüber, ob die Schätzung stimmt. Das zeigt erst die Tabelle ganz unten.</p>
+      </div>
+    </div>
     <div class="disclaimer" id="chance-weather" hidden></div>
     <p class="note" id="chance-method"></p>
     <h2>Wie gut lag die Schätzung bisher?</h2>
