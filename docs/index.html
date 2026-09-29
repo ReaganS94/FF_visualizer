@@ -106,12 +106,16 @@
     <div class="year-head">
       <label>Jahr <select id="y-year"></select></label>
       <label><input type="checkbox" id="y-storm" checked> Großlagen mitzählen</label>
+      <button id="y-story" type="button" class="primary">▶ Das Jahr als Story</button>
       <button id="y-print" type="button">Drucken / als PDF speichern</button>
     </div>
     <h2 class="print-only">FF Linden Jahresrückblick</h2>
     <p class="note" id="y-partial"></p>
     <p class="note" id="y-storm-note"></p>
     <div class="tiles" id="y-tiles"></div>
+    <h2>Jahresvergleich</h2>
+    <p class="note" id="y-race-note"></p>
+    <div class="chart" id="y-race"></div>
     <h2>Einsätze pro Monat</h2>
     <div class="chart" id="y-months"></div>
     <h2>Nach Einsatzart</h2>
@@ -154,6 +158,18 @@
 </main>
 
 <footer class="note" id="admin-link" hidden><a href="admin.html">Einsatz nachtragen</a></footer>
+
+<div id="story" class="story" hidden role="dialog" aria-modal="true" aria-label="Das Jahr als Story">
+  <div class="story-stage">
+    <button type="button" class="story-nav prev" id="story-prev" aria-label="Zurück">‹</button>
+    <div class="story-frame" id="story-frame">
+      <div class="story-bar" id="story-bar"></div>
+      <button type="button" class="story-close" id="story-close" aria-label="Schließen">×</button>
+      <div class="story-card" id="story-card" aria-live="polite"></div>
+    </div>
+    <button type="button" class="story-nav next" id="story-next" aria-label="Weiter">›</button>
+  </div>
+</div>
 
 <div id="tip" role="tooltip" hidden></div>
 <script src="app.js"></script>
