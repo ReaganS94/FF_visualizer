@@ -75,6 +75,16 @@
   <section data-view="map">
     <h2>Wo gab es die meisten Einsätze?</h2>
     <p class="note" id="map-note"></p>
+    <div class="replay">
+      <button type="button" id="rp-play" class="primary">▶ Zeitraffer abspielen</button>
+      <label>Tempo <select id="rp-speed">
+        <option value="7">langsam (1 Woche pro Sekunde)</option>
+        <option value="30" selected>normal (1 Monat pro Sekunde)</option>
+        <option value="91">schnell (1 Quartal pro Sekunde)</option>
+      </select></label>
+      <input type="range" id="rp-pos" min="0" max="0" value="0" aria-label="Datum im Zeitraffer">
+      <button type="button" id="rp-reset" hidden>Zurück zur Übersicht</button>
+    </div>
     <div id="c-map"></div>
   </section>
 
