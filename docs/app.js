@@ -545,6 +545,10 @@ function showView(v) {
   if (ALL.length) render(); // hidden sections have no width, so draw charts once visible
 }
 
+// The admin link only shows in a browser that is signed in on the admin page (same site, so the
+// saved key is visible here). Everyone else never sees it.
+try { $("#admin-link").hidden = !localStorage.getItem("gh-token"); } catch {}
+
 // GitHub Pages lets browsers cache files for 10 minutes; "no-cache" revalidates so new alarms show promptly.
 const getJSON = (u, fallback) => fetch(u, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : fallback)).catch(() => fallback);
 
