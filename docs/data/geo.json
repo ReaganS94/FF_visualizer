@@ -104,13 +104,22 @@
 52.3763,
 9.72819
 ],
-"Berhard-Caspar-Straße|Linden-Mitte": null,
+"Berhard-Caspar-Straße|Linden-Mitte": [
+52.36527,
+9.7015
+],
 "Berliner Allee|Mitte": [
 52.37033,
 9.75258
 ],
-"BerlinerA/MarienS|Mitte": null,
-"Bethlehemplatz|Linden-Mitte": null,
+"BerlinerA/MarienS|Mitte": [
+52.36957,
+9.75165
+],
+"Bethlehemplatz|Linden-Mitte": [
+52.37299,
+9.70234
+],
 "Beuthener Straße|Mittelfeld": [
 52.33323,
 9.78725
@@ -205,7 +214,10 @@
 ],
 "Culenmannstraße|Mitte": null,
 "DB HBF -> Ri Norden|Mitte": null,
-"DB Höhe Herschelstraße|Mitte": null,
+"DB Höhe Herschelstraße|Mitte": [
+52.38104,
+9.73434
+],
 "Davenstedter Straße|Linden-Mitte": [
 52.36588,
 9.69764
@@ -242,7 +254,10 @@
 9.71574
 ],
 "Elisabeth-Grainer-Straße|List": null,
-"Elisenstraße|Linden-Mitte": null,
+"Elisenstraße|Linden-Mitte": [
+52.37211,
+9.71389
+],
 "Elisenstraße|Linden-Nord": [
 52.37321,
 9.7107
@@ -316,7 +331,10 @@
 52.37789,
 9.72062
 ],
-"Fliegerstraße|Oststadt": null,
+"Fliegerstraße|Oststadt": [
+52.41313,
+9.73698
+],
 "Fortunastraße|Linden-Nord": [
 52.37112,
 9.70891
@@ -407,7 +425,10 @@
 52.37441,
 9.72875
 ],
-"Goshorner Damm|Vinnhorst": null,
+"Goshorner Damm|Vinnhorst": [
+52.42403,
+9.69872
+],
 "Gr. Packhofstraße|Mitte": [
 52.37533,
 9.73812
@@ -444,12 +465,18 @@
 52.3981,
 9.7524
 ],
-"Gustav-Bradtke-Allee|Calenberger Neustadt": null,
+"Gustav-Bradtke-Allee|Calenberger Neustadt": [
+52.36844,
+9.72312
+],
 "Gustav-Bratke-Allee|Calenberger Neustadt": [
 52.36758,
 9.72518
 ],
-"Guts-Muts-Straße|Vahrenwald": null,
+"Guts-Muts-Straße|Vahrenwald": [
+52.39695,
+9.7266
+],
 "Göhrdestraße|Vahrenwald": [
 52.38845,
 9.7363
@@ -467,7 +494,10 @@
 52.36979,
 9.71334
 ],
-"Haasemannstraße|Linden-Nord": null,
+"Haasemannstraße|Linden-Nord": [
+52.36979,
+9.71334
+],
 "Hagenstraße|Mitte": [
 52.38242,
 9.73577
@@ -521,20 +551,35 @@
 52.37415,
 9.73665
 ],
-"Hengstmannstraße|Linden-Nord": null,
+"Hengstmannstraße|Linden-Nord": [
+52.3606,
+9.72052
+],
 "Hengstmannstraße|Linden-Süd": [
 52.3606,
 9.72052
 ],
-"Hennigestraße|Linden-Nord": null,
+"Hennigestraße|Linden-Nord": [
+52.37638,
+9.70561
+],
 "Herbartstraße|Linden-Nord": [
 52.37786,
 9.7063
 ],
 "Herrschelstraße|Mitte": null,
-"HinüberS/Schiffgraben|Mitte": null,
-"Hinüberstraße|Oststadt": null,
-"Hohe Straße|Linden-Süd": null,
+"HinüberS/Schiffgraben|Mitte": [
+52.3751,
+9.74827
+],
+"Hinüberstraße|Oststadt": [
+52.3751,
+9.74827
+],
+"Hohe Straße|Linden-Süd": [
+52.36703,
+9.71803
+],
 "Hohenzollernstraße|Oststadt": [
 52.37786,
 9.7531
@@ -567,7 +612,10 @@
 52.35721,
 9.66372
 ],
-"Im Heidkamp|Bothfeld": null,
+"Im Heidkamp|Bothfeld": [
+52.42253,
+9.81335
+],
 "Inge-Machts-Weg|Calenberger Neustadt": [
 52.35575,
 9.7322
@@ -667,7 +715,10 @@
 52.37869,
 9.72641
 ],
-"KötnerholzW/VelbertS|Linden-Nord": null,
+"KötnerholzW/VelbertS|Linden-Nord": [
+52.37121,
+9.7063
+],
 "Kötnerholzweg|Linden-Mitte": [
 52.36997,
 9.706
@@ -712,7 +763,10 @@
 52.37433,
 9.74499
 ],
-"Leinertbrücke|Linden-Mitte": null,
+"Leinertbrücke|Linden-Mitte": [
+52.37284,
+9.71689
+],
 "Leinewehr|Calenberger Neustadt": null,
 "Leinstraße|Mitte": [
 52.37106,
@@ -806,7 +860,10 @@
 52.36867,
 9.71643
 ],
-"Moltkeplatz (Bus)|List": null,
+"Moltkeplatz (Bus)|List": [
+52.39264,
+9.74575
+],
 "Münzstraße|Mitte": [
 52.3756,
 9.73153
@@ -815,8 +872,14 @@
 52.37399,
 9.70924
 ],
-"Nieburger Straße|Nordstadt": null,
-"NieschlagS/WittekindS|Linden-Mitte": null,
+"Nieburger Straße|Nordstadt": [
+52.38802,
+9.70896
+],
+"NieschlagS/WittekindS|Linden-Mitte": [
+52.36946,
+9.70714
+],
 "Nieschlagstraße|Linden-Mitte": [
 52.36946,
 9.70714
@@ -829,7 +892,10 @@
 52.37192,
 9.70165
 ],
-"Noltestraße|Linden-Süd": null,
+"Noltestraße|Linden-Süd": [
+52.37192,
+9.70165
+],
 "Nordfelder Reihe|Mitte": [
 52.38149,
 9.73198
@@ -903,9 +969,18 @@
 52.36648,
 9.71964
 ],
-"RicklingerS/HaspelmathS|Linden-Süd": null,
-"Ritter-Brühning-Str.|Linden-Süd": null,
-"Ritter-Brühning-Straße|Linden-Süd": null,
+"RicklingerS/HaspelmathS|Linden-Süd": [
+52.36058,
+9.71892
+],
+"Ritter-Brühning-Str.|Linden-Süd": [
+52.35626,
+9.72187
+],
+"Ritter-Brühning-Straße|Linden-Süd": [
+52.35626,
+9.72187
+],
 "Ritter-Brüning-Straße|Linden-Süd": [
 52.35617,
 9.7227
@@ -986,7 +1061,10 @@
 52.38071,
 9.74803
 ],
-"Seifeldstraße|Linden-Mitte": null,
+"Seifeldstraße|Linden-Mitte": [
+52.36348,
+9.71863
+],
 "Seilwinderstraße|Mitte": [
 52.37259,
 9.7362
@@ -1005,8 +1083,14 @@
 52.35889,
 9.72718
 ],
-"Steigerthalstraße|Linden-Nord": null,
-"Steintor [U] Ri. Nordstadt|Mitte": null,
+"Steigerthalstraße|Linden-Nord": [
+52.37649,
+9.69965
+],
+"Steintor [U] Ri. Nordstadt|Mitte": [
+52.37587,
+9.73257
+],
 "Steintor [U]|Mitte": [
 52.37601,
 9.73268
@@ -1027,7 +1111,10 @@
 52.37735,
 9.73034
 ],
-"Strandleben (Ihme)|Calenberger Neustadt": null,
+"Strandleben (Ihme)|Calenberger Neustadt": [
+52.3772,
+9.71325
+],
 "Strandleben|Calenberger Neustadt": [
 52.3772,
 9.71325
@@ -1052,7 +1139,10 @@
 52.36801,
 9.7114
 ],
-"Teichstraße|Linden-Süd": null,
+"Teichstraße|Linden-Süd": [
+52.36801,
+9.7114
+],
 "Theodor-Krüger-Straße|Calenberger Neustadt": [
 52.37508,
 9.71826
@@ -1073,7 +1163,10 @@
 52.36694,
 9.7383
 ],
-"TürkStr./ArndtStr.|Nordstadt": null,
+"TürkStr./ArndtStr.|Nordstadt": [
+52.38204,
+9.72783
+],
 "Ubbenstraße|Mitte": [
 52.37157,
 9.74895
