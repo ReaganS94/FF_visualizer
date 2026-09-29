@@ -136,6 +136,13 @@ function sameAlarm(a, b) {
   return base(a.keyword) === base(b.keyword) && Math.abs(at(a) - at(b)) <= 60 * 60 * 1000;
 }
 const onWebsite = (m) => scraped.some((r) => sameAlarm(r, m));
+// The website lists alarms in order, so once it shows a later one, this one should be there too.
+// If it isn't, the website probably wrote it with another keyword or time and it would count twice.
+const at = (r) => new Date(`${r.date}T${r.time}`).getTime();
+const toCheck = (m) => {
+  const newest = Math.max(0, ...scraped.filter((r) => r.category === "Einsatz").map(at));
+  return !onWebsite(m) && at(m) < newest;
+};
 // One hand entry, identified by the fields a person would notice
 const sameEntry = (a, b) => a.date === b.date && a.time === b.time && a.keyword === b.keyword && a.street === b.street;
 const manualRows = () => JSON.parse($("#t-manual").dataset.rows || "[]");
@@ -162,11 +169,12 @@ function renderManual(rows) {
   $("#t-manual tbody").innerHTML = rows.map((r, i) => `<tr>
     <td>${fmtDate(r.date)}</td><td>${esc(r.time)}</td><td>${esc(r.keyword)}</td><td>${esc(r.event)}</td>
     <td>${esc(r.street)}, ${esc(r.district)}</td>
-    <td>${onWebsite(r) ? "auf der Website" : "nur hier"}</td>
+    <td>${onWebsite(r) ? "auf der Website" : toCheck(r) ? '<span class="tag">bitte prüfen</span>' : "nur hier"}</td>
     <td class="actions"><button type="button" class="link" data-edit="${i}">Bearbeiten</button>
       <button type="button" class="link" data-del="${i}">Löschen</button></td></tr>`).join("")
     || `<tr><td colspan="7">Noch keine.</td></tr>`;
   $("#t-manual").dataset.rows = JSON.stringify(rows);
+  $("#check-note").hidden = !rows.some(toCheck);
 }
 
 $("#t-manual").addEventListener("click", async (e) => {

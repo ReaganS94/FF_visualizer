@@ -28,6 +28,10 @@ within an hour of it, so nothing is counted twice.
 The street field suggests the spellings the website uses, and "Strasse" or "Str." is saved as "Straße".
 Entries can be edited in place (one commit). Before saving, the page asks for confirmation if the same keyword
 within an hour is already on the website or among the hand entries.
+Each entry's status is "auf der Website" once matched, "nur hier" while the website hasn't reached it, and
+"bitte prüfen" when the website already lists later alarms but none matching this one (probably written with
+another keyword or time; then it would count twice). On the statistics page, the list tags hand entries that
+aren't matched yet as "vorläufig".
 
 ## Jahresrückblick
 
