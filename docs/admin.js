@@ -128,11 +128,34 @@ async function loadEditor() {
   }
 }
 
-// Same rule as the statistics page: the website's entry replaces ours once it appears.
-function onWebsite(m) {
+// Same rule as the statistics page: the website's entry replaces ours once it appears. It also
+// flags a probable double entry before saving.
+function sameAlarm(a, b) {
   const at = (r) => new Date(`${r.date}T${r.time}`).getTime();
   const base = (k) => k.split("/")[0].trim().toLowerCase();
-  return scraped.some((r) => base(r.keyword) === base(m.keyword) && Math.abs(at(r) - at(m)) <= 60 * 60 * 1000);
+  return base(a.keyword) === base(b.keyword) && Math.abs(at(a) - at(b)) <= 60 * 60 * 1000;
+}
+const onWebsite = (m) => scraped.some((r) => sameAlarm(r, m));
+// One hand entry, identified by the fields a person would notice
+const sameEntry = (a, b) => a.date === b.date && a.time === b.time && a.keyword === b.keyword && a.street === b.street;
+const manualRows = () => JSON.parse($("#t-manual").dataset.rows || "[]");
+
+let editing = null; // the hand entry being changed, or null when adding
+
+function setEditing(row) {
+  editing = row;
+  const f = $("#f-alarm");
+  $("#save").textContent = row ? "Änderung speichern" : "Speichern";
+  $("#cancel-edit").hidden = !row;
+  if (row) {
+    for (const k of ["date", "time", "keyword", "event", "street", "district", "remarks"]) f[k].value = row[k] || "";
+    $("#save-msg").textContent = `Eintrag vom ${fmtDate(row.date)} ${row.time} wird bearbeitet.`;
+    f.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function clearForm() {
+  for (const k of ["keyword", "event", "street", "district", "remarks"]) $("#f-alarm")[k].value = "";
 }
 
 function renderManual(rows) {
@@ -140,24 +163,42 @@ function renderManual(rows) {
     <td>${fmtDate(r.date)}</td><td>${esc(r.time)}</td><td>${esc(r.keyword)}</td><td>${esc(r.event)}</td>
     <td>${esc(r.street)}, ${esc(r.district)}</td>
     <td>${onWebsite(r) ? "auf der Website" : "nur hier"}</td>
-    <td><button type="button" class="link" data-del="${i}">Löschen</button></td></tr>`).join("")
+    <td class="actions"><button type="button" class="link" data-edit="${i}">Bearbeiten</button>
+      <button type="button" class="link" data-del="${i}">Löschen</button></td></tr>`).join("")
     || `<tr><td colspan="7">Noch keine.</td></tr>`;
   $("#t-manual").dataset.rows = JSON.stringify(rows);
 }
 
 $("#t-manual").addEventListener("click", async (e) => {
-  const i = e.target.dataset.del;
-  if (i === undefined) return;
-  const row = JSON.parse($("#t-manual").dataset.rows)[i];
+  const { edit, del } = e.target.dataset;
+  if (edit !== undefined) { setEditing(manualRows()[edit]); return; }
+  if (del === undefined) return;
+  const row = manualRows()[del];
   if (!confirm(`Eintrag vom ${fmtDate(row.date)} ${row.time} (${row.event}) löschen?`)) return;
-  const same = (r) => r.date === row.date && r.time === row.time && r.keyword === row.keyword && r.street === row.street;
   try {
-    renderManual(await updateManual((rows) => rows.filter((r) => !same(r)), `Nachtrag gelöscht: ${row.date} ${row.keyword}`));
+    renderManual(await updateManual((rows) => rows.filter((r) => !sameEntry(r, row)), `Nachtrag gelöscht: ${row.date} ${row.keyword}`));
+    if (editing && sameEntry(editing, row)) { setEditing(null); clearForm(); }
     $("#save-msg").textContent = "Gelöscht.";
   } catch (err) {
     $("#save-msg").textContent = `Löschen fehlgeschlagen: ${err.message}`;
   }
 });
+
+$("#cancel-edit").addEventListener("click", () => {
+  setEditing(null);
+  clearForm();
+  $("#save-msg").textContent = "";
+});
+
+// Before saving: is this alarm probably already there, on the website or among the hand entries?
+function confirmNoDouble(row) {
+  const others = manualRows().filter((r) => !(editing && sameEntry(r, editing)));
+  const hit = scraped.find((r) => r.category === "Einsatz" && sameAlarm(r, row)) || others.find((r) => sameAlarm(r, row));
+  if (!hit) return true;
+  const where = others.includes(hit) ? "hier schon nachgetragen" : "schon auf der Website";
+  return confirm(`Möglicher Doppeleintrag: ${hit.keyword} am ${fmtDate(hit.date)} um ${hit.time} ` +
+    `(${hit.event}, ${hit.street}) ist ${where}.\n\nTrotzdem speichern?`);
+}
 
 $("#f-alarm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -167,12 +208,20 @@ $("#f-alarm").addEventListener("submit", async (e) => {
     keyword: f.keyword.value.trim(), event: f.event.value.trim(),
     street: tidyStreet(f.street.value.trim()), district: f.district.value.trim(), remarks: f.remarks.value.trim(),
   };
+  if (!confirmNoDouble(row)) { $("#save-msg").textContent = "Nicht gespeichert."; return; }
+  const old = editing;
   $("#save").disabled = true;
   $("#save-msg").textContent = "Speichere …";
   try {
-    renderManual(await updateManual((rows) => [...rows, row], `Einsatz nachgetragen: ${row.date} ${row.time} ${row.keyword}`));
-    $("#save-msg").textContent = "Gespeichert. Die Statistik zeigt ihn nach etwa einer Minute.";
-    for (const k of ["keyword", "event", "street", "district", "remarks"]) f[k].value = "";
+    // Editing replaces the old entry in the same commit; if it was deleted meanwhile, the new one is added.
+    const change = old
+      ? (rows) => (rows.some((r) => sameEntry(r, old)) ? rows.map((r) => (sameEntry(r, old) ? row : r)) : [...rows, row])
+      : (rows) => [...rows, row];
+    const message = old ? `Nachtrag geändert: ${row.date} ${row.time} ${row.keyword}` : `Einsatz nachgetragen: ${row.date} ${row.time} ${row.keyword}`;
+    renderManual(await updateManual(change, message));
+    $("#save-msg").textContent = `${old ? "Geändert" : "Gespeichert"}. Die Statistik zeigt das nach etwa einer Minute.`;
+    setEditing(null);
+    clearForm();
   } catch (err) {
     $("#save-msg").textContent = `Speichern fehlgeschlagen: ${err.message}`;
   } finally {
