@@ -23,6 +23,13 @@ const weekday = (dt) => (dt.getDay() + 6) % 7; // Monday = 0
 const fmtDate = (iso) => iso.split("-").reverse().join(".");
 
 // ---------- load & clean ----------
+// The website writes "Straße"; entries typed by hand may say "Strasse" or "Str.". One spelling keeps
+// the street lists and the search together.
+const tidyStreet = (s) => (s || "")
+  .replace(/strasse/g, "straße").replace(/Strasse/g, "Straße")
+  .replace(/(^|[\s-])Str\.?(?=$|[\s/])/g, "$1Straße")
+  .replace(/([a-zäöüß])str\.?(?=$|[\s/])/g, "$1straße");
+
 // A manual entry (admin page) is dropped once the website lists the same alarm: same day and
 // keyword, time within an hour. Until then it fills the gap.
 function sameAlarm(a, b) {
@@ -44,13 +51,14 @@ function clean(rows) {
   for (const r of rows) {
     if (r.category !== "Einsatz") continue;
     // The site sometimes lists one alarm twice with slightly different remarks.
-    const k = [r.date, r.time, r.keyword, r.street].join("|");
+    const street = tidyStreet(r.street);
+    const k = [r.date, r.time, r.keyword, street].join("|");
     if (seen.has(k)) continue;
     seen.add(k);
     const base = r.keyword.split("/")[0].trim().toLowerCase() || "?";
     const info = KW.codes[base] || {};
     out.push({
-      ...r, base, standby: base === "vs", hour: Number(r.time.slice(0, 2)),
+      ...r, street, geoKey: `${r.street}|${r.district}`, base, standby: base === "vs", hour: Number(r.time.slice(0, 2)),
       name: info.name || base, group: KW.groups[info.group] || "Unbekannt",
     });
   }
@@ -545,7 +553,8 @@ async function renderMap(rows) {
   const points = [];
   let missing = 0;
   for (const r of rows) {
-    const p = GEO[`${r.street}|${r.district}`];
+    // Positions are stored under the spelling as entered; a new spelling of a known street isn't looked up yet.
+    const p = GEO[r.geoKey] || GEO[`${r.street}|${r.district}`];
     if (p) points.push([p[0], p[1], 1]); else missing++;
   }
   $("#map-note").textContent = Object.keys(GEO).length

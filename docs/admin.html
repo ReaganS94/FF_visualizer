@@ -38,13 +38,14 @@
     <label>Uhrzeit <input type="time" name="time" required></label>
     <label>Stichwort <input name="keyword" list="kw-list" placeholder="z. B. b1" required autocomplete="off"></label>
     <label class="wide">Ereignis <input name="event" placeholder="z. B. Rauchwarnmelder" required></label>
-    <label>Straße <input name="street" required></label>
+    <label>Straße <input name="street" list="street-list" required autocomplete="off"></label>
     <label>Stadtteil <input name="district" list="district-list" required autocomplete="off"></label>
     <label class="wide">Bemerkungen <input name="remarks"></label>
     <div class="wide"><button type="submit" id="save">Speichern</button></div>
   </form>
   <datalist id="kw-list"></datalist>
   <datalist id="district-list"></datalist>
+  <datalist id="street-list"></datalist>
   <p class="msg" id="save-msg"></p>
 
   <h2>Nachgetragene Einsätze</h2>

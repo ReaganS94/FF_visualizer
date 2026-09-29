@@ -9,6 +9,11 @@ const API = `https://api.github.com/repos/${REPO}`;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const fmtDate = (iso) => iso.split("-").reverse().join(".");
+// Same as the statistics page: "Strasse" and "Str." become "Straße", the website's spelling.
+const tidyStreet = (s) => (s || "")
+  .replace(/strasse/g, "straße").replace(/Strasse/g, "Straße")
+  .replace(/(^|[\s-])Str\.?(?=$|[\s/])/g, "$1Straße")
+  .replace(/([a-zäöüß])str\.?(?=$|[\s/])/g, "$1straße");
 
 let token = "";
 try { token = localStorage.getItem("gh-token") || ""; } catch {}
@@ -112,6 +117,9 @@ async function loadEditor() {
   $("#kw-list").innerHTML = Object.entries(kw.codes).map(([c, i]) => `<option value="${esc(c)}">${esc(i.name)}</option>`).join("");
   const districts = [...new Set(scraped.map((r) => r.district).filter(Boolean))].sort();
   $("#district-list").innerHTML = districts.map((d) => `<option value="${esc(d)}">`).join("");
+  // Suggest the website's spellings; crossings ("NieschlagS/WittekindS") aren't useful as suggestions.
+  const streets = [...new Set(scraped.map((r) => tidyStreet(r.street)).filter((s) => s && !s.includes("/")))].sort();
+  $("#street-list").innerHTML = streets.map((s) => `<option value="${esc(s)}">`).join("");
   try {
     renderManual((await readManual()).rows);
   } catch (err) {
@@ -157,7 +165,7 @@ $("#f-alarm").addEventListener("submit", async (e) => {
   const row = {
     date: f.date.value, time: f.time.value, category: "Einsatz",
     keyword: f.keyword.value.trim(), event: f.event.value.trim(),
-    street: f.street.value.trim(), district: f.district.value.trim(), remarks: f.remarks.value.trim(),
+    street: tidyStreet(f.street.value.trim()), district: f.district.value.trim(), remarks: f.remarks.value.trim(),
   };
   $("#save").disabled = true;
   $("#save-msg").textContent = "Speichere …";

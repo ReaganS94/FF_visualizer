@@ -22,6 +22,7 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 access token limited to this repository with "Contents: Read and write"; the token is stored only in that
 browser. A manual entry is ignored once the website lists an alarm on the same day with the same keyword
 within an hour of it, so nothing is counted twice.
+The street field suggests the spellings the website uses, and "Strasse" or "Str." is saved as "Straße".
 
 ## Run locally
 
@@ -40,6 +41,8 @@ Settings → Pages → Build and deployment → "Deploy from a branch" → `main
 
 - Only rows with category "Einsatz" are shown.
 - An alarm listed twice (same date, time, keyword and street) is counted once.
+- "Strasse" and "Str." are shown as "Straße", so one street spelled two ways is grouped and found as one.
+  Map positions stay stored under the original spelling; a new spelling falls back to the known one.
 - "vs" (Wachbesetzung, standby) is excluded unless the checkbox is ticked.
 - A day with 10 or more alarms is a "Großlage" (e.g. the storm on 14.07.2026). Those rows were entered with the
   placeholder time 00:00, so they are left out of the time-of-day charts.
