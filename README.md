@@ -3,9 +3,10 @@
 Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, taken from the public
 [Aktivitätenliste](https://www.ff-linden.de/veranstaltungsliste/).
 
-- `scraper/scrape.py`: reads the activity table and merges new rows into `docs/data/alarms.json`.
-  Standard library only. Rows are never deleted, and exact duplicates are skipped.
-- `.github/workflows/scrape.yml`: runs the scraper daily and commits when there are new alarms.
+- `scraper/scrape.py`: reads the activity table and syncs it into `docs/data/alarms.json`. Standard
+  library only. For each fetched year the site's rows replace ours, so corrections on the site don't
+  leave duplicates; if the site suddenly shows far fewer rows for a year, nothing is removed.
+- `.github/workflows/scrape.yml`: runs the scrapers twice a day and commits the data.
   It can also be started by hand under Actions → "Einsätze aktualisieren" → Run workflow.
 - `scraper/weather.py`: daily weather for Hannover from Open-Meteo into `docs/data/weather.json`.
 - `scraper/geocode.py`: looks up each street once via OpenStreetMap Nominatim, cached in `docs/data/geo.json`.

@@ -7,7 +7,9 @@ Usage:
     python scraper/scrape.py --file page.html  # parse a saved copy instead of fetching
 
 Only the standard library is used, so the GitHub Action needs no installs.
-Rows are never deleted: the site is the source, this file is the archive.
+For every year that was fetched, the stored rows are replaced by the site's rows, so corrections
+made on the site (e.g. a changed keyword or an added press link) don't leave duplicates behind.
+If the site suddenly shows far fewer rows for a year than we have, nothing is removed.
 """
 
 import argparse
@@ -40,6 +42,7 @@ class ActivityTableParser(HTMLParser):
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
+        self.found = False
         self.in_table = False
         self.label = None
         self.row = None
@@ -48,7 +51,7 @@ class ActivityTableParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if tag == "table" and "activity-table" in (a.get("class") or "").split():
-            self.in_table = True
+            self.in_table = self.found = True
         elif self.in_table and tag == "tr":
             self.row = {}
         elif self.in_table and tag == "td" and self.row is not None:
@@ -79,8 +82,9 @@ def parse(page):
         d = dt.datetime.strptime(row["date"], "%d.%m.%Y").date()
         row["date"] = d.isoformat()  # store ISO so sorting and JS parsing are trivial
         out.append(row)
-    if not out:
-        raise SystemExit("No rows found: the page layout may have changed.")
+    # An empty table is fine (e.g. a new year without alarms yet); a missing table is not.
+    if not p.found:
+        raise SystemExit("Alarm table not found: the page layout may have changed.")
     return out
 
 
@@ -94,22 +98,41 @@ def key(row):
     return tuple(row.get(f, "") for f in FIELDS.values())
 
 
+KEEP_RATIO = 0.9  # a synced year may shrink by at most 10 % (site-side deletions/merges)
+
+
 def merge(new_rows):
+    """Replace each fetched year's rows with the site's version; returns (added, removed)."""
     existing = json.loads(DATA.read_text("utf-8"))["rows"] if DATA.exists() else []
-    seen = {key(r) for r in existing}
-    added = []
+    fetched = {}
     for r in new_rows:
-        if key(r) not in seen:  # the site lists some alarms twice; keep one copy
-            seen.add(key(r))
-            added.append(r)
-    rows = sorted(existing + added, key=lambda r: (r["date"], r["time"]), reverse=True)
+        fetched.setdefault(r["date"][:4], {})[key(r)] = r  # the site lists some alarms twice; keep one copy
+    rows, added, removed = [], [], []
+    by_year = {}
+    for r in existing:
+        by_year.setdefault(r["date"][:4], []).append(r)
+    for year in sorted(set(by_year) | set(fetched)):
+        old, new = by_year.get(year, []), fetched.get(year)
+        if new is None:
+            rows += old
+            continue
+        old_keys = {key(r) for r in old}
+        if len(new) < KEEP_RATIO * len(old):
+            print(f"warning: site shows {len(new)} rows for {year}, we have {len(old)}; only adding new ones")
+            rows += old + [r for k, r in new.items() if k not in old_keys]
+            added += [r for k, r in new.items() if k not in old_keys]
+            continue
+        rows += new.values()
+        added += [r for k, r in new.items() if k not in old_keys]
+        removed += [r for r in old if key(r) not in new]
+    rows.sort(key=lambda r: (r["date"], r["time"]), reverse=True)
     DATA.parent.mkdir(parents=True, exist_ok=True)
     DATA.write_text(
         json.dumps({"updated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "rows": rows},
                    ensure_ascii=False, indent=1) + "\n",
         "utf-8",
     )
-    return added
+    return added, removed
 
 
 def main():
@@ -130,10 +153,11 @@ def main():
             years.append(today.year - 1)  # catch late entries for December
         pages = [fetch(f"?filter_year={y}") for y in years]
 
-    added = merge([r for page in pages for r in parse(page)])
-    print(f"{len(added)} new row(s)")
-    for r in added:
-        print(" ", r["date"], r["time"], r["keyword"], r["event"])
+    added, removed = merge([r for page in pages for r in parse(page)])
+    print(f"{len(added)} new or changed row(s), {len(removed)} replaced or removed")
+    for sign, rows in (("+", added), ("-", removed)):
+        for r in rows:
+            print(f"  {sign}", r["date"], r["time"], r["keyword"], r["event"])
 
 
 if __name__ == "__main__":

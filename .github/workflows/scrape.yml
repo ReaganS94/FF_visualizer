@@ -2,7 +2,10 @@ name: Einsätze aktualisieren
 
 on:
   schedule:
-    - cron: "15 4 * * *" # daily, 06:15 Hannover summer time
+    # Twice a day (UTC; 06:15 and 18:15 in German summer time). GitHub sometimes skips a
+    # scheduled run under load, so the second run is also a safety net.
+    - cron: "15 4 * * *"
+    - cron: "15 16 * * *"
   workflow_dispatch:
 
 permissions:
@@ -14,8 +17,8 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Fetch alarm list
@@ -29,9 +32,10 @@ jobs:
       - name: Commit changes
         run: |
           git add docs/data
-          # Only commit when data changed, not just the timestamps.
-          if git diff --cached --quiet -I '"updated"'; then
-            echo "Nothing new."
+          # Commit even if only the timestamp changed: the site shows it as "Stand" and uses it
+          # to know which days are fully covered.
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
             exit 0
           fi
           git config user.name "github-actions[bot]"

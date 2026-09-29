@@ -21,7 +21,9 @@ async function gh(path, opts = {}) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const err = new Error(body.message || res.statusText);
+    // A token without "Contents: Read and write" still logs in (the repo is readable) but can't save.
+    const hint = res.status === 403 ? " Der Schlüssel braucht die Berechtigung „Contents: Read and write“." : "";
+    const err = new Error((body.message || res.statusText) + hint);
     err.status = res.status;
     throw err;
   }
@@ -98,8 +100,8 @@ async function loadEditor() {
     form.time.value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   }
   const [kw, alarms] = await Promise.all([
-    fetch("data/keywords.json").then((r) => r.json()).catch(() => ({ codes: {} })),
-    fetch("data/alarms.json").then((r) => r.json()).catch(() => ({ rows: [] })),
+    fetch("data/keywords.json", { cache: "no-cache" }).then((r) => r.json()).catch(() => ({ codes: {} })),
+    fetch("data/alarms.json", { cache: "no-cache" }).then((r) => r.json()).catch(() => ({ rows: [] })),
   ]);
   scraped = alarms.rows;
   $("#kw-list").innerHTML = Object.entries(kw.codes).map(([c, i]) => `<option value="${esc(c)}">${esc(i.name)}</option>`).join("");
@@ -115,9 +117,9 @@ async function loadEditor() {
 
 // Same rule as the statistics page: the website's entry replaces ours once it appears.
 function onWebsite(m) {
-  const minutes = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const at = (r) => new Date(`${r.date}T${r.time}`).getTime();
   const base = (k) => k.split("/")[0].trim().toLowerCase();
-  return scraped.some((r) => r.date === m.date && base(r.keyword) === base(m.keyword) && Math.abs(minutes(r.time) - minutes(m.time)) <= 60);
+  return scraped.some((r) => base(r.keyword) === base(m.keyword) && Math.abs(at(r) - at(m)) <= 60 * 60 * 1000);
 }
 
 function renderManual(rows) {
