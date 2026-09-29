@@ -10,7 +10,9 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   It can also be started by hand under Actions → "Einsätze aktualisieren" → Run workflow.
 - `scraper/weather.py`: daily weather for Hannover from Open-Meteo into `docs/data/weather.json`.
 - `scraper/geocode.py`: looks up each street once via OpenStreetMap Nominatim, cached in `docs/data/geo.json`. Streets Nominatim can't match (typos, crossings like "NieschlagS/WittekindS", a different district) are retried with Photon, which tolerates typos; its answer only counts if the name is close and the place is in Hannover.
-- `docs/`: the static site (no build step). Views: overview, calendar, time of day, keywords, districts,
+- `docs/`: the static site (no build step). Views: overview, dot wall (every alarm one dot, regrouped by month,
+  type, district or hour with the dots moving to their new places), calendar, year spiral (one turn per year,
+  one piece per day, the same date at the same angle every year), time of day, keywords, districts,
   map (with a time-lapse that plays the alarms in date order), weather, searchable list, annual report (with a
   year comparison and the year as a story, see below), and an "Einsatz heute?" estimate that is explicitly only a guess.
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.

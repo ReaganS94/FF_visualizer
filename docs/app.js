@@ -25,6 +25,7 @@ const addDays = (dt, n) => new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(
 const weekday = (dt) => (dt.getDay() + 6) % 7; // Monday = 0
 const fmtDate = (iso) => iso.split("-").reverse().join(".");
 const minDate = (a, b) => (a < b ? a : b);
+const maxDate = (a, b) => (a > b ? a : b);
 const listBehind = () => addDays(LISTED, 2) < UPDATED; // the website hasn't listed anything for days
 
 // ---------- load & clean ----------
@@ -274,6 +275,175 @@ function renderList(rows) {
   $("#list-count").textContent = `${hits.length} Einsätze`;
   $("#t-list tbody").innerHTML = hits.map((r) =>
     `<tr><td>${fmtDate(r.date)}</td><td>${r.timeUnknown ? "?" : esc(r.time)}</td><td title="${esc(r.name)}">${esc(r.keyword)}</td><td>${esc(r.event)}</td><td>${esc(r.street)}</td><td>${esc(r.district)}</td></tr>`).join("");
+}
+
+// ---------- Punktewand ----------
+// Every alarm is one dot, coloured by its type. Switching the grouping moves each dot to its new place.
+// Three colours at most stay tellable apart for everyone; the rarer types share grey.
+const DOT_KINDS = [["brand", "Brand"], ["hilfe", "Technische Hilfe"], ["unwetter", "Unwetter"]];
+const dotKind = (r) => (DOT_KINDS.find(([, g]) => g === r.group) || ["other"])[0];
+const DOT_ORDER = ["brand", "hilfe", "unwetter", "other"];
+const DOT_TOP_DISTRICTS = 12;
+let dotsBy = "month";
+let dotsRows = [];     // the alarms currently drawn, in dot order
+let dotsPicked = null; // the tapped alarm
+
+function dotGroups(rows, by) {
+  if (by === "month") return MONTHS.map((m, i) => ({ label: m, rows: rows.filter((r) => Number(r.date.slice(5, 7)) === i + 1) }));
+  if (by === "hour") {
+    const g = Array.from({ length: 24 }, (_, h) => ({ label: String(h), rows: rows.filter((r) => !r.timeUnknown && r.hour === h) }));
+    const unknown = rows.filter((r) => r.timeUnknown);
+    return unknown.length ? [...g, { label: "?", rows: unknown }] : g;
+  }
+  if (by === "type") return topCounts(rows, (r) => r.group, 99).map(([g, l]) => ({ label: g, rows: l }));
+  const all = topCounts(rows, (r) => r.district, 999);
+  const rest = all.slice(DOT_TOP_DISTRICTS).flatMap(([, l]) => l);
+  return [...all.slice(0, DOT_TOP_DISTRICTS).map(([d, l]) => ({ label: d, rows: l })),
+    ...(rest.length ? [{ label: `${all.length - DOT_TOP_DISTRICTS} weitere`, rows: rest }] : [])];
+}
+
+// Where each dot goes: columns for month and hour (time runs left to right), rows for type and district.
+function dotLayout(rows, by, W) {
+  const s = W < 600 ? 7 : 9;
+  const groups = dotGroups(rows, by);
+  for (const g of groups) g.rows.sort((a, b) => DOT_ORDER.indexOf(dotKind(a)) - DOT_ORDER.indexOf(dotKind(b)) || a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  const pos = new Map();
+  let labels = "", H;
+  if (by === "month" || by === "hour") {
+    const cw = W / groups.length, per = Math.max(1, Math.floor((cw - 3) / s)), T = 18, B = 22;
+    const high = Math.max(1, ...groups.map((g) => Math.ceil(g.rows.length / per)));
+    H = T + high * s + B;
+    groups.forEach((g, k) => {
+      const x0 = k * cw + (cw - per * s) / 2;
+      g.rows.forEach((r, j) => pos.set(r, [x0 + (j % per) * s + s / 2, T + (high - Math.floor(j / per) - 1) * s + s / 2]));
+      const top = T + (high - Math.ceil(g.rows.length / per)) * s - 5;
+      if (g.rows.length && cw >= 22) labels += `<text x="${(k + 0.5) * cw}" y="${top}" text-anchor="middle" class="count">${g.rows.length}</text>`; // narrow columns: in the tooltip only
+      if (by === "month" || W >= 600 || k % 3 === 0 || g.label === "?") labels += `<text x="${(k + 0.5) * cw}" y="${H - 5}" text-anchor="middle">${g.label}</text>`;
+    });
+  } else {
+    const Lw = Math.min(180, Math.round(W * 0.36)), R = 34, per = Math.max(1, Math.floor((W - Lw - R) / s)), gap = 10;
+    let y = 4;
+    for (const g of groups) {
+      g.rows.forEach((r, j) => pos.set(r, [Lw + (j % per) * s + s / 2, y + Math.floor(j / per) * s + s / 2]));
+      labels += `<text x="${Lw - 8}" y="${y + s / 2 + 4}" text-anchor="end">${esc(g.label)}</text>` +
+        `<text x="${Lw + Math.min(g.rows.length, per) * s + 6}" y="${y + s / 2 + 4}" class="count">${g.rows.length}</text>`;
+      y += Math.max(1, Math.ceil(g.rows.length / per)) * s + gap;
+    }
+    H = y;
+  }
+  return { pos, labels, H, r: s * 0.38 };
+}
+
+function renderDots(rows) {
+  const el = $("#c-dots");
+  if (!el.offsetWidth) return; // drawn when the view opens
+  const W = el.clientWidth;
+  const { pos, labels, H, r } = dotLayout(rows, dotsBy, W);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${rows.length} Einsätze als Punkte"><g class="dot-labels">${labels}</g><g class="dots">`;
+  rows.forEach((a, i) => {
+    const [x, y] = pos.get(a);
+    const tip = `<b>${WEEKDAYS[weekday(parseDate(a.date))]}, ${fmtDate(a.date)}</b>${a.timeUnknown ? "" : `, ${esc(a.time)} Uhr`}<br>` +
+      `${esc(a.keyword)} · ${esc(a.name)}<br>${esc(a.event)}<br>${esc([a.street, a.district].filter(Boolean).join(", "))}`;
+    svg += `<circle class="dot ${dotKind(a)}${a === dotsPicked ? " on" : ""}" r="${r.toFixed(1)}" data-i="${i}" style="transform:translate(${x.toFixed(1)}px,${y.toFixed(1)}px);--d:${(i * 37) % 400}ms" data-tip="${esc(tip)}"/>`;
+  });
+  el.innerHTML = svg + "</g></svg>";
+  dotsRows = rows;
+  if (!rows.includes(dotsPicked)) dotsPicked = null;
+  dotsDetail();
+}
+
+// Regroup without redrawing, so each dot moves from its old place to the new one.
+function regroupDots(by) {
+  dotsBy = by;
+  document.querySelectorAll("#dots-by button").forEach((b) => b.classList.toggle("active", b.dataset.by === by));
+  const el = $("#c-dots"), svg = el.querySelector("svg");
+  if (!svg) return;
+  const W = el.clientWidth;
+  const { pos, labels, H } = dotLayout(dotsRows, by, W);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("height", H);
+  svg.querySelector(".dot-labels").innerHTML = labels;
+  svg.querySelectorAll(".dot").forEach((c) => {
+    const [x, y] = pos.get(dotsRows[c.dataset.i]);
+    c.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+  });
+}
+
+function dotsDetail() {
+  const a = dotsPicked;
+  $("#dots-detail").innerHTML = a
+    ? `<b>${WEEKDAYS_LONG[weekday(parseDate(a.date))]}, ${fmtDate(a.date)}${a.timeUnknown ? "" : `, ${esc(a.time)} Uhr`}</b> · ` +
+      `${esc(a.keyword)} ${esc(a.name)} · ${esc(a.event)} · ${esc([a.street, a.district].filter(Boolean).join(", "))}`
+    : "Einen Punkt antippen, um den Einsatz zu sehen.";
+}
+
+$("#dots-by").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) regroupDots(b.dataset.by); });
+$("#c-dots").addEventListener("click", (e) => {
+  const c = e.target.closest(".dot");
+  $("#c-dots").querySelectorAll(".dot.on").forEach((d) => d.classList.remove("on"));
+  dotsPicked = c ? dotsRows[c.dataset.i] : null;
+  if (c) c.classList.add("on");
+  dotsDetail();
+});
+
+// ---------- Jahresspirale ----------
+// One turn per year, one piece per day, from the inside out. Every date sits at the same angle in every
+// year, so the seasons line up. A gap at the top holds the year labels.
+function renderSpiral(rows) {
+  const el = $("#c-spiral");
+  if (!rows.length) { el.innerHTML = ""; $("#spiral-note").textContent = ""; return; }
+  const perDay = {};
+  for (const r of rows) (perDay[r.date] ||= []).push(r);
+  const years = [...new Set(rows.map((r) => r.date.slice(0, 4)))].sort();
+  const listed = isoDate(LISTED);
+  // A past year runs to 31.12.; the current one to its newest alarm (entered by hand or on the website).
+  const lastYear = years.at(-1);
+  const end = lastYear < String(new Date().getFullYear()) ? `${lastYear}-12-31` : maxDate(rows[0].date, minDate(listed, `${lastYear}-12-31`));
+  const R0 = 96, W = 46, T = 34, GAP = 16; // inner radius, distance between turns, band width, gap in degrees
+  const outer = R0 + years.length * W + T / 2;
+  const C = outer + 34;
+  const f = (n) => n.toFixed(1);
+  const deg = (i) => GAP / 2 + ((360 - GAP) * i) / 366;
+  const xy = (a, r) => { const t = ((a - 90) * Math.PI) / 180; return [C + r * Math.cos(t), C + r * Math.sin(t)]; };
+  const pt = (a, r) => xy(a, r).map(f).join(",");
+  const rad = (k, i) => R0 + (k + i / 366) * W;
+  const step = (n) => (n === 0 ? "var(--empty)" : `var(--heat-${n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : 4})`);
+  // With "Großlagen mitzählen" off, say so on those days instead of just showing 0.
+  const hiddenBig = {};
+  if (!$("#f-storm").checked) for (const r of ALL) if (r.bigDay && !r.standby) hiddenBig[r.date] = (hiddenBig[r.date] || 0) + 1;
+  let s = `<svg viewBox="0 0 ${2 * C} ${2 * C}" role="img" aria-label="Einsätze pro Tag als Spirale, ${years[0]} bis ${years.at(-1)}">`;
+  // month boundaries, visible between the turns
+  const monthStart = (m) => DAY_SLOTS.indexOf(`${String(m + 1).padStart(2, "0")}-01`);
+  MONTHS.forEach((name, m) => {
+    const a = deg(monthStart(m)), mid = deg((monthStart(m) + (m === 11 ? 366 : monthStart(m + 1))) / 2);
+    const [x1, y1] = xy(a, R0 - T / 2), [x2, y2] = xy(a, outer), [lx, ly] = xy(mid, outer + 16);
+    s += `<line class="grid" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/><text x="${f(lx)}" y="${f(ly + 4)}" text-anchor="middle">${name}</text>`;
+  });
+  years.forEach((y, k) => {
+    DAY_SLOTS.forEach((d, i) => {
+      const date = `${y}-${d}`;
+      if (d === "02-29" && new Date(Number(y), 1, 29).getMonth() !== 1) return; // no 29.02. this year
+      if (date > end) return;
+      const list = perDay[date] || [];
+      const a0 = deg(i), a1 = deg(i + 1), r0 = rad(k, i), r1 = rad(k, i + 1);
+      const fill = step(list.length);
+      const tip = `<b>${WEEKDAYS[weekday(parseDate(date))]}, ${fmtDate(date)}</b> · ${list.length} ${list.length === 1 ? "Einsatz" : "Einsätze"}` +
+        list.slice(0, 6).map((r) => `<br>${r.timeUnknown ? "" : `${esc(r.time)} `}${esc(r.keyword)} – ${esc(r.event)}`).join("") +
+        (list.length > 6 ? `<br>… und ${list.length - 6} weitere` : "") +
+        (hiddenBig[date] ? `<br>Großlage mit ${hiddenBig[date]} Einsätzen, nicht mitgezählt` : "") +
+        (date > listed ? "<br>Noch nicht auf der Website" : "");
+      s += `<path class="day-seg${date > listed ? " unlisted" : ""}" d="M${pt(a0, r0 + T / 2)}L${pt(a1, r1 + T / 2)}L${pt(a1, r1 - T / 2)}L${pt(a0, r0 - T / 2)}Z" ` +
+        `fill="${fill}" stroke="${fill}" data-tip="${esc(tip)}"/>`;
+    });
+    const [yx, yy] = xy(0, rad(k, 0));
+    s += `<text class="year-mark" x="${f(yx)}" y="${f(yy + 4)}" text-anchor="middle">${y}</text>`;
+  });
+  s += `<text x="${C}" y="${C - 4}" text-anchor="middle" class="center">${years.length > 1 ? `${years[0]}–${years.at(-1)}` : years[0]}</text>`;
+  s += `<text x="${C}" y="${C + 14}" text-anchor="middle">${years.length > 1 ? "von innen nach außen" : "ein Jahr, eine Runde"}</text>`;
+  el.innerHTML = s + "</svg>" + legend(["0", "1", "2", "3–4", "5+"], ["var(--empty)", "var(--heat-1)", "var(--heat-2)", "var(--heat-3)", "var(--heat-4)"]);
+  $("#spiral-note").textContent = "Jede Runde ist ein Jahr, jedes Stück ein Tag. Derselbe Tag liegt in jedem Jahr an derselben Stelle, " +
+    "so stehen die Jahreszeiten übereinander. Je dunkler, desto mehr Einsätze an diesem Tag." +
+    (end > listed ? ` Tage nach dem ${fmtDate(listed)} sind blasser: Die Website listet sie noch nicht, dort zählen nur von Hand nachgetragene Einsätze.` : "");
 }
 
 // ---------- "Einsatz heute?" ----------
@@ -1033,6 +1203,8 @@ function render() {
   const rows = selection();
   renderOverview(rows);
   renderCalendar(rows);
+  renderSpiral(rows);
+  renderDots(rows);
   renderHours(rows);
   renderKeywords(rows);
   renderDistricts(rows);
