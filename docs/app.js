@@ -368,7 +368,7 @@ function renderChance() {
 
 // ---------- Jahresrückblick ----------
 // Keywords worth listing individually in the annual report.
-const NOTABLE = /^(b2|b3|ob|ba2|bg2|abc2|hm2|hm3|hw\d|hu\d|manv\d*)$/;
+const NOTABLE = /^(b2|b3|ob|ba2|bg2|abc2|hm2|hm3|hw\d|hu\d|manv.*)$/;
 
 function renderYear() {
   const year = $("#y-year").value;
