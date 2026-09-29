@@ -335,3 +335,21 @@ td.actions button + button { margin-left: 10px; }
 
 /* a small label in a table cell, e.g. an alarm the website doesn't list yet */
 .tag { display: inline-block; font-size: .75rem; line-height: 1.5; padding: 0 7px; border: 1px solid var(--warn-border); background: var(--warn-bg); color: var(--text); border-radius: 999px; white-space: nowrap; vertical-align: 1px; }
+
+/* "k von 100": the short version of the estimate check */
+.odds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; max-width: 640px; margin: 10px 0 4px; }
+.odd { margin: 0; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); text-align: center; display: flex; flex-direction: column; }
+.odd.now { border-color: var(--heat-3); }
+.odd figcaption { font-size: .8rem; color: var(--text-2); line-height: 1.35; flex: 1 0 auto; }
+.odd figcaption b { color: var(--text); font-size: .95rem; }
+.odd figcaption .tag { display: table; margin: 4px auto 0; }
+.odd figcaption .tag.ghost { visibility: hidden; }
+.dots100 { display: block; width: 100%; max-width: 150px; margin: 8px auto; }
+.dots100 circle { fill: var(--border); }
+.dots100 circle.on { fill: var(--heat-3); }
+.odd-v { font-size: .95rem; white-space: nowrap; }
+.odd-v b { font-size: 1.5rem; }
+.odd-d { font-size: .78rem; color: var(--text-2); line-height: 1.35; }
+details.more { margin-top: 8px; }
+details.more summary { cursor: pointer; color: var(--text-2); font-size: .9rem; }
+@media (max-width: 420px) { .odds { gap: 8px; } .odd { padding: 8px 6px; } .odd-v { font-size: .85rem; } .odd-v b { font-size: 1.2rem; } }
