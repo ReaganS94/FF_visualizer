@@ -48,3 +48,8 @@ Settings → Pages → Build and deployment → "Deploy from a branch" → `main
 Comparable days are past days with the same weekday within one month of today's month (all
 same weekdays if there are fewer than 20). The page shows the share of those days that had at least
 one alarm during the day (06–22) and at night (22–06). It is a rough guess, not a forecast.
+
+Silvester night (31.12., 22–06) is busy every year (20 alarms in 2024, 14 in 2025), so it gets no
+percentage. On 31.12. the page shows how many alarms the same night had in earlier years, and that
+night is left out when estimating ordinary nights and in the backtest. More such nights can be
+added to `SPECIAL_NIGHTS` in `docs/app.js`.

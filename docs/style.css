@@ -81,6 +81,7 @@ section.active { display: block; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 16px; }
 .tile { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
 .tile .v { font-size: clamp(1.25rem, 5.5vw, 1.9rem); font-weight: 650; font-variant-numeric: tabular-nums; }
+.tile .v.word { font-size: clamp(1rem, 4.2vw, 1.5rem); overflow-wrap: anywhere; }
 .tile .l { color: var(--text-2); font-size: .85rem; }
 .tile .d { color: var(--muted); font-size: .8rem; margin-top: 4px; }
 
