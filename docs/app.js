@@ -272,9 +272,15 @@ function renderDistricts(rows) {
 function renderList(rows) {
   const q = $("#q").value.trim().toLowerCase();
   const hits = q ? rows.filter((r) => [r.keyword, r.event, r.street, r.district, r.remarks].join(" ").toLowerCase().includes(q)) : rows;
-  $("#list-count").textContent = `${hits.length} Einsätze`;
+  // Hand entries fill the gap until the website lists the same alarm, which then replaces them.
+  const pending = hits.some((r) => r.manual);
+  $("#list-count").textContent = `${hits.length} Einsätze.` + (pending
+    ? " Einträge mit „vorläufig“ stehen noch nicht auf der Website der Feuerwehr. Sobald sie dort stehen, ersetzt der offizielle Eintrag sie."
+    : "");
+  // in the date column, which stays on screen when the table scrolls sideways on a phone
+  const tag = '<span class="tag" data-tip="Noch nicht auf der Website der Feuerwehr. Wird durch den offiziellen Eintrag ersetzt, sobald er dort steht.">vorläufig</span>';
   $("#t-list tbody").innerHTML = hits.map((r) =>
-    `<tr><td>${fmtDate(r.date)}</td><td>${r.timeUnknown ? "?" : esc(r.time)}</td><td title="${esc(r.name)}">${esc(r.keyword)}</td><td>${esc(r.event)}</td><td>${esc(r.street)}</td><td>${esc(r.district)}</td></tr>`).join("");
+    `<tr><td>${fmtDate(r.date)}${r.manual ? `<br>${tag}` : ""}</td><td>${r.timeUnknown ? "?" : esc(r.time)}</td><td title="${esc(r.name)}">${esc(r.keyword)}</td><td>${esc(r.event)}</td><td>${esc(r.street)}</td><td>${esc(r.district)}</td></tr>`).join("");
 }
 
 // ---------- Punktewand ----------

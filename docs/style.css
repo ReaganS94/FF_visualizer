@@ -332,3 +332,6 @@ body.story-open { overflow: hidden; }
 button.link { font: inherit; background: none; border: none; padding: 0; color: var(--series); cursor: pointer; text-decoration: underline; }
 td.actions { white-space: nowrap; }
 td.actions button + button { margin-left: 10px; }
+
+/* a small label in a table cell, e.g. an alarm the website doesn't list yet */
+.tag { display: inline-block; font-size: .75rem; line-height: 1.5; padding: 0 7px; border: 1px solid var(--warn-border); background: var(--warn-bg); color: var(--text); border-radius: 999px; white-space: nowrap; vertical-align: 1px; }
