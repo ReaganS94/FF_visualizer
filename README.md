@@ -81,13 +81,13 @@ one alarm during the day (06–22) and at night (22–06). It is a rough guess, 
 The page shows the estimate for the current window in the middle of a 24-hour ring. Each hour of the
 ring is shaded by how many alarms happened at that time of day since the data starts, and a hand
 marks the current time. Below the tiles, a small table compares yesterday's day and night estimate
-with the alarms entered since. One day proves nothing either way; the backtest table is the real check.
+with the alarms entered since. One day proves nothing either way; the backtest below is the real check.
 
 The backtest replays the estimate for every day and night from six months after the data starts,
-using only alarms up to two days earlier, and groups the estimates by what the page would have said
-(0–10 %, 10–20 %, …). Each row shows how many of them really had an alarm and whether that share lies
-in the row's range ("Passt?": Ja, zu niedrig, zu hoch, or too few cases below 50). A sentence above
-the table reads the busiest row out loud.
+using only alarms up to two days earlier. The page shows it as three pictures of 100 dots: estimates under
+10 %, 10–30 % and from 30 %, each with how many of 100 such days or nights really had an alarm (the group
+today's estimate falls into is marked), plus a short verdict. The detailed table (0–10 %, 10–20 %, …, with
+a "Passt?" column: Ja, zu niedrig, zu hoch, or too few cases below 50) sits behind "Genaue Zahlen".
 
 Silvester night (31.12., 22–06) is busy every year (20 alarms in 2024, 14 in 2025), so it gets no
 percentage. On 31.12. the page shows how many alarms the same night had in earlier years, and that

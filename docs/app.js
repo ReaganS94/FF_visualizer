@@ -634,6 +634,8 @@ function renderChance() {
   // The window we're in right now: before 6 it's still last night.
   const h = now.getHours();
   const cur = h < DAY_START ? running : h < NIGHT_START ? day : night;
+  // the percentage shown for the window we're in, if it is one (special nights show past years instead)
+  const pNow = h < DAY_START ? (niY.name ? null : estY.pNight) : h < NIGHT_START ? est.pDay : (ni.name ? null : est.pNight);
   const other = h < DAY_START ? day : h < NIGHT_START ? night : null;
   chanceModel = { key: `${isoDate(today)}-${cur === day}`, cur, other, first };
   drawRing();
@@ -679,10 +681,6 @@ function renderChance() {
     `<tr><td style="white-space:nowrap">${range}</td><td>${num(b.n)}-mal</td><td>${num(b.hit)} von ${num(b.n)} <span style="white-space:nowrap">(${rate} %)</span></td><td>${fit}</td></tr>`).join("");
   // Read one row out loud: the one with the most estimates.
   const ex = btRows.reduce((a, r) => (r.b.n > a.b.n ? r : a));
-  $("#backtest-note").textContent =
-    `Hier wird geprüft, ob man den Prozentzahlen trauen kann: Sagt die Seite „etwa 25 %“, sollte es ungefähr bei jedem vierten Mal ` +
-    `wirklich einen Einsatz geben. Dafür wurde für jeden Tag und jede Nacht ab ${fmtDate(isoDate(addDays(first, 182)))} nachgerechnet, ` +
-    `was die Seite damals nur mit älteren Daten gesagt hätte (${num(bt.n)} Schätzungen), und nachgesehen, ob es dann wirklich einen Einsatz gab.`;
   $("#backtest-example").textContent =
     `So liest man eine Zeile: ${num(ex.b.n)}-mal sagte die Seite ${ex.range}. In ${num(ex.b.hit)} dieser Fälle gab es wirklich einen Einsatz, ` +
     `das sind ${ex.rate} %. ` + {
@@ -691,6 +689,51 @@ function renderChance() {
       "Nein, zu hoch": "Das liegt unter dem geschätzten Bereich, hier hat die Seite also zu hoch geschätzt.",
       "Zu wenige Fälle": "Das sind noch zu wenige Fälle, um es zu beurteilen.",
     }[ex.fit];
+
+  // The short version: low, middle and high estimates, each as 100 dots with the ones that had an alarm filled in.
+  const groups = BACKTEST_GROUPS.map(([lo, hi, label]) => {
+    const bins = bt.bins.filter((b) => b.lo >= lo && b.lo < hi);
+    const n = bins.reduce((a, b) => a + b.n, 0), hit = bins.reduce((a, b) => a + b.hit, 0);
+    const rate = n ? Math.round((100 * hit) / n) : 0;
+    return { lo, hi, label, n, hit, rate, fit: backtestFit({ lo, hi, n }, rate) };
+  }).filter((g) => g.n);
+  const nowPct = pNow == null ? null : 100 * pNow;
+  $("#backtest-note").textContent =
+    `Für jeden Tag und jede Nacht ab ${fmtDate(isoDate(addDays(first, 182)))} wurde nachgerechnet, was die Seite damals gesagt hätte, ` +
+    `und nachgesehen, ob es dann wirklich einen Einsatz gab (${num(bt.n)} Schätzungen). Jedes Bild zeigt das umgerechnet auf 100 solche Tage oder Nächte.`;
+  const isNow = (g) => nowPct != null && nowPct >= g.lo && nowPct < g.hi;
+  const anyNow = groups.some(isNow);
+  $("#backtest-odds").innerHTML = groups.map((g) => {
+    const now = isNow(g);
+    // the others keep an invisible tag so the dots of all three line up
+    const tag = now ? `<span class="tag">heute ~${Math.round(nowPct)} %</span>` : anyNow ? '<span class="tag ghost">heute</span>' : "";
+    return `<figure class="odd${now ? " now" : ""}" data-tip="Die Seite sagte ${g.label}: bei ${num(g.hit)} von ${num(g.n)} Schätzungen gab es wirklich einen Einsatz (${g.rate} %).">` +
+      `<figcaption>Die Seite sagte<br><b>${g.label}</b>${tag}</figcaption>` +
+      hundredDots(g.rate) +
+      `<div class="odd-v"><b>${g.rate}</b> von 100</div><div class="odd-d">hatten einen Einsatz<br>${num(g.n)} Schätzungen${g.n < 50 ? ", noch zu wenige" : ""}</div></figure>`;
+  }).join("");
+  const low = groups[0], high = groups.at(-1), most = groups.reduce((a, g) => (g.n > a.n ? g : a));
+  const off = groups.filter((g) => g.fit.startsWith("Nein"));
+  $("#backtest-verdict").textContent = [
+    groups.length > 1 && high.rate >= low.rate + 10 ? "Je höher die Schätzung, desto öfter gab es wirklich einen Einsatz."
+      : groups.length > 1 ? "Hohe und niedrige Schätzungen lagen bisher nah beieinander." : "",
+    off.length ? off.map((g) => `Bei Schätzungen ${g.label} war die Seite ${g.fit === "Nein, zu niedrig" ? "etwas zu vorsichtig" : "etwas zu hoch"}: Es waren ${g.rate} von 100.`).join(" ")
+      : "Die Zahlen passen ungefähr zu dem, was die Seite gesagt hat.",
+    `Die meisten Schätzungen (${num(most.n)} von ${num(bt.n)}) lagen bei ${most.label}.` +
+      (most !== low && most !== high ? " Die Seite unterscheidet also nur grob zwischen ruhigeren und unruhigeren Tagen." : ""),
+  ].filter(Boolean).join(" ");
+}
+
+// Low, middle and high estimates for the short version of the check (percent from, to, label).
+const BACKTEST_GROUPS = [[0, 10, "unter 10\u00a0%"], [10, 30, "10–30\u00a0%"], [30, 101, "ab 30\u00a0%"]];
+
+// 10 × 10 dots, the first `k` filled: "k of 100".
+function hundredDots(k) {
+  let s = `<svg viewBox="0 0 100 100" class="dots100" role="img" aria-label="${k} von 100">`;
+  for (let i = 0; i < 100; i++) {
+    s += `<circle cx="${5 + (i % 10) * 10}" cy="${5 + Math.floor(i / 10) * 10}" r="3.8"${i < k ? ' class="on"' : ""}/>`;
+  }
+  return s + "</svg>";
 }
 
 // A row fits when the share that really had an alarm lies in the range the page said. Fewer than
