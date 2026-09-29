@@ -3,7 +3,7 @@
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 const WEEKDAYS_LONG = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
-const BIG_DAY = 10;       // a day with this many alarms or more counts as a Großlage (e.g. storm)
+const BIG_DAY = 10;       // a day with this many alarms or more counts as a Großlage (e.g. storm), except 01.01
 const DAY_START = 6;      // "tagsüber" = 06:00–21:59, "nachts" = 22:00–05:59
 const NIGHT_START = 22;
 
@@ -65,7 +65,8 @@ function clean(rows) {
   const perDay = {};
   for (const r of out) if (!r.standby) perDay[r.date] = (perDay[r.date] || 0) + 1;
   for (const r of out) {
-    r.bigDay = perDay[r.date] >= BIG_DAY;
+    // Silvester fills 01.01 every year; that's part of a normal year, not an outlier like a storm.
+    r.bigDay = perDay[r.date] >= BIG_DAY && r.date.slice(5) !== "01-01";
     r.timeUnknown = r.bigDay && r.time === "00:00"; // bulk-entered with a placeholder time
   }
   return out;
@@ -211,7 +212,7 @@ function renderCalendar(rows) {
     }
     html += `<div class="year-label">${y}</div>${s}</svg>`;
   }
-  html += legend(["0", "1", "2", "3–4", `5–${BIG_DAY - 1}`, `${BIG_DAY}+ (Großlage)`], colors);
+  html += legend(["0", "1", "2", "3–4", `5–${BIG_DAY - 1}`, `${BIG_DAY}+`], colors);
   $("#c-calendar").innerHTML = html;
 }
 
@@ -499,7 +500,8 @@ const NOTABLE = /^(b2|b3|ob|ba2|bg2|abc2|hm2|hm3|hw\d|hu\d|manv.*)$/;
 
 function renderYear() {
   const year = $("#y-year").value;
-  const alarms = ALL.filter((r) => !r.standby);
+  const storm = $("#y-storm").checked;
+  const alarms = ALL.filter((r) => !r.standby && (storm || !r.bigDay));
   const rows = alarms.filter((r) => r.date.startsWith(year));
   const prev = alarms.filter((r) => r.date.startsWith(String(year - 1)));
   const lastDate = rows.length ? rows[0].date : "";
@@ -520,6 +522,13 @@ function renderYear() {
   ];
   $("#y-tiles").innerHTML = tiles.map(([l, v, d]) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
   $("#y-partial").textContent = partial ? `Das Jahr ${year} läuft noch: Daten bis ${fmtDate(lastDate)}.` : "";
+  // Named on screen and on the printout, so a reader knows whether the storm is in the numbers.
+  const cut = partial ? lastDate.slice(5) : "12-31";
+  const inView = (r) => r.date.startsWith(year) || (r.date.startsWith(String(year - 1)) && r.date.slice(5) <= cut);
+  const big = topCounts(ALL.filter((r) => !r.standby && r.bigDay && inView(r)), (r) => r.date)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([d, l]) => `${fmtDate(d)} (${l.length} Einsätze${d.startsWith(year) ? "" : `, im Vergleich mit ${year - 1}`})`);
+  $("#y-storm-note").textContent = big.length ? `Großlagen ${storm ? "mitgezählt" : "nicht mitgezählt"}: ${big.join(", ")}.` : "";
 
   const months = Array(12).fill(0);
   for (const r of rows) months[Number(r.date.slice(5, 7)) - 1]++;
@@ -664,6 +673,7 @@ Promise.all([
     $("#f-year").innerHTML += years.map((y) => `<option>${y}</option>`).join("");
     $("#y-year").innerHTML = years.map((y) => `<option>${y}</option>`).join("");
     $("#y-year").addEventListener("change", renderYear);
+    $("#y-storm").addEventListener("change", renderYear);
     $("#y-print").addEventListener("click", () => window.print());
     document.querySelectorAll("#filters input, #filters select").forEach((el) => el.addEventListener("change", render));
     $("#q").addEventListener("input", () => renderList(selection()));
