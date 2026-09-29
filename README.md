@@ -7,8 +7,19 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   Standard library only. Rows are never deleted, and exact duplicates are skipped.
 - `.github/workflows/scrape.yml`: runs the scraper daily and commits when there are new alarms.
   It can also be started by hand under Actions → "Einsätze aktualisieren" → Run workflow.
-- `docs/`: the static site (no build step). Views: overview, calendar, time of day, keywords,
-  districts, searchable list, and an "Einsatz heute?" estimate that is explicitly only a guess.
+- `scraper/weather.py`: daily weather for Hannover from Open-Meteo into `docs/data/weather.json`.
+- `scraper/geocode.py`: looks up each street once via OpenStreetMap Nominatim, cached in `docs/data/geo.json`.
+- `docs/`: the static site (no build step). Views: overview, calendar, time of day, keywords, districts,
+  map, weather, searchable list, annual report, and an "Einsatz heute?" estimate that is explicitly only a guess.
+- `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
+- `docs/admin.html`: form for adding alarms before the website lists them (see below).
+
+## Admin page
+
+`/admin.html` saves alarms into `docs/data/manual.json` via the GitHub API. It needs a fine-grained personal
+access token limited to this repository with "Contents: Read and write"; the token is stored only in that
+browser. A manual entry is ignored once the website lists an alarm on the same day with the same keyword
+within an hour of it, so nothing is counted twice.
 
 ## Run locally
 
