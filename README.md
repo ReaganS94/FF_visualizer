@@ -24,6 +24,8 @@ access token limited to this repository with "Contents: Read and write"; the tok
 browser. A manual entry is ignored once the website lists an alarm on the same day with the same keyword
 within an hour of it, so nothing is counted twice.
 The street field suggests the spellings the website uses, and "Strasse" or "Str." is saved as "Straße".
+Entries can be edited in place (one commit). Before saving, the page asks for confirmation if the same keyword
+within an hour is already on the website or among the hand entries.
 
 ## Run locally
 

@@ -185,5 +185,8 @@ body > footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(-
   border: 1px solid var(--text); background: var(--text); color: var(--surface);
 }
 .form button:disabled { opacity: .5; cursor: wait; }
+.form button.secondary { margin-left: 8px; background: var(--panel); color: var(--text); border-color: var(--border); }
 .msg { min-height: 1.4em; color: var(--text-2); }
 button.link { font: inherit; background: none; border: none; padding: 0; color: var(--series); cursor: pointer; text-decoration: underline; }
+td.actions { white-space: nowrap; }
+td.actions button + button { margin-left: 10px; }
