@@ -30,7 +30,7 @@
     --accent: #ff5a6e;
     --warn-bg: #3a2f10;
     --warn-border: #c98500;
-    --heat-0: #4a2c20; --heat-1: #7a3a22; --heat-2: #b44a26; --heat-3: #e4683a; --heat-4: #ff9b6a;
+    --heat-0: #fde2c4; --heat-1: #f7b98a; --heat-2: #ee8d57; --heat-3: #de5f35; --heat-4: #c62d1f;
     --band-day: #f2b632; --band-night: #7d93dd;
   }
 }
@@ -48,7 +48,7 @@
   --accent: #ff5a6e;
   --warn-bg: #3a2f10;
   --warn-border: #c98500;
-  --heat-0: #4a2c20; --heat-1: #7a3a22; --heat-2: #b44a26; --heat-3: #e4683a; --heat-4: #ff9b6a;
+  --heat-0: #fde2c4; --heat-1: #f7b98a; --heat-2: #ee8d57; --heat-3: #de5f35; --heat-4: #c62d1f;
   --band-day: #f2b632; --band-night: #7d93dd;
 }
 
