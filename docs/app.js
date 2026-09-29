@@ -348,7 +348,7 @@ function backtest(first, last, win) {
   return { bins: bins.filter((b) => b.n), n };
 }
 
-// 24-hour ring: one segment per hour, darker = more alarms at that time of day since the data
+// 24-hour ring: one segment per hour, stronger colour = more alarms at that time of day since the data
 // starts. The centre shows the estimate for the window we're in, a pointer marks the current time.
 function drawRing() {
   const m = chanceModel;
@@ -389,7 +389,7 @@ function drawRing() {
   $("#chance-ring").innerHTML = s + "</svg>";
   $("#ring-legend").innerHTML = `<div class="legend">weniger ${[0, 1, 2, 3, 4].map((i) => `<i style="background:var(--heat-${i})"></i>`).join("")} mehr</div>` +
     `<div class="legend"><i class="band" style="background:var(--band-day)"></i>Tag 06–22 <i class="band" style="background:var(--band-night)"></i>Nacht 22–06</div>` +
-    `<p class="note">Jedes Stück ist eine Stunde. Je dunkler, desto mehr Einsätze gab es seit ${since} zu dieser Uhrzeit.</p>`;
+    `<p class="note">Jedes Stück ist eine Stunde. Je kräftiger die Farbe, desto mehr Einsätze gab es seit ${since} zu dieser Uhrzeit.</p>`;
 }
 
 // Keep the "jetzt" hand moving; a new window (6 or 22 Uhr) or a new day needs the full update.
