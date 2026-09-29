@@ -44,8 +44,9 @@ Settings → Pages → Build and deployment → "Deploy from a branch" → `main
 - "Strasse" and "Str." are shown as "Straße", so one street spelled two ways is grouped and found as one.
   Map positions stay stored under the original spelling; a new spelling falls back to the known one.
 - "vs" (Wachbesetzung, standby) is excluded unless the checkbox is ticked.
-- A day with 10 or more alarms is a "Großlage" (e.g. the storm on 14.07.2026). Those rows were entered with the
-  placeholder time 00:00, so they are left out of the time-of-day charts.
+- A day with 10 or more alarms is a "Großlage" (e.g. the storm on 14.07.2026), except 01.01, which Silvester
+  fills every year. The storm's rows were entered with the placeholder time 00:00, so they are left out of the
+  time-of-day charts. The Jahresrückblick has its own "Großlagen mitzählen" checkbox and names the Großlage days.
 
 ## How "Einsatz heute?" works
 
