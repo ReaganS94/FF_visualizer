@@ -79,6 +79,12 @@ ring is shaded by how many alarms happened at that time of day since the data st
 marks the current time. Below the tiles, a small table compares yesterday's day and night estimate
 with the alarms entered since. One day proves nothing either way; the backtest table is the real check.
 
+The backtest replays the estimate for every day and night from six months after the data starts,
+using only alarms up to two days earlier, and groups the estimates by what the page would have said
+(0–10 %, 10–20 %, …). Each row shows how many of them really had an alarm and whether that share lies
+in the row's range ("Passt?": Ja, zu niedrig, zu hoch, or too few cases below 50). A sentence above
+the table reads the busiest row out loud.
+
 Silvester night (31.12., 22–06) is busy every year (20 alarms in 2024, 14 in 2025), so it gets no
 percentage. On 31.12. the page shows how many alarms the same night had in earlier years, and that
 night is left out when estimating ordinary nights and in the backtest. More such nights can be

@@ -664,12 +664,36 @@ function renderChance() {
   }
 
   const bt = backtest(first, last, win);
-  $("#t-backtest tbody").innerHTML = bt.bins.map((b) =>
-    `<tr><td>${b.hi > 100 ? `ab ${b.lo}` : `${b.lo}–${b.hi}`} %</td><td>${b.n}</td><td>${Math.round((100 * b.hit) / b.n)} %</td></tr>`).join("");
+  const num = (x) => x.toLocaleString("de-DE");
+  const btRows = bt.bins.map((b) => {
+    const range = b.hi > 100 ? `ab ${b.lo} %` : `${b.lo}–${b.hi} %`, rate = Math.round((100 * b.hit) / b.n);
+    return { b, range, rate, fit: backtestFit(b, rate) };
+  });
+  $("#t-backtest tbody").innerHTML = btRows.map(({ b, range, rate, fit }) =>
+    `<tr><td style="white-space:nowrap">${range}</td><td>${num(b.n)}-mal</td><td>${num(b.hit)} von ${num(b.n)} <span style="white-space:nowrap">(${rate} %)</span></td><td>${fit}</td></tr>`).join("");
+  // Read one row out loud: the one with the most estimates.
+  const ex = btRows.reduce((a, r) => (r.b.n > a.b.n ? r : a));
   $("#backtest-note").textContent =
-    `Für jeden Tag und jede Nacht ab ${fmtDate(isoDate(addDays(first, 182)))} wurde nachgerechnet, was die Seite ` +
-    `damals nur mit älteren Daten geschätzt hätte (${bt.n} Schätzungen). Eine gute Schätzung liegt in jeder Zeile ` +
-    `ungefähr im Bereich der linken Spalte.`;
+    `Hier wird geprüft, ob man den Prozentzahlen trauen kann: Sagt die Seite „etwa 25 %“, sollte es ungefähr bei jedem vierten Mal ` +
+    `wirklich einen Einsatz geben. Dafür wurde für jeden Tag und jede Nacht ab ${fmtDate(isoDate(addDays(first, 182)))} nachgerechnet, ` +
+    `was die Seite damals nur mit älteren Daten gesagt hätte (${num(bt.n)} Schätzungen), und nachgesehen, ob es dann wirklich einen Einsatz gab.`;
+  $("#backtest-example").textContent =
+    `So liest man eine Zeile: ${num(ex.b.n)}-mal sagte die Seite ${ex.range}. In ${num(ex.b.hit)} dieser Fälle gab es wirklich einen Einsatz, ` +
+    `das sind ${ex.rate} %. ` + {
+      "Ja": "Das liegt im geschätzten Bereich, die Schätzung passt also.",
+      "Nein, zu niedrig": "Das liegt über dem geschätzten Bereich, hier hat die Seite also zu niedrig geschätzt.",
+      "Nein, zu hoch": "Das liegt unter dem geschätzten Bereich, hier hat die Seite also zu hoch geschätzt.",
+      "Zu wenige Fälle": "Das sind noch zu wenige Fälle, um es zu beurteilen.",
+    }[ex.fit];
+}
+
+// A row fits when the share that really had an alarm lies in the range the page said. Fewer than
+// 50 estimates are too few to tell: one alarm more or less moves the share by several points.
+function backtestFit(b, rate) {
+  if (b.n < 50) return "Zu wenige Fälle";
+  if (rate < b.lo) return "Nein, zu hoch";
+  if (b.hi <= 100 && rate > b.hi) return "Nein, zu niedrig";
+  return "Ja";
 }
 
 // ---------- Jahresrückblick ----------
