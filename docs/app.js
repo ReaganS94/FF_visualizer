@@ -1036,6 +1036,7 @@ function loadScript(src) {
 }
 
 async function renderMap(rows) {
+  map3dRows = rows;
   const el = $("#c-map");
   const points = [];
   const located = [];
@@ -1049,6 +1050,7 @@ async function renderMap(rows) {
   $("#map-note").textContent = Object.keys(GEO).length
     ? `${points.length} Einsätze auf der Karte. ${missing} ohne bekannte Adresse (z. B. Autobahn) fehlen.`
     : "Die Karte erscheint nach der nächsten täglichen Aktualisierung.";
+  if (map3dOn) { if (map3d && $("#c-map3d").offsetWidth) { map3d.resize(); map3d.getSource("hex")?.setData(hexFields(rows)); } return; }
   el.hidden = !points.length;
   if (!points.length || !el.offsetWidth) {
     // A heat layer on a hidden map has zero size and throws on redraw, so drop it until visible.
@@ -1076,6 +1078,158 @@ async function renderMap(rows) {
     gradient: { 0.2: "#fde2c4", 0.45: "#f7a35c", 0.7: "#e4572e", 1: "#a3160d" },
   }).addTo(map);
 }
+
+// ---------- 3D-Karte ----------
+// Hexagon columns on a tilted map: each column is a field about 260 m wide, its height the number of
+// alarms there. It needs a capable graphics chip and a larger map library, so the library only loads
+// when someone picks 3D, and the flat map stays the default and the fallback.
+const MAP3D_LIB = "https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl";
+const HEX_R = 150;         // metres from a hexagon's centre to its corners
+const HEX_HEIGHT = 40;     // metres of column per alarm
+const HEX_STEPS = [2, 4, 8]; // colour steps: 1, 2–3, 4–7, 8+ alarms
+let map3d = null, map3dOn = false, map3dRows = [];
+
+// Only real graphics hardware: software rendering would make the map stutter, so those devices keep the flat map.
+function canDo3d() {
+  try {
+    const c = document.createElement("canvas"), opt = { failIfMajorPerformanceCaveat: true };
+    return Boolean(c.getContext("webgl2", opt) || c.getContext("webgl", opt));
+  } catch { return false; }
+}
+
+function hexFields(rows) {
+  const lat0 = 52.37, lon0 = 9.73, kx = Math.cos((lat0 * Math.PI) / 180) * 111320, ky = 110540;
+  const bins = new Map();
+  for (const r of rows) {
+    const p = GEO[r.geoKey] || GEO[`${r.street}|${r.district}`];
+    if (!p) continue;
+    const x = (p[1] - lon0) * kx, y = (p[0] - lat0) * ky;
+    // axial coordinates of pointy-top hexagons, rounded to the nearest one
+    const qf = ((Math.sqrt(3) / 3) * x - y / 3) / HEX_R, rf = ((2 / 3) * y) / HEX_R, sf = -qf - rf;
+    let q = Math.round(qf), h = Math.round(rf);
+    const t = Math.round(sf), dq = Math.abs(q - qf), dh = Math.abs(h - rf), dt = Math.abs(t - sf);
+    if (dq > dh && dq > dt) q = -h - t; else if (dh > dt) h = -q - t;
+    const k = `${q},${h}`;
+    if (!bins.has(k)) bins.set(k, { q, h, rows: [] });
+    bins.get(k).rows.push(r);
+  }
+  const features = [...bins.values()].map((b) => {
+    const cx = HEX_R * Math.sqrt(3) * (b.q + b.h / 2), cy = HEX_R * 1.5 * b.h;
+    const ring = [0, 1, 2, 3, 4, 5, 0].map((i) => {
+      const a = (Math.PI / 180) * (60 * i - 30);
+      return [lon0 + (cx + HEX_R * 0.9 * Math.cos(a)) / kx, lat0 + (cy + HEX_R * 0.9 * Math.sin(a)) / ky]; // 0.9: a gap between columns
+    });
+    const places = topCounts(b.rows, (r) => r.street, 3).map(([st, l]) => `${esc(st)} (${l.length})`).join("<br>");
+    return { type: "Feature", geometry: { type: "Polygon", coordinates: [ring] }, properties: { n: b.rows.length, places } };
+  });
+  return { type: "FeatureCollection", features };
+}
+
+// Where the camera starts: over the busiest part of the city, closer on wide screens than on a phone.
+function map3dView(data, width) {
+  let sx = 0, sy = 0, sn = 0;
+  for (const f of data.features) {
+    const ring = f.geometry.coordinates[0], n = f.properties.n;
+    sx += n * ring.slice(0, 6).reduce((a, p) => a + p[0], 0) / 6;
+    sy += n * ring.slice(0, 6).reduce((a, p) => a + p[1], 0) / 6;
+    sn += n;
+  }
+  const center = sn ? [sx / sn, sy / sn] : [9.725, 52.372];
+  return { center, zoom: Math.max(11.6, Math.min(13.2, 12.8 + 0.75 * Math.log2(width / 1000))) };
+}
+
+function map3dNote(text) {
+  $("#map3d-note").textContent = text;
+  $("#map3d-note").hidden = !text;
+}
+
+function setMapMode(mode) {
+  map3dOn = mode === "3d";
+  document.querySelectorAll("#map-mode button").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+  $("#c-map").style.display = map3dOn ? "none" : "";
+  $(".replay").style.display = map3dOn ? "none" : "";
+  $("#c-map3d").hidden = !map3dOn;
+  $("#map3d-key").hidden = !map3dOn;
+  if (map3dOn) {
+    // the flat map is hidden now; its heat layer can't redraw at zero size
+    if (heat) { map.removeLayer(heat); heat = null; }
+    show3d();
+  } else renderMap(selection());
+}
+
+async function show3d() {
+  if (!canDo3d()) { map3dNote("Dieses Gerät kann die 3D-Karte nicht flüssig anzeigen. Hier bleibt die flache Karte."); setMapMode("flat"); return; }
+  map3dNote("");
+  replayClear();
+  try {
+    if (!window.maplibregl) {
+      const css = document.createElement("link");
+      css.rel = "stylesheet"; css.href = `${MAP3D_LIB}.css`;
+      document.head.appendChild(css);
+      await loadScript(`${MAP3D_LIB}.js`);
+    }
+  } catch {
+    map3dNote("Die 3D-Karte konnte nicht geladen werden. Hier bleibt die flache Karte.");
+    setMapMode("flat");
+    return;
+  }
+  if (!map3dOn) return; // switched back while loading
+  const data = hexFields(map3dRows);
+  if (map3d) { map3d.resize(); map3d.getSource("hex").setData(data); return; }
+  const css = getComputedStyle(document.documentElement), heat = (i) => css.getPropertyValue(`--heat-${i}`).trim();
+  const dark = css.colorScheme === "dark";
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const view = map3dView(data, $("#c-map3d").clientWidth);
+  map3d = new maplibregl.Map({
+    container: "c-map3d", center: view.center, zoom: calm ? view.zoom : view.zoom - 0.4, pitch: calm ? 55 : 0, bearing: calm ? -20 : 0, maxPitch: 70,
+    attributionControl: { compact: true },
+    style: {
+      version: 8,
+      sources: {
+        osm: { type: "raster", tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' },
+        hex: { type: "geojson", data },
+      },
+      layers: [
+        // a dimmed map in dark mode, so the columns stand out as they do on the light map
+        { id: "osm", type: "raster", source: "osm", paint: dark ? { "raster-brightness-max": 0.5, "raster-saturation": -0.5 } : {} },
+        { id: "hex", type: "fill-extrusion", source: "hex", paint: {
+          "fill-extrusion-color": ["step", ["get", "n"], heat(1), HEX_STEPS[0], heat(2), HEX_STEPS[1], heat(3), HEX_STEPS[2], heat(4)],
+          "fill-extrusion-height": ["*", ["get", "n"], calm ? HEX_HEIGHT : 0],
+          "fill-extrusion-opacity": 0.9,
+        } },
+      ],
+    },
+  });
+  map3d.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+  map3d.on("load", () => {
+    if (calm) return;
+    // tilt the map while the columns grow out of it
+    map3d.easeTo({ pitch: 55, bearing: -20, zoom: view.zoom, duration: 1800 });
+    const t0 = performance.now();
+    const grow = (now) => {
+      const p = Math.min(1, (now - t0) / 1400);
+      map3d.setPaintProperty("hex", "fill-extrusion-height", ["*", ["get", "n"], HEX_HEIGHT * (1 - (1 - p) ** 3)]);
+      if (p < 1) requestAnimationFrame(grow);
+    };
+    requestAnimationFrame(grow);
+  });
+  map3d.on("click", "hex", (e) => {
+    const f = e.features[0].properties;
+    new maplibregl.Popup({ maxWidth: "240px" }).setLngLat(e.lngLat)
+      .setHTML(`<b>${f.n} ${f.n === 1 ? "Einsatz" : "Einsätze"}</b> in diesem Feld<br>${f.places}`).addTo(map3d);
+  });
+  map3d.on("mouseenter", "hex", () => { map3d.getCanvas().style.cursor = "pointer"; });
+  map3d.on("mouseleave", "hex", () => { map3d.getCanvas().style.cursor = ""; });
+  // The graphics chip gave up (e.g. an old phone under load): back to the flat map.
+  map3d.on("webglcontextlost", () => {
+    map3d.remove(); map3d = null;
+    map3dNote("Die 3D-Karte war für dieses Gerät zu aufwendig. Hier bleibt die flache Karte.");
+    setMapMode("flat");
+  });
+}
+
+$("#map-mode").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b && (b.dataset.mode === "3d") !== map3dOn) setMapMode(b.dataset.mode); });
 
 // ---------- Zeitraffer ----------
 // Plays the selected alarms on the map in date order: each one flashes where it happened and stays
