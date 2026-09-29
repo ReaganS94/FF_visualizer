@@ -13,24 +13,11 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 - `docs/`: the static site (no build step). Views: overview, dot wall (every alarm one dot, regrouped by month,
   type, district or hour with the dots moving to their new places), calendar, year spiral (one turn per year,
   one piece per day, the same date at the same angle every year), time of day, keywords, districts,
-  map (with a time-lapse that plays the alarms in date order, and a tilted 3D view with a column per field of about
-  260 m, see below), weather, searchable list, annual report (with a year comparison and the year as a story, see
-  below), and an "Einsatz heute?" estimate that is explicitly only a guess.
+  map (with a time-lapse that plays the alarms in date order), weather, searchable list, annual report (with a
+  year comparison and the year as a story, see below), and an "Einsatz heute?" estimate that is explicitly only a guess.
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `docs/admin.html`: form for adding alarms before the website lists them (see below).
 - `docs/manifest.webmanifest` and `docs/icons/`: let phones add the site to the home screen as an app (icon source: `icons/icon.svg`).
-
-## 3D map
-
-The map's "3D-Säulen" button groups the mapped alarms into hexagon fields about 260 m across and raises a column
-on each: 40 m of height per alarm, coloured with the same heat steps as the calendar (1, 2–3, 4–7, 8+). Tapping a
-column lists its top three streets; two fingers (right mouse button on a computer) turn and tilt the map. It
-follows the year, standby and Großlagen filters.
-
-- The 3D map uses MapLibre GL (from unpkg, about 280 KB to download), loaded only when someone picks 3D. The flat map stays the default.
-- Devices without real graphics hardware (the browser would draw in software and stutter) keep the flat map and
-  see a note saying so. The same happens if the library can't load or the graphics chip gives up mid-use.
-- Tiles are the same OpenStreetMap tiles as the flat map, dimmed in dark mode.
 
 ## Admin page
 
