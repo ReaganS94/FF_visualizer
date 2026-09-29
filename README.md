@@ -11,8 +11,8 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 - `scraper/weather.py`: daily weather for Hannover from Open-Meteo into `docs/data/weather.json`.
 - `scraper/geocode.py`: looks up each street once via OpenStreetMap Nominatim, cached in `docs/data/geo.json`. Streets Nominatim can't match (typos, crossings like "NieschlagS/WittekindS", a different district) are retried with Photon, which tolerates typos; its answer only counts if the name is close and the place is in Hannover.
 - `docs/`: the static site (no build step). Views: overview, calendar, time of day, keywords, districts,
-  map (with a time-lapse that plays the alarms in date order), weather, searchable list, annual report, and an
-  "Einsatz heute?" estimate that is explicitly only a guess.
+  map (with a time-lapse that plays the alarms in date order), weather, searchable list, annual report (with a
+  year comparison and the year as a story, see below), and an "Einsatz heute?" estimate that is explicitly only a guess.
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `docs/admin.html`: form for adding alarms before the website lists them (see below).
 - `docs/manifest.webmanifest` and `docs/icons/`: let phones add the site to the home screen as an app (icon source: `icons/icon.svg`).
@@ -26,6 +26,18 @@ within an hour of it, so nothing is counted twice.
 The street field suggests the spellings the website uses, and "Strasse" or "Str." is saved as "Straße".
 Entries can be edited in place (one commit). Before saving, the page asks for confirmation if the same keyword
 within an hour is already on the website or among the hand entries.
+
+## Jahresrückblick
+
+- "Jahresvergleich": one line per year with the alarms added up from 01.01. The chosen year is blue, the others
+  grey, each with its total at the end. A running year's line stops at the website's newest alarm, the same cut
+  the "+x %" tile uses. Hovering shows every year's count on that date.
+- "Das Jahr als Story": full-screen cards to tap or swipe through (total, busiest day, busiest hour, night share,
+  most common keyword, top places, longest quiet spell, comparison with the previous year, summary). Each card is
+  sized for a phone screenshot and names the year, plus "Ohne Großlagen" and "Stand …" where that applies. The
+  phone's back button closes it. The longest quiet spell always counts Großlage days as busy and stops at the
+  website's newest alarm.
+- Both follow the "Großlagen mitzählen" checkbox of the Jahresrückblick.
 
 ## Run locally
 

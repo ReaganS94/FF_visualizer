@@ -506,27 +506,97 @@ function renderChance() {
 // Keywords worth listing individually in the annual report.
 const NOTABLE = /^(b2|b3|ob|ba2|bg2|abc2|hm2|hm3|hw\d|hu\d|manv.*)$/;
 
-function renderYear() {
-  const year = $("#y-year").value;
-  const storm = $("#y-storm").checked;
+// What the annual report and the year story compare: a running year only up to the website's newest
+// entry (later alarms exist only where they were entered by hand), against the same period a year earlier.
+function yearInfo(year, storm) {
   const alarms = ALL.filter((r) => !r.standby && (storm || !r.bigDay));
   const rows = alarms.filter((r) => r.date.startsWith(year));
   const prev = alarms.filter((r) => r.date.startsWith(String(year - 1)));
   const lastDate = rows.length ? rows[0].date : "";
-  const partial = lastDate && Number(year) >= new Date().getFullYear();
-  // Compare a running year with the same period of the previous year, and only up to the website's
-  // newest entry: later alarms exist only where they were entered by hand.
+  const partial = Boolean(lastDate) && Number(year) >= new Date().getFullYear();
   const listed = isoDate(LISTED);
   const cutDate = partial ? minDate(lastDate, listed) : `${year}-12-31`;
   const cut = cutDate.startsWith(year) ? cutDate.slice(5) : "";
   const cmpRows = rows.filter((r) => r.date.slice(5) <= cut);
   const prevSame = partial ? prev.filter((r) => r.date.slice(5) <= cut) : prev;
+  const delta = prevSame.length && cut ? Math.round((100 * (cmpRows.length - prevSame.length)) / prevSame.length) : null;
+  return { alarms, rows, prev, lastDate, partial, listed, cutDate, cut, cmpRows, prevSame, delta };
+}
+
+// The days of a leap year, so every date sits at the same place in every year.
+const DAY_SLOTS = Array.from({ length: 366 }, (_, i) => isoDate(addDays(new Date(2024, 0, 1), i)).slice(5));
+
+// Alarms from 01.01. added up day by day; null after `until` (MM-DD), so the line stops there.
+function runningTotal(rows, until) {
+  const per = {};
+  for (const r of rows) per[r.date.slice(5)] = (per[r.date.slice(5)] || 0) + 1;
+  let sum = 0;
+  return DAY_SLOTS.map((d) => (d > until ? null : (sum += per[d] || 0)));
+}
+
+// One line per year. The chosen year is coloured, the others grey, each with its total at the end.
+// series: [{label, values, sel}], marks: [{i, text}] notes on the chosen line.
+function raceChart(el, series, { height = 260, hover = true, marks = [] } = {}) {
+  const W = el.clientWidth || 1000, H = height, L = 34, R = 72, T = 10, B = 24;
+  const max = niceMax(Math.max(1, ...series.flatMap((s) => s.values.filter((v) => v !== null))));
+  const x = (i) => L + ((W - L - R) * i) / 365;
+  const y = (v) => T + (H - T - B) * (1 - v / max);
+  const f = (n) => n.toFixed(1);
+  const ends = series.map((s) => { const i = s.values.findLastIndex((v) => v !== null); return { s, i, v: s.values[i] }; });
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Einsätze seit 1. Januar: ${esc(ends.map((e) => `${e.s.label} ${e.v}`).join(", "))}">`;
+  const steps = max % 4 === 0 ? 4 : 5;
+  for (let k = 0; k <= steps; k++) {
+    const v = (max / steps) * k;
+    svg += `<line class="grid" x1="${L}" x2="${W - R}" y1="${f(y(v))}" y2="${f(y(v))}"/><text x="${L - 6}" y="${f(y(v) + 4)}" text-anchor="end">${Math.round(v)}</text>`;
+  }
+  const narrow = W < 600;
+  MONTHS.forEach((m, k) => {
+    if (!narrow || k % 3 === 0) svg += `<text x="${f(x(DAY_SLOTS.indexOf(`${String(k + 1).padStart(2, "0")}-15`)))}" y="${H - 6}" text-anchor="middle">${m}</text>`;
+  });
+  for (const e of [...ends].sort((a, b) => a.s.sel - b.s.sel)) { // chosen year last, on top
+    const pts = e.s.values.slice(0, e.i + 1).map((v, i) => `${f(x(i))},${f(y(v))}`).join(" ");
+    svg += `<polyline class="race${e.s.sel ? " sel" : ""}" pathLength="1" points="${pts}"/>`;
+  }
+  const sel = ends.find((e) => e.s.sel);
+  for (const m of marks) svg += `<text class="anno" x="${f(x(m.i) - 6)}" y="${f(y(sel.s.values[m.i]) + 4)}" text-anchor="end">${esc(m.text)}</text>`;
+  if (sel) svg += `<circle class="race-dot" cx="${f(x(sel.i))}" cy="${f(y(sel.v))}" r="4"/>`;
+  // Totals at the line ends. Lines reaching 31.12. share the right margin; where they end close
+  // together the labels are pushed apart and a short connector leads back to the line.
+  const right = ends.filter((e) => x(e.i) > W - R - 60).map((e) => ({ ...e, ly: y(e.v) + 4 })).sort((a, b) => a.ly - b.ly);
+  for (let k = 1; k < right.length; k++) right[k].ly = Math.max(right[k].ly, right[k - 1].ly + 14);
+  const over = right.length ? right[right.length - 1].ly - (H - B) : 0;
+  if (over > 0) for (const e of right) e.ly -= over;
+  for (const e of ends) {
+    const r = right.find((o) => o.s === e.s);
+    const cls = `end${e.s.sel ? " sel" : ""}`;
+    if (!r) { svg += `<text class="${cls}" x="${f(x(e.i) + 8)}" y="${f(y(e.v) + 4)}">${esc(e.s.label)}: ${e.v}</text>`; continue; }
+    if (Math.abs(r.ly - 4 - y(e.v)) > 2) svg += `<line class="leader" x1="${f(x(e.i) + 2)}" y1="${f(y(e.v))}" x2="${W - R + 5}" y2="${f(r.ly - 4)}"/>`;
+    svg += `<text class="${cls}" x="${W - R + 8}" y="${f(r.ly)}">${esc(e.s.label)}: ${e.v}</text>`;
+  }
+  if (hover) {
+    const bw = (W - L - R) / 365;
+    DAY_SLOTS.forEach((d, i) => {
+      const vals = ends.filter((e) => i <= e.i).sort((a, b) => b.s.label.localeCompare(a.s.label))
+        .map((e) => `${e.s.label}: <b>${e.s.values[i]}</b>`).join("<br>");
+      if (!vals) return;
+      svg += `<g class="day"><line class="guide" x1="${f(x(i))}" x2="${f(x(i))}" y1="${T}" y2="${H - B}"/>` +
+        `<rect class="hit" x="${f(x(i) - bw / 2)}" y="${T}" width="${f(bw)}" height="${H - T - B}" data-tip="${esc(`<b>${fmtDate(`2024-${d}`).slice(0, 6)}</b><br>${vals}`)}"/></g>`;
+    });
+  }
+  el.innerHTML = svg + "</svg>" + (hover && sel && series.length > 1
+    ? `<div class="legend"><i class="key sel"></i>${esc(sel.s.label)} <i class="key"></i>andere Jahre</div>` : "");
+}
+
+function renderYear() {
+  const year = $("#y-year").value;
+  const storm = $("#y-storm").checked;
+  const info = yearInfo(year, storm);
+  const { rows, prevSame, partial, lastDate, listed, cutDate, cut, delta } = info;
 
   const byDay = topCounts(rows, (r) => r.date, 1)[0];
   const byMonth = topCounts(rows, (r) => r.date.slice(5, 7), 1)[0];
   const known = rows.filter((r) => !r.timeUnknown);
   const night = known.filter((r) => r.hour >= NIGHT_START || r.hour < DAY_START).length;
-  const delta = prevSame.length && cut ? Math.round((100 * (cmpRows.length - prevSame.length)) / prevSame.length) : null;
   const period = partial ? ` (jeweils bis ${fmtDate(cutDate).slice(0, 6)})` : "";
   const tiles = [
     ["Einsätze", rows.length, delta !== null ? `${delta >= 0 ? "+" : ""}${delta} % gegenüber ${year - 1}${period}` : ""],
@@ -546,6 +616,19 @@ function renderYear() {
     .map(([d, l]) => `${fmtDate(d)} (${l.length} Einsätze${d.startsWith(year) ? "" : `, im Vergleich mit ${year - 1}`})`);
   $("#y-storm-note").textContent = big.length ? `Großlagen ${storm ? "mitgezählt" : "nicht mitgezählt"}: ${big.join(", ")}.` : "";
 
+  // Every year's running total; a running year's line stops where its data does.
+  const years = [...new Set(info.alarms.map((r) => r.date.slice(0, 4)))].sort();
+  const series = years.map((y) => {
+    const own = y === year ? info : yearInfo(y, storm);
+    return { label: y, sel: y === year, values: runningTotal(own.rows, own.cut), own };
+  }).filter((s) => s.values[0] !== null);
+  const marks = storm ? topCounts(rows.filter((r) => r.bigDay && r.date.slice(5) <= cut), (r) => r.date)
+    .map(([d]) => ({ i: DAY_SLOTS.indexOf(d.slice(5)), text: `Großlage ${fmtDate(d).slice(0, 6)}` })) : [];
+  $("#y-race-note").textContent = "Einsätze ab dem 1. Januar, Tag für Tag zusammengezählt. Je steiler die Linie, desto mehr Einsätze in dieser Zeit." +
+    series.filter((s) => s.own.partial).map((s) => ` Die Linie für ${s.label} endet am ${fmtDate(s.own.cutDate).slice(0, 6)}` +
+      `${s.own.cutDate === s.own.listed ? ", dem neuesten Einsatz auf der Website" : ""}.`).join("");
+  raceChart($("#y-race"), series, { marks: series.some((s) => s.sel) ? marks : [] });
+
   const months = Array(12).fill(0);
   for (const r of rows) months[Number(r.date.slice(5, 7)) - 1]++;
   columnChart($("#y-months"), months.map((n, m) => ({ value: n, tip: `${MONTHS[m]} ${year}: <b>${n}</b> Einsätze`, tick: MONTHS[m] })), { height: 180 });
@@ -561,6 +644,215 @@ function renderYear() {
     `<tr><td>${fmtDate(r.date)}</td><td>${esc(r.name)}</td><td>${esc(r.event)}</td><td>${esc(r.street)}, ${esc(r.district)}</td></tr>`).join("")
     || `<tr><td colspan="4">Keine</td></tr>`;
 }
+
+// ---------- Jahr als Story ----------
+// Full-screen cards to tap or swipe through, one fact each, sized for a phone screenshot.
+// Uses the year and the "Großlagen mitzählen" choice of the Jahresrückblick.
+function storyCards(year, storm) {
+  const info = yearInfo(year, storm);
+  const { rows } = info;
+  if (!rows.length) return [];
+  const cards = [];
+  const add = (theme, html, after) => cards.push({ theme, html, after });
+  const num = (n, extra = "") => `<span data-to="${n}"${extra}>${n}</span>`;
+  const dm = (iso) => fmtDate(iso).slice(0, 6);
+  // big words shrink with their length so they stay on one line
+  const fit = (text, max = 26) => `style="font-size:min(${max}cqw, ${(120 / text.length).toFixed(1)}cqw, 16cqh)"`;
+  const pct = (n, of) => Math.round((100 * n) / of);
+  const times = (n) => `<span class="st-nw">${n}-mal</span>`;
+
+  add("red", `<div class="st-kicker">Freiwillige Feuerwehr Hannover-Linden</div><div class="st-title">Das Einsatzjahr ${year}</div>` +
+    (info.partial ? `<div class="st-text">Das Jahr läuft noch. Gezählt ist alles bis zum ${fmtDate(info.lastDate)}.</div>` : "") +
+    `<div class="st-small">Zum Weiterblättern tippen oder wischen.</div>`);
+
+  // Average per week only over days the data fully covers.
+  const covered = info.partial ? info.cmpRows : rows;
+  const weeks = ((parseDate(info.cutDate) - parseDate(`${year}-01-01`)) / 864e5 + 1) / 7;
+  const big = topCounts(ALL.filter((r) => !r.standby && r.bigDay && r.date.startsWith(year)), (r) => r.date)
+    .sort(([a], [b]) => a.localeCompare(b));
+  const bigText = big.length === 1 ? `die Großlage am ${dm(big[0][0])} mit ${big[0][1].length} Einsätzen`
+    : `die Großlagen am ${big.map(([d, l]) => `${dm(d)} (${l.length} Einsätze)`).join(" und ")}`;
+  add("dark", `<div class="st-kicker">Einsätze</div><div class="st-hero">${num(rows.length)}</div>` +
+    `<div class="st-text">Im Schnitt ${(covered.length / weeks).toFixed(1).replace(".", ",")} pro Woche.</div>` +
+    (big.length ? `<div class="st-small">${storm ? "Mitgezählt" : "Nicht mitgezählt"}: ${bigText}.</div>` : ""));
+
+  const [bd, bl] = topCounts(rows, (r) => r.date, 1)[0];
+  const [ev, evl] = topCounts(bl, (r) => r.event, 1)[0];
+  const silvester = bd.slice(5) === "01-01" ? bl.filter((r) => !r.timeUnknown && r.hour < DAY_START).length : 0;
+  add("amber", `<div class="st-kicker">Der stärkste Tag</div><div class="st-date">${WEEKDAYS_LONG[weekday(parseDate(bd))]}, ${fmtDate(bd)}</div>` +
+    `<div class="st-hero">${num(bl.length)}</div>` +
+    `<div class="st-text">Einsätze an einem Tag${silvester === bl.length ? ", alle in der Silvesternacht" : silvester ? `, ${silvester} davon in der Silvesternacht` : ""}.</div>` +
+    (evl.length > 1 ? `<div class="st-small">Am häufigsten: „${esc(ev)}“ (${times(evl.length)})</div>` : ""));
+
+  // Placeholder times (bulk-entered Großlagen) say nothing about the hour.
+  const known = rows.filter((r) => !r.timeUnknown);
+  const nightShare = known.length ? pct(known.filter((r) => r.hour >= NIGHT_START || r.hour < DAY_START).length, known.length) : null;
+  if (known.length) {
+    const hours = Array(24).fill(0);
+    for (const r of known) hours[r.hour]++;
+    const top = Math.max(...hours), h = hours.indexOf(top);
+    const same = hours.map((n, k) => (n === top && k !== h ? `${k}–${k + 1} Uhr` : "")).filter(Boolean);
+    const word = h === 0 ? "Mitternacht" : `${h} Uhr`;
+    add("navy", `<div class="st-kicker">Die häufigste Uhrzeit</div><div class="st-hero" ${fit(word)}>${word}</div>` +
+      `<div class="st-text">Zwischen ${h} und ${h + 1} Uhr wurde am häufigsten alarmiert: ${times(top)}.</div>` +
+      `<div class="st-hours"><div class="bars">${hours.map((n, k) => `<i class="${k === h ? "hi" : ""}" style="height:${Math.max(2, (100 * n) / top)}%;--k:${k}"></i>`).join("")}</div>` +
+      `<div class="ticks"><span>0</span><span>6</span><span>12</span><span>18</span><span>24 Uhr</span></div></div>` +
+      (same.length ? `<div class="st-small">Genauso oft: ${same.join(", ")}.</div>` : ""));
+
+    add("dark", `<div class="st-kicker">Nachts</div><div class="st-hero" ${fit(`${nightShare} %`)}>${num(nightShare)} %</div>` +
+      `<div class="st-text">der Einsätze kamen zwischen 22 und 6 Uhr, also in 8 von 24 Stunden.</div>` +
+      `<div class="st-split"><i style="flex-grow:${100 - nightShare}"></i><i class="hi" style="flex-grow:${nightShare}"></i></div>` +
+      `<div class="st-legend"><span>Tag ${100 - nightShare} %</span><span>Nacht ${nightShare} %</span></div>`);
+  }
+
+  const kws = topCounts(rows, (r) => r.base, 3);
+  const [kb, kl] = kws[0];
+  add("red", `<div class="st-kicker">Das häufigste Stichwort</div><div class="st-hero" ${fit(kb, 30)}>${esc(kb)}</div>` +
+    `<div class="st-text"><b>${esc(kl[0].name)}</b></div>` +
+    `<div class="st-text">${times(num(kl.length))}, das sind ${pct(kl.length, rows.length)} % aller Einsätze.</div>` +
+    (kws.length > 1 ? `<div class="st-small">Danach: ${kws.slice(1).map(([k, l]) => `${esc(k)} ${esc(l[0].name)} (${l.length})`).join(", ")}</div>` : ""));
+
+  // Top three places, plus anything tied with the third, at most five.
+  const places = topCounts(rows.filter((r) => r.street), (r) => r.street, 999);
+  if (places.length) {
+    const third = places[Math.min(2, places.length - 1)][1].length;
+    const tied = places.filter(([, l]) => l.length >= third);
+    const shown = tied.slice(0, 5), more = tied.length - shown.length;
+    const most = shown[0][1].length;
+    add("navy", `<div class="st-kicker">Die häufigsten Einsatzorte</div><ol class="st-rank">` +
+      shown.map(([st, l], k) => `<li style="--k:${k}"><span>${esc(st)}<small>${esc(topCounts(l, (r) => r.district, 1)[0][0].replace("unbekannt", ""))}</small></span>` +
+        `<span class="n">${l.length}</span><i style="width:${(100 * l.length) / most}%"></i></li>`).join("") + `</ol>` +
+      (more ? `<div class="st-small">Und ${more === 1 ? "ein weiterer Ort" : `${more} weitere`} mit ${more === 1 ? "" : "je "}${third} ${third === 1 ? "Einsatz" : "Einsätzen"}.</div>` : ""));
+  }
+
+  // Longest run of days without any alarm (Großlagen always count here: a storm day is never quiet),
+  // only up to the website's newest entry.
+  const busy = new Set(ALL.filter((r) => !r.standby).map((r) => r.date));
+  const quietEnd = info.partial ? info.listed : `${year}-12-31`;
+  let quiet = null, from = null;
+  for (let d = parseDate(`${year}-01-01`); isoDate(d) <= quietEnd; d = addDays(d, 1)) {
+    const k = isoDate(d);
+    if (busy.has(k)) { from = null; continue; }
+    from ||= k;
+    const len = Math.round((d - parseDate(from)) / 864e5) + 1;
+    if (!quiet || len > quiet.len) quiet = { len, from, to: k };
+  }
+  if (quiet && quiet.len > 1) {
+    add("amber", `<div class="st-kicker">Die längste Pause</div><div class="st-hero">${num(quiet.len)} <span class="st-unit">Tage</span></div>` +
+      `<div class="st-text">ohne einen einzigen Einsatz, vom ${dm(quiet.from)} bis ${fmtDate(quiet.to)}.</div>`);
+  }
+
+  if (info.delta !== null) {
+    const prevYear = String(year - 1);
+    const period = info.partial ? ` (jeweils bis ${dm(info.cutDate)})` : "";
+    const sign = (n) => `${n > 0 ? "+" : n < 0 ? "−" : "±"}${Math.abs(n)}`;
+    const withBig = storm && [...info.cmpRows, ...info.prevSame].some((r) => r.bigDay);
+    const without = withBig ? yearInfo(year, false).delta : null;
+    add("navy", `<div class="st-kicker">Im Vergleich zu ${prevYear}</div>` +
+      `<div class="st-hero" ${fit(`${sign(info.delta)} %`)}><span data-to="${info.delta}" data-sign="1">${sign(info.delta)}</span> %</div>` +
+      `<div class="st-text">${info.cmpRows.length} Einsätze ${year}, ${info.prevSame.length} in ${prevYear}${period}.</div>` +
+      `<div class="st-chart"></div>` +
+      (without !== null ? `<div class="st-small">Ohne Großlagen: ${sign(without)} %</div>` : ""),
+      (root) => raceChart(root.querySelector(".st-chart"), [
+        { label: prevYear, values: runningTotal(info.prevSame, info.cut) },
+        { label: year, sel: true, values: runningTotal(info.cmpRows, info.cut) },
+      ], { height: 180, hover: false }));
+  }
+
+  const facts = [
+    ["Einsätze", rows.length],
+    ["Nachts", nightShare === null ? "–" : `${nightShare} %`],
+    ["Stärkster Tag", `${dm(bd)}<small>${bl.length} Einsätze</small>`],
+    ["Längste Pause", quiet && quiet.len > 1 ? `${quiet.len} Tage` : "–"],
+    ["Häufigstes Stichwort", esc(kb)],
+    ["Häufigster Ort", places.length ? esc(places[0][0]) : "–"],
+  ];
+  add("red", `<div class="st-kicker">${year} in Zahlen</div>` +
+    `<dl class="st-grid">${facts.map(([l, v]) => `<div><dt>${l}</dt><dd>${v}</dd></div>`).join("")}</dl>` +
+    `<div class="st-actions"><button type="button" data-story="restart">Von vorn</button><button type="button" data-story="close">Schließen</button></div>`);
+
+  const foot = [storm ? "" : "Ohne Großlagen", info.partial ? `Stand ${fmtDate(info.lastDate)}` : ""].filter(Boolean).join(" · ");
+  return cards.map((c, i) => ({
+    ...c, html: `<div class="st-head">${i ? `FF Linden · Einsatzjahr ${year}` : ""}</div><div class="st-body">${c.html}</div><div class="st-foot">${foot}</div>`,
+  }));
+}
+
+const story = { cards: [], i: 0 };
+const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Numbers count up from 0 when their card appears.
+function countUp(el) {
+  const to = Number(el.dataset.to);
+  const show = (v) => { el.textContent = el.dataset.sign ? `${v > 0 ? "+" : v < 0 ? "−" : "±"}${Math.abs(v)}` : String(v); };
+  if (calm()) return show(to);
+  const t0 = performance.now(), dur = 900 + Math.min(700, Math.abs(to) * 4);
+  const tick = (now) => {
+    const p = Math.min(1, (now - t0) / dur);
+    show(Math.round(to * (1 - (1 - p) ** 3)));
+    if (p < 1 && el.isConnected) requestAnimationFrame(tick);
+  };
+  show(0);
+  requestAnimationFrame(tick);
+}
+
+function storyShow(i) {
+  story.i = Math.max(0, Math.min(story.cards.length - 1, i));
+  const c = story.cards[story.i], box = $("#story-card");
+  $("#story-frame").className = `story-frame st-${c.theme}`;
+  $("#story-bar").innerHTML = story.cards.map((_, k) => `<i class="${k < story.i ? "done" : k === story.i ? "now" : ""}"></i>`).join("");
+  box.innerHTML = c.html;
+  box.querySelectorAll(".st-body > *").forEach((el, k) => el.style.setProperty("--i", k));
+  box.querySelectorAll("[data-to]").forEach(countUp);
+  if (c.after) c.after(box);
+  $("#story-prev").disabled = story.i === 0;
+  $("#story-next").disabled = story.i === story.cards.length - 1;
+}
+
+function storyOpen() {
+  story.cards = storyCards($("#y-year").value, $("#y-storm").checked);
+  if (!story.cards.length) return;
+  $("#story").hidden = false;
+  document.body.classList.add("story-open");
+  // The phone's back button closes the story instead of leaving the page.
+  history.pushState({ story: true }, "");
+  storyShow(0);
+  $("#story-close").focus();
+}
+
+function storyHide() {
+  $("#story").hidden = true;
+  document.body.classList.remove("story-open");
+  $("#story-card").innerHTML = "";
+  $("#y-story").focus();
+}
+const storyClose = () => (history.state?.story ? history.back() : storyHide());
+
+window.addEventListener("popstate", () => { if (!$("#story").hidden) storyHide(); });
+$("#y-story").addEventListener("click", storyOpen);
+$("#story-close").addEventListener("click", storyClose);
+$("#story-prev").addEventListener("click", () => storyShow(story.i - 1));
+$("#story-next").addEventListener("click", () => storyShow(story.i + 1));
+// Tap the left third to go back, anywhere else to go on; or swipe.
+let storyDown = null;
+$("#story-card").addEventListener("pointerdown", (e) => { storyDown = e.clientX; });
+$("#story-card").addEventListener("pointerup", (e) => {
+  if (storyDown === null || e.target.closest("button")) { storyDown = null; return; }
+  const dx = e.clientX - storyDown, box = e.currentTarget.getBoundingClientRect();
+  storyDown = null;
+  if (Math.abs(dx) > 40) storyShow(story.i + (dx < 0 ? 1 : -1));
+  else storyShow(story.i + (e.clientX < box.left + box.width / 3 ? -1 : 1));
+});
+$("#story-card").addEventListener("pointercancel", () => { storyDown = null; });
+$("#story-card").addEventListener("click", (e) => {
+  const act = e.target.closest("[data-story]");
+  if (act) { if (act.dataset.story === "restart") storyShow(0); else storyClose(); }
+});
+document.addEventListener("keydown", (e) => {
+  if ($("#story").hidden) return;
+  if (e.key === "Escape") storyClose();
+  else if (e.key === "ArrowRight" || (e.key === " " && !e.target.closest("button"))) { e.preventDefault(); storyShow(story.i + 1); }
+  else if (e.key === "ArrowLeft") storyShow(story.i - 1);
+});
 
 // ---------- Karte ----------
 let map, heat;
