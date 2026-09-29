@@ -112,3 +112,15 @@ td:nth-child(1), td:nth-child(2) { white-space: nowrap; font-variant-numeric: ta
   border-radius: 8px; padding: 6px 9px; font-size: .82rem; box-shadow: 0 4px 14px rgba(0,0,0,.15);
 }
 #tip b { font-variant-numeric: tabular-nums; }
+
+.year-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 16px; color: var(--text-2); }
+.year-head button {
+  font: inherit; padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+.print-only { display: none; }
+@media print {
+  header nav, nav, #filters, .year-head, #tip { display: none !important; }
+  .print-only { display: block; }
+  body { max-width: none; background: #fff; }
+}

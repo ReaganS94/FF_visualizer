@@ -19,6 +19,7 @@
   <button data-view="keywords">Stichworte</button>
   <button data-view="districts">Stadtteile</button>
   <button data-view="list">Liste</button>
+  <button data-view="year">Jahresrückblick</button>
   <button data-view="chance">Einsatz heute?</button>
 </nav>
 
@@ -49,8 +50,10 @@
   </section>
 
   <section data-view="keywords">
+    <h2>Nach Einsatzart</h2>
+    <div class="chart" id="c-groups"></div>
     <h2>Häufigste Stichworte</h2>
-    <p class="note">Stichwort ohne Zusatz (z. B. „b3/manv10“ zählt als „b3“).</p>
+    <p class="note">Stichwort ohne Zusatz (z. B. „b3/manv10“ zählt als „b3“). Die Namen stehen in <code>data/keywords.json</code>.</p>
     <div class="chart" id="c-keywords"></div>
   </section>
 
@@ -68,10 +71,36 @@
     </table></div>
   </section>
 
+  <section data-view="year">
+    <div class="year-head">
+      <label>Jahr <select id="y-year"></select></label>
+      <button id="y-print" type="button">Drucken / als PDF speichern</button>
+    </div>
+    <h2 class="print-only">FF Linden Jahresrückblick</h2>
+    <p class="note" id="y-partial"></p>
+    <div class="tiles" id="y-tiles"></div>
+    <h2>Einsätze pro Monat</h2>
+    <div class="chart" id="y-months"></div>
+    <h2>Nach Einsatzart</h2>
+    <div class="chart" id="y-groups"></div>
+    <h2>Besondere Einsätze</h2>
+    <p class="note">Größere Lagen (z. B. b2, b3, Wasserrettung, MANV) und Einsätze mit Pressebericht. Wachbesetzungen sind nicht mitgezählt.</p>
+    <div class="table-wrap"><table id="y-notable">
+      <thead><tr><th>Datum</th><th>Art</th><th>Ereignis</th><th>Ort</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
   <section data-view="chance">
     <div class="disclaimer"><strong>Nur eine Schätzung.</strong> Diese Zahl wird aus vergangenen Einsätzen berechnet und sagt nichts darüber, was heute wirklich passiert. Bitte nicht zur Planung oder Einsatzbereitschaft verwenden.</div>
     <div class="tiles" id="chance"></div>
     <p class="note" id="chance-method"></p>
+    <h2>Wie gut lag die Schätzung bisher?</h2>
+    <div class="table-wrap"><table id="t-backtest">
+      <thead><tr><th>Geschätzt</th><th>Anzahl Schätzungen</th><th>Tatsächlich mit Einsatz</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="note" id="backtest-note"></p>
   </section>
 </main>
 
