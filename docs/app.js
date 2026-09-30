@@ -1411,7 +1411,9 @@ async function renderRadius(rows) {
 }
 
 function radiusMap(el) {
-  const map = (radius.map = L.map(el, { zoomSnap: 0.25 }));
+  // All alarms lie within about 11 km, so the map stays around the region: zoomed out no further than
+  // zoom 9, and no further away than 150 km.
+  const map = (radius.map = L.map(el, { zoomSnap: 0.25, minZoom: 9, maxBounds: L.latLng(WACHE).toBounds(300000) }));
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map);
@@ -1516,16 +1518,25 @@ function radiusDraw(now = performance.now()) {
     ctx.fillStyle = ink; ctx.fillText(text, x, y);
   };
   const o = map.latLngToContainerPoint(WACHE);
-  const perKm = o.y - map.latLngToContainerPoint([WACHE[0] + 1 / KM_Y, WACHE[1]]).y;
+  // Pixels per km from the unrounded map position: container points are whole pixels, so 1 km can come out
+  // as 0 pixels when zoomed far out.
+  const z = map.getZoom(), perKm = map.project(WACHE, z).y - map.project([WACHE[0] + 1 / KM_Y, WACHE[1]], z).y;
   const at = (p) => map.latLngToContainerPoint(p.ll);
   // A slight bend to the right of the direction of travel, so lines to one street don't hide each other.
   const bend = (q) => [(o.x + q.x) / 2 - (q.y - o.y) * 0.18, (o.y + q.y) / 2 + (q.x - o.x) * 0.18];
 
-  // rings every 1, 2, 5 or 10 km, whichever keeps them apart
-  const step = [1, 2, 5, 10].find((s) => s * perKm >= 50) || 10;
-  const reach = Math.hypot(Math.max(o.x, W - o.x), Math.max(o.y, H - o.y));
+  // Rings every 1, 2, 5, 10, 20 … km, the smallest step that keeps them at least 50 pixels apart,
+  // and only those that cross the visible map (the Wache can be off the map).
+  const rings = [];
+  if (perKm > 0) {
+    let step = 1;
+    for (let i = 0; step * perKm < 50; i++) step *= [2, 2.5, 2][i % 3];
+    const near = Math.hypot(Math.max(0, -o.x, o.x - W), Math.max(0, -o.y, o.y - H));
+    const reach = Math.hypot(Math.max(o.x, W - o.x), Math.max(o.y, H - o.y));
+    for (let k = Math.max(1, Math.ceil(near / perKm / step)) * step; k * perKm < reach; k += step) rings.push(k);
+  }
   ctx.strokeStyle = ink; ctx.globalAlpha = 0.5; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
-  for (let k = step; k * perKm < reach; k += step) { ctx.beginPath(); ctx.arc(o.x, o.y, k * perKm, 0, 2 * Math.PI); ctx.stroke(); }
+  for (const k of rings) { ctx.beginPath(); ctx.arc(o.x, o.y, k * perKm, 0, 2 * Math.PI); ctx.stroke(); }
   ctx.setLineDash([]); ctx.globalAlpha = 1;
 
   const list = radius.shown || radius.pts;
@@ -1558,7 +1569,7 @@ function radiusDraw(now = performance.now()) {
   }
   // ring labels on top of the dots, above each ring (below it where the top is off the map)
   ctx.textAlign = "center";
-  for (let k = step; k * perKm < reach; k += step) {
+  for (const k of rings) {
     const y = o.y - k * perKm - 4;
     label(`${k} km`, o.x, y > 14 ? y : o.y + k * perKm + 14);
   }
