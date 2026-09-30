@@ -46,6 +46,23 @@ aren't matched yet are called "vorläufig" (tag in the list and on the "Letzter 
   website's newest alarm.
 - Both follow the "Großlagen mitzählen" checkbox of the Jahresrückblick.
 
+## Mythen-Check
+
+Tests popular beliefs (full moon, Friday the 13th, public holidays, school holidays, Hannover 96 home games,
+days of 30 °C or more, weekends, and Silvester as a known "yes") against the alarms. The days of a myth are
+compared with similar days: the same weekday at most 30 days from the same date in any year (weekends are
+compared with weekdays of the same time of year, Silvester with any day around the turn of the year). For
+every myth day one similar day is drawn at random, 2000 times over, which shows how far the average moves by
+chance alone (the grey bar holds the middle 95 %). The card says "Stimmt" when chance reaches the myth days'
+average in fewer than 2.5 % of the draws, "Vielleicht" below 10 %, and "Zu wenige Tage" under 10 days.
+Großlage days and "vs" are always left out, and 01.01 only counts for Silvester.
+
+- Full moons and public holidays in Lower Saxony are computed in the browser.
+- `docs/data/ferien.json`: school holidays in Lower Saxony (first and last day). Add the next school year once
+  a year from the Kultusministerium's list.
+- `docs/data/heimspiele.json`: dates of Hannover 96 home games in the league. `scraper/football.py` refreshes
+  the current and the previous season from OpenLigaDB in the daily job; a season it can't load stays as it is.
+
 ## Run locally
 
 ```sh

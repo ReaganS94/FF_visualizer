@@ -26,6 +26,9 @@ jobs:
       - name: Fetch weather
         run: python scraper/weather.py
         continue-on-error: true # weather is optional, don't lose new alarms over it
+      - name: Fetch Hannover 96 home games
+        run: python scraper/football.py
+        continue-on-error: true # only the Mythen-Check uses them
       - name: Look up new streets for the map
         run: python scraper/geocode.py
         continue-on-error: true
