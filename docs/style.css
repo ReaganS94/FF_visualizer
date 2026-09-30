@@ -120,6 +120,30 @@ svg text.anno { font-size: 11px; }
 .legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
 
 .table-wrap { overflow-x: auto; }
+
+/* Stammadressen: one row per street, a bar for the count, the alarms folded underneath */
+.addr-list { margin-top: 8px; }
+.addr { border-bottom: 1px solid var(--border); }
+.addr summary { display: grid; grid-template-columns: minmax(0, 17rem) minmax(0, 1fr) 2.5rem; grid-template-areas: "name bar n" "what what what";
+  gap: 2px 12px; align-items: center; padding: 8px 4px; cursor: pointer; list-style: none; }
+.addr summary::-webkit-details-marker { display: none; }
+.addr summary:focus-visible { outline: 2px solid var(--series); outline-offset: 2px; border-radius: 4px; }
+.addr-name { grid-area: name; min-width: 0; padding-left: 1em; text-indent: -1em; }
+.addr-name::before { content: "▸"; display: inline-block; width: 1em; text-indent: 0; color: var(--muted); transition: transform .15s; }
+.addr[open] .addr-name::before { transform: rotate(90deg); }
+.addr-name small { color: var(--text-2); }
+.addr-name small span { white-space: nowrap; }
+.addr-bar { grid-area: bar; height: 14px; background: var(--empty); border-radius: 3px; overflow: hidden; }
+.addr-bar i { display: block; height: 100%; background: var(--series); border-radius: 0 3px 3px 0; }
+.addr summary:hover .addr-bar i { opacity: .8; }
+.addr-n { grid-area: n; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.addr-what { grid-area: what; padding-left: 1em; color: var(--text-2); font-size: .85rem; }
+.addr table { margin: 0 0 10px; }
+@media (max-width: 600px) {
+  .addr summary { grid-template-columns: minmax(0, 1fr) 2.5rem; grid-template-areas: "name name" "bar n" "what what"; }
+  .addr-bar { margin-left: 1em; }
+}
+@media (prefers-reduced-motion: reduce) { .addr-name::before { transition: none; } }
 table { border-collapse: collapse; width: 100%; font-size: .88rem; }
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
 th { color: var(--text-2); font-weight: 600; }

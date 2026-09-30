@@ -28,6 +28,7 @@
   <button data-view="hours">Tageszeit</button>
   <button data-view="keywords">Stichworte</button>
   <button data-view="districts">Stadtteile</button>
+  <button data-view="addresses">Stammadressen</button>
   <button data-view="map">Karte</button>
   <button data-view="weather">Wetter</button>
   <button data-view="list">Liste</button>
@@ -93,6 +94,15 @@
   <section data-view="districts">
     <h2>Einsätze nach Stadtteil</h2>
     <div class="chart" id="c-districts"></div>
+  </section>
+
+  <section data-view="addresses">
+    <h2>Stammadressen</h2>
+    <p class="note">Straßen und Orte mit mindestens drei Einsätzen in der Auswahl. Gezählt wird die Straße, nicht das Haus: An langen Straßen wie der Limmerstraße sind das meist verschiedene Häuser. Antippen zeigt die Einsätze.</p>
+    <div class="addr-list" id="c-addresses"></div>
+    <h2>Brandmeldeanlagen, die öfter auslösen</h2>
+    <p class="note">Orte, an denen mindestens zweimal eine Brandmeldeanlage (BMA) ausgelöst hat.</p>
+    <div class="addr-list" id="c-bma"></div>
   </section>
 
   <section data-view="map">
