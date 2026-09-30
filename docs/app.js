@@ -133,7 +133,7 @@ function niceMax(v) {
   return [1, 2, 2.5, 5, 10].map((m) => m * p).find((m) => m >= v);
 }
 
-// Vertical bars. items: [{label, value, tip, tick}]
+// Vertical bars. items: [{label, value, tip, tick, hi}]; hi: false greys a bar out next to the highlighted ones.
 function columnChart(el, items, { height = 220 } = {}) {
   const W = el.clientWidth || 1000, H = height, L = 34, B = 24, T = 8;
   const max = niceMax(Math.max(1, ...items.map((d) => d.value)));
@@ -149,14 +149,14 @@ function columnChart(el, items, { height = 220 } = {}) {
   items.forEach((d, i) => {
     const x = L + i * bw;
     const top = y(d.value), h = H - B - top;
-    if (d.value > 0) s += `<path class="bar" d="${roundTop(x + gap / 2, top, bw - gap, h, Math.min(4, (bw - gap) / 2))}"/>`;
+    if (d.value > 0) s += `<path class="bar${d.hi === false ? " lo" : ""}" d="${roundTop(x + gap / 2, top, bw - gap, h, Math.min(4, (bw - gap) / 2))}"/>`;
     s += `<rect class="hit" x="${x}" y="${T}" width="${bw}" height="${H - T - B}" data-tip="${esc(d.tip)}"/>`;
     if (d.tick) s += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${esc(d.tick)}</text>`;
   });
   el.innerHTML = s + "</svg>";
 }
 
-// Horizontal ranked bars with the value at the end.
+// Horizontal ranked bars with the value at the end (hi: false greys a bar out, as above).
 function barList(el, items, { labelWidth = 170 } = {}) {
   const W = el.clientWidth || 1000, R = 40;
   const max = Math.max(1, ...items.map((d) => d.value));
@@ -169,7 +169,7 @@ function barList(el, items, { labelWidth = 170 } = {}) {
       const y = i * row + 4, w = ((W - L - R) * d.value) / max;
       s += stacked ? `<text class="lbl" x="0" y="${y + 12}">${esc(d.label)}</text>`
         : `<text class="lbl" x="${L - 8}" y="${y + 15}" text-anchor="end">${esc(d.label)}</text>`;
-      s += `<path class="bar" d="${roundRight(L, y + top, w, stacked ? 14 : row - 8, 4)}"/>`;
+      s += `<path class="bar${d.hi === false ? " lo" : ""}" d="${roundRight(L, y + top, w, stacked ? 14 : row - 8, 4)}"/>`;
       s += `<text x="${L + w + 6}" y="${y + top + (stacked ? 11 : 12)}">${d.display ?? d.value}</text>`;
       s += `<rect class="hit" x="0" y="${y}" width="${W}" height="${row}" data-tip="${esc(d.tip)}"/>`;
     });
@@ -1521,31 +1521,365 @@ function mythVerdict(t, pick = "ähnliche Tage") {
   return ["none", "Kein Unterschied", `${tries}. Das ist also gut mit Zufall zu erklären.`];
 }
 
+// One myth's verdict, picture (dot, chance bar, legend) and sentence; also used by the quiz.
+function mythParts(m) {
+  const { t } = m;
+  const dec = (x) => x.toFixed(2).replace(".", ",");
+  const [cls, verdict, why] = mythVerdict(t, m.pick);
+  const r = t.base ? t.avg / t.base : t.avg ? Infinity : 1;
+  const [how, word] = r === Infinity ? ["mehr", "als"] : r >= 1.95 ? [`${r.toFixed(1).replace(".", ",")}-mal so viele`, "wie"]
+    : r >= 1.1 ? [`${Math.round(100 * (r - 1))} % mehr`, "als"]
+    : r > 0.9 ? ["etwa gleich viele", "wie"] : [`${Math.round(100 * (1 - r))} % weniger`, "als"];
+  const max = [0.5, 1, 2, 5, 10, 20, 50].find((v) => v >= 1.1 * Math.max(t.avg, t.hi)) || 100;
+  const x = (v) => `${((100 * v) / max).toFixed(2)}%`;
+  const picture = `<div class="myth-strip" role="img" aria-label="${esc(m.label)}: ${dec(t.avg)} pro Tag. ${esc(m.cmp)}: zufällig ${dec(t.lo)} bis ${dec(t.hi)}.">` +
+    `<span class="myth-band" style="left:${x(t.lo)};width:calc(${x(t.hi - t.lo)} + 2px)"></span>` +
+    `<span class="myth-base" style="left:${x(t.base)}"></span><span class="myth-dot" style="left:${x(t.avg)}"></span></div>` +
+    `<div class="myth-axis">${[0, max / 2, max].map((v) => `<span style="left:${x(v)}">${String(v).replace(".", ",")}</span>`).join("")}</div>` +
+    `<ul class="myth-legend"><li><i class="k-dot"></i>${esc(m.label)}: <b>${dec(t.avg)}</b> Einsätze pro Tag</li>` +
+    `<li><i class="k-band"></i>${esc(m.cmp)}: <b>${dec(t.base)}</b>, durch Zufall zwischen ${dec(t.lo)} und ${dec(t.hi)}</li></ul>`;
+  return { cls, verdict, picture, sentence: `${m.on} gab es ${how} Einsätze ${word} ${m.vs}. ${why}` };
+}
+
 function renderMyths() {
   const { results, first, last, days } = mythResults();
-  const dec = (x) => x.toFixed(2).replace(".", ",");
   $("#myths-note").textContent = `Gezählt werden ${days.toLocaleString("de-DE")} Tage vom ${fmtDate(isoDate(first))} bis ${fmtDate(isoDate(last))}, ` +
     "ohne Großlagen und ohne Wachbesetzungen.";
   $("#c-myths").innerHTML = results.map((m) => {
-    const { t } = m;
-    const [cls, verdict, why] = mythVerdict(t, m.pick);
-    const r = t.base ? t.avg / t.base : t.avg ? Infinity : 1;
-    const [how, word] = r === Infinity ? ["mehr", "als"] : r >= 1.95 ? [`${r.toFixed(1).replace(".", ",")}-mal so viele`, "wie"]
-      : r >= 1.1 ? [`${Math.round(100 * (r - 1))} % mehr`, "als"]
-      : r > 0.9 ? ["etwa gleich viele", "wie"] : [`${Math.round(100 * (1 - r))} % weniger`, "als"];
-    const max = [0.5, 1, 2, 5, 10, 20, 50].find((v) => v >= 1.1 * Math.max(t.avg, t.hi)) || 100;
-    const x = (v) => `${((100 * v) / max).toFixed(2)}%`;
+    const { cls, verdict, picture, sentence } = mythParts(m);
     return `<article class="myth ${cls}"><header><h3>${m.title}</h3><span class="verdict">${verdict}</span></header>` +
-      `<div class="myth-strip" role="img" aria-label="${esc(m.label)}: ${dec(t.avg)} pro Tag. ${esc(m.cmp)}: zufällig ${dec(t.lo)} bis ${dec(t.hi)}.">` +
-      `<span class="myth-band" style="left:${x(t.lo)};width:calc(${x(t.hi - t.lo)} + 2px)"></span>` +
-      `<span class="myth-base" style="left:${x(t.base)}"></span><span class="myth-dot" style="left:${x(t.avg)}"></span></div>` +
-      `<div class="myth-axis">${[0, max / 2, max].map((v) => `<span style="left:${x(v)}">${String(v).replace(".", ",")}</span>`).join("")}</div>` +
-      `<ul class="myth-legend"><li><i class="k-dot"></i>${esc(m.label)}: <b>${dec(t.avg)}</b> Einsätze pro Tag</li>` +
-      `<li><i class="k-band"></i>${esc(m.cmp)}: <b>${dec(t.base)}</b>, durch Zufall zwischen ${dec(t.lo)} und ${dec(t.hi)}</li></ul>` +
-      `<p>${m.on} gab es ${how} Einsätze ${word} ${m.vs}. ${why}</p>` +
-      `<p class="myth-about">${esc(m.about(t))}</p></article>`;
+      `${picture}<p>${sentence}</p><p class="myth-about">${esc(m.about(m.t))}</p></article>`;
   }).join("");
 }
+
+// ---------- Quiz "Schätz mal" ----------
+// Ten questions per round, built from the data so they stay current. Numbers are guessed with a
+// slider (2 points close to the answer, 1 point near it), the others are multiple choice (2 points).
+// Nothing is saved: no names, no high score.
+const QUIZ_LEN = 10;
+const quiz = { qs: [], i: 0, got: [], guess: null, done: false };
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const shuffle = (a) => {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+};
+const pct = (n, of) => Math.round((100 * n) / of);
+const counted = (list, f) => topCounts(list, f, 999).map(([k, l]) => [k, l.length]);
+
+// Charts are drawn at phone width at most and then scale with the card, so a big screen gets big labels.
+function quizChart(draw, items, opts) {
+  const tmp = document.createElement("div");
+  tmp.className = "chart";
+  tmp.style.cssText = `position:absolute;left:-9999px;visibility:hidden;width:${Math.min(520, $("#quiz-card").clientWidth || 520)}px`;
+  document.body.append(tmp);
+  draw(tmp, items, opts);
+  const html = tmp.innerHTML;
+  tmp.remove();
+  return `<div class="chart quiz-chart">${html}</div>`;
+}
+
+// A number to guess. unit: [one, many] or "%"; the slider ends at a round number well above the answer.
+function numberQ(text, answer, unit, { max, explain = "", chart = null } = {}) {
+  const percent = unit === "%";
+  max ??= percent ? 100 : niceMax(Math.max(answer + 5, answer * (1.4 + Math.random() * 1.2)));
+  const near = percent ? [5, 10] : [Math.max(1, answer * 0.1), Math.max(2, answer * 0.25)];
+  return { kind: "number", text, answer, unit, max, near, explain, chart };
+}
+// Multiple choice: the right answer and up to three others, shuffled.
+function choiceQ(text, right, others, { explain = "", chart = null } = {}) {
+  const options = shuffle([right, ...shuffle([...new Set(others)].filter((o) => o !== right)).slice(0, 3)]);
+  return options.length < 2 ? null : { kind: "choice", text, options, right, explain, chart };
+}
+const unitText = (q, n) => (q.unit === "%" ? `${n} %` : `${n.toLocaleString("de-DE")} ${n === 1 ? q.unit[0] : q.unit[1]}`);
+
+function quizQuestions() {
+  const rows = ALL.filter((r) => !r.standby);
+  const listed = isoDate(LISTED);
+  const years = [...new Set(rows.map((r) => r.date.slice(0, 4)))].sort();
+  const full = years.filter((y) => !yearInfo(y, true).partial);
+  const E = ["Einsatz", "Einsätze"];
+  const plainName = (r) => r.name.replace(/\s*\(.*\)$/, "");
+  const top = (list) => (list.length > 1 && list[0][1] === list[1][1] ? null : list[0]); // only a clear winner
+  const gens = [
+    () => {
+      if (!full.length) return null;
+      const y = pick(full), n = rows.filter((r) => r.date.startsWith(y)).length;
+      return numberQ(`Wie viele Einsätze hatte die FF Linden im ganzen Jahr ${y}?`, n, E, {
+        explain: `Im Schnitt ${(n / 52.18).toFixed(1).replace(".", ",")} pro Woche.`,
+        chart: () => quizChart(barList, years.map((yy) => {
+          const info = yearInfo(yy, true);
+          return { label: info.partial ? `${yy} (bis ${fmtDate(info.cutDate).slice(0, 6)})` : yy, value: info.rows.length, hi: yy === y, tip: "" };
+        }), { labelWidth: 150 }),
+      });
+    },
+    () => {
+      if (!full.length) return null;
+      const y = pick(full), ry = rows.filter((r) => r.date.startsWith(y));
+      const per = MONTHS.map((_, m) => ry.filter((r) => Number(r.date.slice(5, 7)) === m + 1).length);
+      const best = top(per.map((n, m) => [m, n]).sort((a, b) => b[1] - a[1]));
+      if (!best) return null;
+      const big = topCounts(ry.filter((r) => r.bigDay && Number(r.date.slice(5, 7)) === best[0] + 1), (r) => r.date, 1)[0];
+      return choiceQ(`In welchem Monat gab es ${y} die meisten Einsätze?`, MONTHS_LONG[best[0]], MONTHS_LONG, {
+        explain: `${MONTHS_LONG[best[0]]} ${y}: ${einsaetze(best[1])}.` + (big ? ` Darin steckt die Großlage am ${fmtDate(big[0])} mit ${einsaetze(big[1].length, true)}.` : ""),
+        chart: () => quizChart(columnChart, per.map((n, m) => ({ tick: MONTHS[m][0], value: n, hi: m === best[0], tip: "" })), { height: 170 }),
+      });
+    },
+    () => {
+      const days = counted(rows, (r) => r.date);
+      const best = top(days);
+      if (!best || best[1] < 5) return null;
+      const [d, n] = best;
+      const [ev, evl] = topCounts(rows.filter((r) => r.date === d), (r) => r.event, 1)[0];
+      return numberQ(`Der stärkste Tag bisher war ${WEEKDAYS_LONG[weekday(parseDate(d))]}, der ${fmtDate(d)}. Wie viele Einsätze gab es an diesem Tag?`, n, E, {
+        explain: evl.length > n / 2 ? `${evl.length} davon: „${esc(ev)}“.` : "",
+        chart: () => quizChart(barList, days.slice(0, 5).map(([dd, nn]) => ({ label: fmtDate(dd), value: nn, hi: dd === d, tip: "" })), { labelWidth: 110 }),
+      });
+    },
+    () => {
+      const ny = years.filter((y) => `${y}-01-01` <= listed);
+      if (!ny.length) return null;
+      const y = pick(ny), n = rows.filter((r) => r.date === `${y}-01-01`).length;
+      const usual = rows.filter((r) => !r.bigDay && r.date.slice(5) !== "01-01").length / ((LISTED - parseDate(years[0] + "-01-01")) / 864e5 + 1);
+      return numberQ(`Silvester ${y - 1}: Wie viele Einsätze gab es am Neujahrstag, dem 01.01.${y}?`, n, E, {
+        explain: `An einem normalen Tag sind es im Schnitt ${usual.toFixed(1).replace(".", ",")}.`,
+        chart: () => quizChart(barList, ny.map((yy) => ({ label: `01.01.${yy}`, value: rows.filter((r) => r.date === `${yy}-01-01`).length, hi: yy === y, tip: "" })), { labelWidth: 110 }),
+      });
+    },
+    () => {
+      const known = rows.filter((r) => !r.timeUnknown);
+      if (known.length < 50) return null;
+      const night = known.filter((r) => r.hour >= NIGHT_START || r.hour < DAY_START).length, share = pct(night, known.length);
+      const hours = Array.from({ length: 24 }, (_, h) => known.filter((r) => r.hour === h).length);
+      const more = night / 8 > (known.length - night) / 16;
+      return numberQ("Wie viel Prozent der Einsätze kommen nachts, zwischen 22 und 6 Uhr?", share, "%", {
+        explain: `Die Nacht hat 8 von 24 Stunden, also 33 %. Pro Stunde ist nachts also ${more ? "mehr" : "weniger"} los als tagsüber.`,
+        chart: () => quizChart(columnChart, hours.map((n, h) => ({ tick: h % 6 ? "" : `${h}`, value: n, hi: h >= NIGHT_START || h < DAY_START, tip: "" })), { height: 150 }),
+      });
+    },
+    () => {
+      const known = rows.filter((r) => !r.timeUnknown);
+      const hours = Array.from({ length: 24 }, (_, h) => known.filter((r) => r.hour === h).length);
+      const best = top(hours.map((n, h) => [h, n]).sort((a, b) => b[1] - a[1]));
+      if (!best) return null;
+      const label = (h) => `${h}–${h + 1} Uhr`;
+      return choiceQ("In welcher Stunde wird am häufigsten alarmiert?", label(best[0]),
+        hours.map((n, h) => (n <= best[1] * 0.75 ? label(h) : null)).filter(Boolean), {
+          explain: `${label(best[0])}: ${einsaetze(best[1])}.`,
+          chart: () => quizChart(columnChart, hours.map((n, h) => ({ tick: h % 6 ? "" : `${h}`, value: n, hi: h === best[0], tip: "" })), { height: 150 }),
+        });
+    },
+    () => {
+      // Großlagen would decide this on their own (the storm fell on a Tuesday), so they stay out.
+      const calm = rows.filter((r) => !r.bigDay);
+      const per = WEEKDAYS_LONG.map((_, k) => calm.filter((r) => weekday(parseDate(r.date)) === k).length);
+      const most = Math.random() < 0.5;
+      const best = top(per.map((n, k) => [k, n]).sort((a, b) => (most ? b[1] - a[1] : a[1] - b[1])));
+      if (!best) return null;
+      return choiceQ(`An welchem Wochentag gibt es die ${most ? "meisten" : "wenigsten"} Einsätze?`, WEEKDAYS_LONG[best[0]], WEEKDAYS_LONG, {
+        explain: `${WEEKDAYS_LONG[best[0]]}: ${einsaetze(best[1])} (ohne Großlagen).`,
+        chart: () => quizChart(columnChart, per.map((n, k) => ({ tick: WEEKDAYS[k], value: n, hi: k === best[0], tip: "" })), { height: 150 }),
+      });
+    },
+    () => {
+      const kws = counted(rows, plainName);
+      const best = top(kws);
+      if (!best) return null;
+      return choiceQ("Welches Alarmstichwort kommt am häufigsten vor?", best[0], kws.slice(1, 7).map(([k]) => k), {
+        explain: `${einsaetze(best[1])}, das sind ${pct(best[1], rows.length)} % aller Einsätze.`,
+        chart: () => quizChart(barList, kws.slice(0, 5).map(([k, n]) => ({ label: k, value: n, hi: k === best[0], tip: "" }))),
+      });
+    },
+    () => {
+      const ds = counted(rows.filter((r) => r.district && r.district !== "unbekannt"), (r) => r.district);
+      const best = top(ds);
+      if (!best) return null;
+      return choiceQ("In welchem Stadtteil gab es bisher die meisten Einsätze?", best[0], ds.slice(1, 6).map(([k]) => k), {
+        explain: `${esc(best[0])}: ${einsaetze(best[1])}, das sind ${pct(best[1], rows.length)} %.`,
+        chart: () => quizChart(barList, ds.slice(0, 6).map(([k, n]) => ({ label: k, value: n, hi: k === best[0], tip: "" }))),
+      });
+    },
+    () => {
+      const st = counted(rows.filter((r) => r.street), (r) => r.street);
+      if (st.length < 8) return null;
+      const most = st[0][1];
+      const right = pick(st.filter(([, n]) => n === most))[0];
+      const others = st.filter(([, n]) => n <= most - 3 && n >= 2).map(([k]) => k);
+      const q = choiceQ("Welche dieser Straßen hatte bisher die meisten Einsätze?", right, others, {
+        explain: `${esc(right)}: ${einsaetze(most)}.` + (st[1][1] === most ? ` Genauso viele: ${esc(st.filter(([k, n]) => n === most && k !== right).map(([k]) => k).join(", "))}.` : ""),
+      });
+      if (q) q.chart = () => quizChart(barList, q.options.map((o) => [o, st.find(([k]) => k === o)[1]]).sort((a, b) => b[1] - a[1])
+        .map(([k, n]) => ({ label: k, value: n, hi: k === right, tip: "" })));
+      return q;
+    },
+    () => {
+      const bma = counted(rows.filter((r) => r.street && isBMA(r)), (r) => r.street);
+      const best = top(bma);
+      if (!best || best[1] < 3) return null;
+      const q = choiceQ("An welchem dieser Orte hat eine Brandmeldeanlage am häufigsten ausgelöst?", best[0], bma.slice(1, 8).map(([k]) => k), {
+        explain: `${esc(best[0])}: ${best[1]}-mal.`,
+      });
+      if (q) q.chart = () => quizChart(barList, q.options.map((o) => [o, bma.find(([k]) => k === o)[1]]).sort((a, b) => b[1] - a[1])
+        .map(([k, n]) => ({ label: k, value: n, hi: k === best[0], tip: "" })));
+      return q;
+    },
+    () => {
+      // Großlage days count as busy, and the count stops at the website's newest alarm.
+      const busy = new Set(rows.map((r) => r.date));
+      let best = null, from = null;
+      for (let d = parseDate(years[0] + "-01-01"); isoDate(d) <= listed; d = addDays(d, 1)) {
+        const k = isoDate(d);
+        if (busy.has(k)) { from = null; continue; }
+        from ||= k;
+        const len = Math.round((d - parseDate(from)) / 864e5) + 1;
+        if (!best || len > best.len) best = { len, from, to: k };
+      }
+      if (!best || best.len < 3) return null;
+      return numberQ("Die längste Pause bisher: Wie viele Tage hintereinander gab es keinen einzigen Einsatz?", best.len, ["Tag", "Tage"], {
+        explain: `Die längste Pause ging vom ${fmtDate(best.from)} bis zum ${fmtDate(best.to)}.`,
+      });
+    },
+    () => {
+      if (!full.length) return null;
+      const y = pick(full), n = new Set(rows.filter((r) => r.date.startsWith(y)).map((r) => r.date)).size;
+      const len = new Date(Number(y), 1, 29).getDate() === 29 ? 366 : 365;
+      return numberQ(`An wie vielen Tagen im Jahr ${y} gab es mindestens einen Einsatz?`, n, ["Tag", "Tage"], {
+        max: len, explain: `Das ist ungefähr jeder ${Math.round(len / n)}. Tag. An den anderen ${len - n} Tagen blieb es ruhig.`,
+      });
+    },
+    () => {
+      const groups = counted(rows, (r) => r.group);
+      const brand = groups.find(([g]) => g === "Brand");
+      if (!brand) return null;
+      return numberQ("Wie viel Prozent aller Einsätze sind Brände, vom Rauchmelder bis zum Wohnungsbrand?", pct(brand[1], rows.length), "%", {
+        chart: () => quizChart(barList, groups.slice(0, 5).map(([g, n]) => ({ label: g, value: n, display: `${pct(n, rows.length)} %`, hi: g === "Brand", tip: "" }))),
+      });
+    },
+    () => {
+      const ms = mythResults().results.filter((m) => !/^Silvester/.test(m.title) && ["yes", "none"].includes(mythVerdict(m.t)[0]) && m.t.n >= 10);
+      if (!ms.length) return null;
+      const m = pick(ms), parts = mythParts(m);
+      return { kind: "choice", text: `Stimmt das? „${m.title}“`, options: ["Stimmt", "Stimmt nicht"],
+        right: parts.cls === "yes" && m.t.avg > m.t.base ? "Stimmt" : "Stimmt nicht",
+        explain: parts.sentence, chart: () => `<div class="quiz-myth">${parts.picture}</div>` };
+    },
+  ];
+  return shuffle(gens).map((g) => g()).filter(Boolean).slice(0, QUIZ_LEN);
+}
+
+function quizShow() {
+  const card = $("#quiz-card"), n = quiz.qs.length;
+  const total = quiz.got.reduce((a, b) => a + b, 0);
+  $("#quiz-bar").innerHTML = quiz.qs.length && quiz.i < n
+    ? quiz.qs.map((_, k) => `<i class="${k < quiz.i ? "done" : k === quiz.i ? "now" : ""}"></i>`).join("") : "";
+  if (!n) {
+    card.innerHTML = `<div class="quiz-kicker">Quiz</div><h2 class="quiz-title">Schätz mal!</h2>` +
+      `<p>${QUIZ_LEN} Fragen zu den Einsätzen der FF Linden. Bei Zahlen gibt es 2 Punkte für einen Treffer und 1 Punkt, wenn du nah dran bist. ` +
+      `Jede andere richtige Antwort bringt 2 Punkte. Nichts wird gespeichert.</p>` +
+      `<div class="quiz-actions"><button type="button" class="primary" data-quiz="start">Los geht's</button></div>`;
+    return;
+  }
+  if (quiz.i >= n) {
+    const max = 2 * n, share = total / max;
+    card.innerHTML = `<div class="quiz-kicker">Geschafft</div><div class="quiz-hero">${total} <span>von ${max} Punkten</span></div>` +
+      `<p class="quiz-verdict">${share >= 0.85 ? "Stark! Du kennst die FF Linden richtig gut." : share >= 0.6 ? "Gut geschätzt!"
+        : share >= 0.35 ? "Nicht schlecht, da geht noch was." : "Schwierig, oder? Auf dieser Seite stehen alle Zahlen zum Nachschauen."}</p>` +
+      `<ol class="quiz-summary">${quiz.qs.map((q, k) => `<li class="p${quiz.got[k]}"><b>${quiz.got[k] ? `+${quiz.got[k]}` : "0"}</b>${q.text}</li>`).join("")}</ol>` +
+      `<div class="quiz-actions"><button type="button" class="primary" data-quiz="start">Nochmal spielen</button></div>`;
+    return;
+  }
+  const q = quiz.qs[quiz.i];
+  const head = `<div class="quiz-kicker">Frage ${quiz.i + 1} von ${n}</div><h2 class="quiz-q">${q.text}</h2>`;
+  if (!quiz.done) {
+    if (q.kind === "choice") {
+      card.innerHTML = head + `<div class="quiz-options${q.options.length > 2 ? "" : " two"}">` +
+        q.options.map((o, k) => `<button type="button" data-quiz="pick" data-k="${k}"><span class="key">${k + 1}</span>${esc(o)}</button>`).join("") + "</div>";
+    } else {
+      quiz.guess ??= Math.round(q.max / 2);
+      const step = q.max > 500 ? 5 : 1;
+      card.innerHTML = head + `<div class="quiz-guess"><output id="quiz-val">${unitText(q, quiz.guess)}</output></div>` +
+        `<div class="quiz-slider"><button type="button" data-quiz="step" data-d="-${step}" aria-label="weniger">−</button>` +
+        `<input type="range" id="quiz-range" min="0" max="${q.max}" step="${step}" value="${quiz.guess}" aria-label="Deine Schätzung">` +
+        `<button type="button" data-quiz="step" data-d="${step}" aria-label="mehr">+</button></div>` +
+        `<div class="quiz-scale"><span>0</span><span>${q.max.toLocaleString("de-DE")}</span></div>` +
+        `<div class="quiz-actions"><button type="button" class="primary" data-quiz="answer">Antworten</button></div>`;
+    }
+    return;
+  }
+  // the answer
+  const got = quiz.got[quiz.i];
+  let body;
+  if (q.kind === "choice") {
+    body = `<div class="quiz-options${q.options.length > 2 ? "" : " two"} shown">` + q.options.map((o, k) =>
+      `<button type="button" disabled class="${o === q.right ? "right" : k === quiz.guess ? "wrong" : ""}"><span class="key">${k + 1}</span>${esc(o)}</button>`).join("") + "</div>";
+  } else {
+    // labels near an end are aligned to that end, so they stay inside the card
+    const mark = (cls, v, text) => {
+      const p = Math.min(100, (100 * v) / q.max);
+      return `<span class="mark ${cls}${p < 15 ? " l" : p > 85 ? " r" : ""}" style="left:${p.toFixed(2)}%"><b>${text}</b></span>`;
+    };
+    body = `<div class="quiz-line" role="img" aria-label="Deine Schätzung ${unitText(q, quiz.guess)}, richtig ${unitText(q, q.answer)}">` +
+      mark("you", quiz.guess, `Du: ${unitText(q, quiz.guess)}`) + mark("real", q.answer, `Richtig: ${unitText(q, q.answer)}`) + `</div>`;
+  }
+  const verdict = q.kind === "choice" ? (got ? "Richtig!" : "Leider falsch.") : got === 2 ? "Volltreffer!" : got ? "Nah dran!" : "Daneben.";
+  card.innerHTML = head + body +
+    `<p class="quiz-result p${got}"><b>${verdict}</b> ${got ? `+${got} ${got === 1 ? "Punkt" : "Punkte"}` : ""}</p>` +
+    (q.kind === "number" ? `<p class="quiz-answer">Die richtige Antwort: <b>${unitText(q, q.answer)}</b>.${q.explain ? ` ${q.explain}` : ""}</p>`
+      : q.explain ? `<p class="quiz-answer">${q.explain}</p>` : "") +
+    (q.chart ? q.chart() : "") +
+    `<div class="quiz-actions"><button type="button" class="primary" data-quiz="next">${quiz.i + 1 < n ? "Weiter" : "Zum Ergebnis"}</button></div>`;
+}
+
+function quizAnswer(value) {
+  const q = quiz.qs[quiz.i];
+  quiz.guess = value;
+  const off = Math.abs(value - q.answer);
+  quiz.got[quiz.i] = q.kind === "choice" ? (q.options[value] === q.right ? 2 : 0) : off <= q.near[0] ? 2 : off <= q.near[1] ? 1 : 0;
+  quiz.done = true;
+  quizShow();
+  $("#quiz-card [data-quiz=next]").focus({ preventScroll: true });
+}
+
+function quizGo(k) {
+  Object.assign(quiz, k === "start" ? { qs: quizQuestions(), i: 0, got: [] } : { i: quiz.i + 1 }, { guess: null, done: false });
+  quizShow();
+  $("#quiz").scrollIntoView({ block: "nearest" });
+  ($("#quiz-range") || $("#quiz-card button:not([disabled])"))?.focus({ preventScroll: true });
+}
+
+$("#quiz-card").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-quiz]");
+  if (!b) return;
+  const act = b.dataset.quiz;
+  if (act === "start" || act === "next") quizGo(act);
+  else if (act === "pick") quizAnswer(Number(b.dataset.k));
+  else if (act === "answer") quizAnswer(quiz.guess);
+  else if (act === "step") {
+    const r = $("#quiz-range");
+    r.value = Number(r.value) + Number(b.dataset.d);
+    r.dispatchEvent(new Event("input"));
+  }
+});
+$("#quiz-card").addEventListener("input", (e) => {
+  if (e.target.id !== "quiz-range") return;
+  quiz.guess = Number(e.target.value);
+  $("#quiz-val").textContent = unitText(quiz.qs[quiz.i], quiz.guess);
+});
+// Keys for a big screen: 1–4 answer, Enter goes on.
+document.addEventListener("keydown", (e) => {
+  if (!$("section[data-view=quiz]").classList.contains("active") || e.altKey || e.ctrlKey || e.metaKey) return;
+  const q = quiz.qs[quiz.i];
+  if (q && !quiz.done && q.kind === "choice" && /^[1-4]$/.test(e.key) && Number(e.key) <= q.options.length) quizAnswer(Number(e.key) - 1);
+  else if (e.key === "Enter" && !e.target.closest("button")) {
+    const b = $("#quiz-card .quiz-actions .primary");
+    if (b) { e.preventDefault(); b.click(); }
+  }
+});
+// Full screen for a TV or projector (not offered where the browser can't do it, e.g. on iPhones).
+$("#quiz-full").hidden = !document.fullscreenEnabled;
+$("#quiz-full").addEventListener("click", () => (document.fullscreenElement ? document.exitFullscreen() : $("#quiz").requestFullscreen()));
+document.addEventListener("fullscreenchange", () => {
+  $("#quiz-full").textContent = document.fullscreenElement ? "Vollbild beenden" : "Vollbild";
+});
 
 // ---------- wiring ----------
 function render() {
@@ -1564,11 +1898,12 @@ function render() {
   const dropped = new Set($("#f-storm").checked ? [] : ALL.filter((r) => r.bigDay).map((r) => r.date));
   renderWeather(rows.filter((r) => !r.standby), $("#f-year").value, dropped);
   if ($("section[data-view=myths]").classList.contains("active")) renderMyths(); // same for every filter, and only worked out once opened
+  if ($("section[data-view=quiz]").classList.contains("active") && !quiz.qs.length) quizShow();
 }
 
 function showView(v) {
   document.querySelectorAll("[data-view]").forEach((el) => el.classList.toggle("active", el.dataset.view === v));
-  $("#filters").style.display = ["chance", "year", "myths"].includes(v) ? "none" : "";
+  $("#filters").style.display = ["chance", "year", "myths", "quiz"].includes(v) ? "none" : "";
   try { localStorage.setItem("view", v); } catch {}
   if (ALL.length) render(); // hidden sections have no width, so draw charts once visible
 }

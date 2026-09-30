@@ -64,6 +64,17 @@ Großlage days and "vs" are always left out, and 01.01 only counts for Silvester
 - `docs/data/heimspiele.json`: dates of Hannover 96 home games in the league. `scraper/football.py` refreshes
   the current and the previous season from OpenLigaDB in the daily job; a season it can't load stays as it is.
 
+## Quiz "Schätz mal"
+
+Ten questions per round, drawn at random from 15 kinds that are built from the data, so the answers stay
+current: year totals, the busiest month, day, hour and weekday, Silvester, the night share, the most common
+keyword, district, street and fire alarm system, the longest pause, days with an alarm, the share of fires,
+and one myth from the Mythen-Check. Numbers are guessed with a slider: 2 points within 10 % (or ±5 points
+for percentages), 1 point within 25 % (±10). Every other correct answer gives 2 points. After each answer the
+page shows the real number with a small chart. Nothing is saved. Keys 1–4 answer, Enter goes on, and the
+"Vollbild" button shows the quiz full screen on a TV or projector (not offered where the browser can't,
+e.g. on iPhones). "vs" is always left out.
+
 ## Run locally
 
 ```sh

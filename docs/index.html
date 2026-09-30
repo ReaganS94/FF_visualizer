@@ -32,6 +32,7 @@
   <button data-view="map">Karte</button>
   <button data-view="weather">Wetter</button>
   <button data-view="myths">Mythen-Check</button>
+  <button data-view="quiz">Quiz</button>
   <button data-view="list">Liste</button>
   <button data-view="year">Jahresrückblick</button>
   <button data-view="chance">Einsatz heute?</button>
@@ -131,6 +132,13 @@
     <p class="note">Stimmt es, dass bei Vollmond mehr los ist? Hier wird jede Behauptung mit den echten Einsätzen geprüft. Verglichen wird immer mit ähnlichen Tagen: gleicher Wochentag, höchstens einen Monat vom selben Datum entfernt, aus allen Jahren. Der graue Balken zeigt, wie stark solche Tage ganz ohne besonderen Grund schwanken. Liegt der blaue Punkt deutlich daneben, steckt wohl mehr dahinter als Zufall.</p>
     <p class="note" id="myths-note"></p>
     <div class="myths" id="c-myths"></div>
+  </section>
+
+  <section data-view="quiz">
+    <div class="quiz" id="quiz">
+      <div class="quiz-top"><div class="quiz-bar" id="quiz-bar"></div><button type="button" id="quiz-full" hidden>Vollbild</button></div>
+      <div class="quiz-card" id="quiz-card" aria-live="polite"></div>
+    </div>
   </section>
 
   <section data-view="list">
