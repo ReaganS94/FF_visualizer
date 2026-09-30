@@ -66,8 +66,9 @@ Settings → Pages → Build and deployment → "Deploy from a branch" → `main
   Map positions stay stored under the original spelling; a new spelling falls back to the known one.
 - "vs" (Wachbesetzung, standby) is excluded unless the checkbox is ticked.
 - The website's list is sometimes weeks behind. Everything that counts days without alarms (estimate,
-  backtest, weather view, the Jahresrückblick comparison) stops at the day before its newest alarm, and the
-  page says how far the list reaches when it's more than two days behind.
+  backtest, weather view) stops at the day before its newest alarm; the Jahresrückblick comparison, the weekly
+  average and the calendar stop at that day itself. The page says how far the list reaches when it's more than
+  two days behind. A year counts as complete only once the website lists an alarm from 31.12. or later.
 - A day with 10 or more alarms is a "Großlage" (e.g. the storm on 14.07.2026), except 01.01, which Silvester
   fills every year. The storm's rows were entered with the placeholder time 00:00, so they are left out of the
   time-of-day charts. The Jahresrückblick has its own "Großlagen mitzählen" checkbox and names the Großlage days.

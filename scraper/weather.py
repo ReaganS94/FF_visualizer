@@ -39,7 +39,7 @@ def main():
     days = get("https://archive-api.open-meteo.com/v1/archive", start_date=START, end_date=str(today - dt.timedelta(days=1)))
     forecast = get("https://api.open-meteo.com/v1/forecast", past_days=7, forecast_days=2)
     days.update({d: v for d, v in forecast.items() if d not in days or d >= str(today - dt.timedelta(days=7))})
-    # "updated" gets its own line so the workflow can ignore timestamp-only changes.
+    # "updated" on its own line keeps the day-by-day diff readable.
     updated = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     OUT.write_text(f'{{"updated": "{updated}",\n"days": {json.dumps(dict(sorted(days.items())), separators=(",", ":"))}}}\n', "utf-8")
     print(f"{len(days)} days of weather")

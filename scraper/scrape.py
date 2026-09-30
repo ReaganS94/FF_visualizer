@@ -43,6 +43,7 @@ class ActivityTableParser(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.found = False
+        self.closed = False
         self.in_table = False
         self.label = None
         self.row = None
@@ -61,6 +62,7 @@ class ActivityTableParser(HTMLParser):
     def handle_endtag(self, tag):
         if tag == "table" and self.in_table:
             self.in_table = False
+            self.closed = True
         elif tag == "td":
             self.label = None
         elif tag == "tr" and self.row:
@@ -76,15 +78,22 @@ class ActivityTableParser(HTMLParser):
 def parse(page):
     p = ActivityTableParser()
     p.feed(page)
+    # An empty table is fine (e.g. a new year without alarms yet); a missing table is not.
+    if not p.found:
+        raise SystemExit("Alarm table not found: the page layout may have changed.")
+    # A download cut off midway would otherwise drop the oldest rows of the year.
+    if not p.closed:
+        raise SystemExit("Alarm table has no end: the page looks cut off.")
     out = []
     for r in p.rows:
+        if "Datum" not in r:
+            if any(k in FIELDS for k in r):
+                raise SystemExit(f"A row has no date, the page layout may have changed: {r}")
+            continue  # e.g. a "no entries" row without labels
         row = {FIELDS[k]: " ".join(html.unescape(v).split()) for k, v in r.items() if k in FIELDS}
         d = dt.datetime.strptime(row["date"], "%d.%m.%Y").date()
         row["date"] = d.isoformat()  # store ISO so sorting and JS parsing are trivial
         out.append(row)
-    # An empty table is fine (e.g. a new year without alarms yet); a missing table is not.
-    if not p.found:
-        raise SystemExit("Alarm table not found: the page layout may have changed.")
     return out
 
 
@@ -118,7 +127,8 @@ def merge(new_rows):
             continue
         old_keys = {key(r) for r in old}
         if len(new) < KEEP_RATIO * len(old):
-            print(f"warning: site shows {len(new)} rows for {year}, we have {len(old)}; only adding new ones")
+            # "::warning::" shows up on the workflow run's summary page
+            print(f"::warning::site shows {len(new)} rows for {year}, we have {len(old)}; only adding new ones")
             rows += old + [r for k, r in new.items() if k not in old_keys]
             added += [r for k, r in new.items() if k not in old_keys]
             continue

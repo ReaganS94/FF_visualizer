@@ -13,6 +13,7 @@ import difflib
 import json
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -98,9 +99,13 @@ def main():
         street, district = k.split("|", 1)
         try:
             cache[k] = lookup(street, district)
+        except urllib.error.HTTPError as e:
+            print(f"failed {k}: {e}")
+            if e.code in (403, 429):  # asked to slow down or blocked: stop, the rest waits for the next run
+                print("::warning::geocoding stopped early:", e)
+                break
         except (OSError, ValueError) as e:  # network hiccup or error page: skip, retry on the next run
             print(f"failed {k}: {e}")
-            continue
         time.sleep(1.1)
         if i % 25 == 24:
             GEO.write_text(json.dumps(cache, ensure_ascii=False, indent=0, sort_keys=True) + "\n", "utf-8")

@@ -3,6 +3,7 @@
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 const WEEKDAYS_LONG = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+const MONTHS_LONG = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 const BIG_DAY = 10;       // a day with this many alarms or more counts as a Großlage (e.g. storm), except 01.01
 const DAY_START = 6;      // "tagsüber" = 06:00–21:59, "nachts" = 22:00–05:59
 const NIGHT_START = 22;
@@ -26,6 +27,9 @@ const weekday = (dt) => (dt.getDay() + 6) % 7; // Monday = 0
 const fmtDate = (iso) => iso.split("-").reverse().join(".");
 const minDate = (a, b) => (a < b ? a : b);
 const maxDate = (a, b) => (a > b ? a : b);
+// "1 Einsatz", "2 Einsätze" (German numbers with a thousands dot)
+const einsaetze = (n, dative = false) => `${n.toLocaleString("de-DE")} ${n === 1 ? "Einsatz" : dative ? "Einsätzen" : "Einsätze"}`;
+const weitere = (n) => `${n} ${n === 1 ? "weiterer" : "weitere"}`;
 const listBehind = () => addDays(LISTED, 2) < UPDATED; // the website hasn't listed anything for days
 
 // ---------- load & clean ----------
@@ -36,17 +40,40 @@ const tidyStreet = (s) => (s || "")
   .replace(/(^|[\s-])Str\.?(?=$|[\s/])/g, "$1Straße")
   .replace(/([a-zäöüß])str\.?(?=$|[\s/])/g, "$1straße");
 
-// A manual entry (admin page) is dropped once the website lists the same alarm: same day and
-// keyword, time within an hour. Until then it fills the gap.
+// A manual entry (admin page) is dropped once the website lists the same alarm: same keyword,
+// time within an hour. Until then it fills the gap.
+// Full timestamps, so 23:50 and 00:10 the next day still match.
+const stamp = (r) => new Date(`${r.date}T${r.time}`).getTime();
 function sameAlarm(a, b) {
-  // compare full timestamps so 23:50 and 00:10 the next day still match
-  const at = (r) => new Date(`${r.date}T${r.time}`).getTime();
   const base = (k) => k.split("/")[0].trim().toLowerCase();
-  return base(a.keyword) === base(b.keyword) && Math.abs(at(a) - at(b)) <= 60 * 60 * 1000;
+  return base(a.keyword) === base(b.keyword) && Math.abs(stamp(a) - stamp(b)) <= 60 * 60 * 1000;
+}
+
+// Each website alarm stands in for at most one hand entry (closest in time first): two "th" alarms
+// 40 minutes apart both stay until the website lists both. Same copy in admin.js.
+function matchedManual(scraped, manual) {
+  const seen = new Set();
+  const web = scraped.filter((r) => {
+    const k = [r.date, r.time, r.keyword, tidyStreet(r.street)].join("|");
+    if (r.category !== "Einsatz" || seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  const pairs = [];
+  web.forEach((r, i) => manual.forEach((m, j) => { if (sameAlarm(r, m)) pairs.push([Math.abs(stamp(r) - stamp(m)), i, j]); }));
+  pairs.sort((a, b) => a[0] - b[0]);
+  const usedWeb = new Set(), matched = new Set();
+  for (const [, i, j] of pairs) {
+    if (usedWeb.has(i) || matched.has(manual[j])) continue;
+    usedWeb.add(i);
+    matched.add(manual[j]);
+  }
+  return matched;
 }
 
 function mergeManual(scraped, manual) {
-  const pending = manual.filter((m) => !scraped.some((r) => sameAlarm(r, m)));
+  const matched = matchedManual(scraped, manual);
+  const pending = manual.filter((m) => !matched.has(m));
   return [...scraped, ...pending.map((m) => ({ ...m, manual: true }))]
     .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
 }
@@ -131,18 +158,27 @@ function columnChart(el, items, { height = 220 } = {}) {
 
 // Horizontal ranked bars with the value at the end.
 function barList(el, items, { labelWidth = 170 } = {}) {
-  const W = el.clientWidth || 1000, row = 26, L = Math.min(labelWidth, W * 0.5), R = 40;
-  const H = items.length * row + 4;
+  const W = el.clientWidth || 1000, R = 40;
   const max = Math.max(1, ...items.map((d) => d.value));
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
-  items.forEach((d, i) => {
-    const y = i * row + 4, w = ((W - L - R) * d.value) / max;
-    s += `<text x="${L - 8}" y="${y + 15}" text-anchor="end">${esc(d.label)}</text>`;
-    s += `<path class="bar" d="${roundRight(L, y + 3, w, row - 8, 4)}"/>`;
-    s += `<text x="${L + w + 6}" y="${y + 15}">${d.display ?? d.value}</text>`;
-    s += `<rect class="hit" x="0" y="${y}" width="${W}" height="${row}" data-tip="${esc(d.tip)}"/>`;
-  });
-  el.innerHTML = s + "</svg>";
+  // Labels left of the bars; if one doesn't fit (long keyword names on a phone), each label goes above its bar.
+  const draw = (stacked) => {
+    const row = stacked ? 38 : 26, L = stacked ? 0 : Math.min(labelWidth, W * 0.5), top = stacked ? 18 : 3;
+    const H = items.length * row + 4;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+    items.forEach((d, i) => {
+      const y = i * row + 4, w = ((W - L - R) * d.value) / max;
+      s += stacked ? `<text class="lbl" x="0" y="${y + 12}">${esc(d.label)}</text>`
+        : `<text class="lbl" x="${L - 8}" y="${y + 15}" text-anchor="end">${esc(d.label)}</text>`;
+      s += `<path class="bar" d="${roundRight(L, y + top, w, stacked ? 14 : row - 8, 4)}"/>`;
+      s += `<text x="${L + w + 6}" y="${y + top + (stacked ? 11 : 12)}">${d.display ?? d.value}</text>`;
+      s += `<rect class="hit" x="0" y="${y}" width="${W}" height="${row}" data-tip="${esc(d.tip)}"/>`;
+    });
+    el.innerHTML = s + "</svg>";
+    return L;
+  };
+  const L = draw(false);
+  const scale = el.querySelector("svg").getBoundingClientRect().width / W || 1;
+  if ([...el.querySelectorAll(".lbl")].some((t) => t.getBoundingClientRect().width / scale > L - 10)) draw(true);
 }
 
 function roundTop(x, y, w, h, r) {
@@ -168,11 +204,17 @@ function legend(labels, colors) {
 // ---------- views ----------
 function renderOverview(rows) {
   const tiles = [];
-  const days = rows.length ? (parseDate(rows[0].date) - parseDate(rows[rows.length - 1].date)) / 864e5 + 1 : 0;
+  // Weekly average only over days the website covers (from 01.01. or the first alarm to its newest alarm),
+  // the same rule as the story; days after that hold only hand entries so far.
+  const year = $("#f-year").value, listed = isoDate(LISTED);
+  const from = year ? `${year}-01-01` : rows.at(-1)?.date;
+  const to = !rows.length ? "" : year && listed > `${year}-12-31` ? `${year}-12-31` : minDate(rows[0].date, listed);
+  const covered = rows.filter((r) => r.date <= to).length;
+  const days = rows.length && to >= from ? (parseDate(to) - parseDate(from)) / 864e5 + 1 : 0;
   const night = rows.filter((r) => !r.timeUnknown && (r.hour >= NIGHT_START || r.hour < DAY_START)).length;
   const known = rows.filter((r) => !r.timeUnknown).length;
   tiles.push(["Einsätze", rows.length, "in der Auswahl"]);
-  tiles.push(["Ø pro Woche", days ? (rows.length / (days / 7)).toFixed(1).replace(".", ",") : "–", "über den gewählten Zeitraum"]);
+  tiles.push(["Ø pro Woche", days ? (covered / (days / 7)).toFixed(1).replace(".", ",") : "–", days && to < rows[0].date ? `bis ${fmtDate(to)}` : "über den gewählten Zeitraum"]);
   tiles.push(["Nachts", known ? Math.round((100 * night) / known) + " %" : "–", "zwischen 22 und 6 Uhr"]);
   tiles.push(["Letzter Einsatz", rows.length ? fmtDate(rows[0].date) : "–", rows.length ? esc(rows[0].event) : ""]);
   $("#tiles").innerHTML = tiles.map(([l, v, d]) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
@@ -188,7 +230,7 @@ function renderOverview(rows) {
     const n = counts[k] || 0;
     const tick = narrow ? (m === 0 ? String(d.getFullYear()) : "")
       : m === 0 || items.length === 0 ? `${MONTHS[m]} ${d.getFullYear()}` : m % 3 === 0 ? MONTHS[m] : "";
-    items.push({ value: n, tip: `${MONTHS[m]} ${d.getFullYear()}: <b>${n}</b> Einsätze`, tick });
+    items.push({ value: n, tip: `${MONTHS[m]} ${d.getFullYear()}: <b>${einsaetze(n)}</b>`, tick });
   }
   columnChart($("#c-months"), items);
 }
@@ -200,6 +242,10 @@ function renderCalendar(rows) {
   for (const r of rows) (perDay[r.date] ||= []).push(r);
   const years = [...new Set(rows.map((r) => r.date.slice(0, 4)))].sort().reverse();
   const C = 18, G = 3, L = 26, T = 16;
+  const today = isoDate(new Date()), listed = isoDate(LISTED);
+  // Like the spiral: say so on hidden Großlage days and on days the website hasn't reached, instead of just "0".
+  const hiddenBig = {};
+  if (!$("#f-storm").checked) for (const r of ALL) if (r.bigDay && !r.standby) hiddenBig[r.date] = (hiddenBig[r.date] || 0) + 1;
   let html = "";
   for (const y of years) {
     const jan1 = new Date(Number(y), 0, 1);
@@ -210,11 +256,15 @@ function renderCalendar(rows) {
       const doy = Math.round((d - jan1) / 864e5);
       const col = Math.floor((doy + off) / 7), row = weekday(d);
       if (d.getDate() === 1) s += `<text x="${L + col * (C + G)}" y="11">${MONTHS[d.getMonth()]}</text>`;
-      const list = perDay[isoDate(d)] || [];
-      const tipText = `<b>${fmtDate(isoDate(d))}</b> · ${list.length} Einsätze` +
-        list.slice(0, 6).map((r) => `<br>${esc(r.time)} ${esc(r.keyword)} – ${esc(r.event)}`).join("") +
-        (list.length > 6 ? `<br>… und ${list.length - 6} weitere` : "");
-      s += `<rect class="cell" x="${L + col * (C + G)}" y="${T + row * (C + G)}" width="${C}" height="${C}" rx="3" fill="${colors[bin(list.length)]}" data-tip="${esc(tipText)}"/>`;
+      const date = isoDate(d);
+      if (date > today) continue;
+      const list = perDay[date] || [];
+      const tipText = `<b>${fmtDate(date)}</b> · ${einsaetze(list.length)}` +
+        list.slice(0, 6).map((r) => `<br>${r.timeUnknown ? "" : `${esc(r.time)} `}${esc(r.keyword)} – ${esc(r.event)}`).join("") +
+        (list.length > 6 ? `<br>… und ${weitere(list.length - 6)}` : "") +
+        (hiddenBig[date] ? `<br>Großlage mit ${einsaetze(hiddenBig[date], true)}, nicht mitgezählt` : "") +
+        (date > listed ? "<br>Noch nicht auf der Website" : "");
+      s += `<rect class="cell${date > listed ? " unlisted" : ""}" x="${L + col * (C + G)}" y="${T + row * (C + G)}" width="${C}" height="${C}" rx="3" fill="${colors[bin(list.length)]}" data-tip="${esc(tipText)}"/>`;
     }
     html += `<div class="year-label">${y}</div>${s}</svg>`;
   }
@@ -235,14 +285,14 @@ function renderHours(rows) {
   grid.forEach((line, w) => {
     s += `<text x="0" y="${T + w * (C + G) + C / 2 + 4}">${WEEKDAYS[w]}</text>`;
     line.forEach((n, h) => {
-      s += `<rect class="cell" x="${L + h * (C + G)}" y="${T + w * (C + G)}" width="${C}" height="${C}" rx="3" fill="${colors[level(n)]}" data-tip="${WEEKDAYS_LONG[w]}, ${h}–${h + 1} Uhr: <b>${n}</b> Einsätze"/>`;
+      s += `<rect class="cell" x="${L + h * (C + G)}" y="${T + w * (C + G)}" width="${C}" height="${C}" rx="3" fill="${colors[level(n)]}" data-tip="${WEEKDAYS_LONG[w]}, ${h}–${h + 1} Uhr: <b>${einsaetze(n)}</b>"/>`;
     });
   });
   $("#c-heat").innerHTML = s + "</svg>" + legend(["0", "", "", "", "", `${max} (Maximum)`], colors);
 
   const hours = Array(24).fill(0);
   for (const r of known) hours[r.hour]++;
-  columnChart($("#c-hours"), hours.map((n, h) => ({ value: n, tip: `${h}–${h + 1} Uhr: <b>${n}</b> Einsätze`, tick: h % 3 === 0 ? `${h}` : "" })), { height: 180 });
+  columnChart($("#c-hours"), hours.map((n, h) => ({ value: n, tip: `${h}–${h + 1} Uhr: <b>${einsaetze(n)}</b>`, tick: h % 3 === 0 ? `${h}` : "" })), { height: 180 });
 }
 
 function topCounts(rows, key, n = 15) {
@@ -254,18 +304,18 @@ function topCounts(rows, key, n = 15) {
 function renderKeywords(rows) {
   barList($("#c-groups"), topCounts(rows, (r) => r.group).map(([g, list]) => {
     const codes = topCounts(list, (r) => r.base, 4).map(([c, l]) => `${esc(c)} ${esc(l[0].name)} (${l.length})`).join("<br>");
-    return { label: g, value: list.length, tip: `<b>${esc(g)}</b> · ${list.length} Einsätze<br>${codes}` };
+    return { label: g, value: list.length, tip: `<b>${esc(g)}</b> · ${einsaetze(list.length)}<br>${codes}` };
   }));
   barList($("#c-keywords"), topCounts(rows, (r) => r.base).map(([k, list]) => {
     const events = topCounts(list, (r) => r.event, 3).map(([e, l]) => `${esc(e)} (${l.length})`).join("<br>");
-    return { label: `${k} · ${list[0].name}`, value: list.length, tip: `<b>${esc(k)}</b> ${esc(list[0].name)} · ${list.length} Einsätze<br>${events}` };
+    return { label: `${k} · ${list[0].name}`, value: list.length, tip: `<b>${esc(k)}</b> ${esc(list[0].name)} · ${einsaetze(list.length)}<br>${events}` };
   }), { labelWidth: 330 });
 }
 
 function renderDistricts(rows) {
   barList($("#c-districts"), topCounts(rows, (r) => r.district, 20).map(([k, list]) => {
     const streets = topCounts(list, (r) => r.street, 3).map(([e, l]) => `${esc(e)} (${l.length})`).join("<br>");
-    return { label: k, value: list.length, tip: `<b>${esc(k)}</b> · ${list.length} Einsätze<br>${streets}` };
+    return { label: k, value: list.length, tip: `<b>${esc(k)}</b> · ${einsaetze(list.length)}<br>${streets}` };
   }));
 }
 
@@ -274,7 +324,7 @@ function renderList(rows) {
   const hits = q ? rows.filter((r) => [r.keyword, r.event, r.street, r.district, r.remarks].join(" ").toLowerCase().includes(q)) : rows;
   // Hand entries fill the gap until the website lists the same alarm, which then replaces them.
   const pending = hits.some((r) => r.manual);
-  $("#list-count").textContent = `${hits.length} Einsätze.` + (pending
+  $("#list-count").textContent = `${einsaetze(hits.length)}.` + (pending
     ? " Einträge mit „vorläufig“ stehen noch nicht auf der Website der Feuerwehr. Sobald sie dort stehen, ersetzt der offizielle Eintrag sie."
     : "");
   // in the date column, which stays on screen when the table scrolls sideways on a phone
@@ -305,7 +355,7 @@ function dotGroups(rows, by) {
   const all = topCounts(rows, (r) => r.district, 999);
   const rest = all.slice(DOT_TOP_DISTRICTS).flatMap(([, l]) => l);
   return [...all.slice(0, DOT_TOP_DISTRICTS).map(([d, l]) => ({ label: d, rows: l })),
-    ...(rest.length ? [{ label: `${all.length - DOT_TOP_DISTRICTS} weitere`, rows: rest }] : [])];
+    ...(rest.length ? [{ label: weitere(all.length - DOT_TOP_DISTRICTS), rows: rest }] : [])];
 }
 
 // Where each dot goes: columns for month and hour (time runs left to right), rows for type and district.
@@ -345,7 +395,7 @@ function renderDots(rows) {
   if (!el.offsetWidth) return; // drawn when the view opens
   const W = el.clientWidth;
   const { pos, labels, H, r } = dotLayout(rows, dotsBy, W);
-  let svg = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${rows.length} Einsätze als Punkte"><g class="dot-labels">${labels}</g><g class="dots">`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${einsaetze(rows.length)} als Punkte"><g class="dot-labels">${labels}</g><g class="dots">`;
   rows.forEach((a, i) => {
     const [x, y] = pos.get(a);
     const tip = `<b>${WEEKDAYS[weekday(parseDate(a.date))]}, ${fmtDate(a.date)}</b>${a.timeUnknown ? "" : `, ${esc(a.time)} Uhr`}<br>` +
@@ -433,10 +483,10 @@ function renderSpiral(rows) {
       const list = perDay[date] || [];
       const a0 = deg(i), a1 = deg(i + 1), r0 = rad(k, i), r1 = rad(k, i + 1);
       const fill = step(list.length);
-      const tip = `<b>${WEEKDAYS[weekday(parseDate(date))]}, ${fmtDate(date)}</b> · ${list.length} ${list.length === 1 ? "Einsatz" : "Einsätze"}` +
+      const tip = `<b>${WEEKDAYS[weekday(parseDate(date))]}, ${fmtDate(date)}</b> · ${einsaetze(list.length)}` +
         list.slice(0, 6).map((r) => `<br>${r.timeUnknown ? "" : `${esc(r.time)} `}${esc(r.keyword)} – ${esc(r.event)}`).join("") +
-        (list.length > 6 ? `<br>… und ${list.length - 6} weitere` : "") +
-        (hiddenBig[date] ? `<br>Großlage mit ${hiddenBig[date]} Einsätzen, nicht mitgezählt` : "") +
+        (list.length > 6 ? `<br>… und ${weitere(list.length - 6)}` : "") +
+        (hiddenBig[date] ? `<br>Großlage mit ${einsaetze(hiddenBig[date], true)}, nicht mitgezählt` : "") +
         (date > listed ? "<br>Noch nicht auf der Website" : "");
       s += `<path class="day-seg${date > listed ? " unlisted" : ""}" d="M${pt(a0, r0 + T / 2)}L${pt(a1, r1 + T / 2)}L${pt(a1, r1 - T / 2)}L${pt(a0, r0 - T / 2)}Z" ` +
         `fill="${fill}" stroke="${fill}" data-tip="${esc(tip)}"/>`;
@@ -449,7 +499,7 @@ function renderSpiral(rows) {
   el.innerHTML = s + "</svg>" + legend(["0", "1", "2", "3–4", "5+"], ["var(--empty)", "var(--heat-1)", "var(--heat-2)", "var(--heat-3)", "var(--heat-4)"]);
   $("#spiral-note").textContent = "Jede Runde ist ein Jahr, jedes Stück ein Tag. Derselbe Tag liegt in jedem Jahr an derselben Stelle, " +
     "so stehen die Jahreszeiten übereinander. Je dunkler, desto mehr Einsätze an diesem Tag." +
-    (end > listed ? ` Tage nach dem ${fmtDate(listed)} sind blasser: Die Website listet sie noch nicht, dort zählen nur von Hand nachgetragene Einsätze.` : "");
+    (end > listed ? ` Tage nach dem ${fmtDate(listed)} sind blasser: Die Website listet sie noch nicht, an diesen Tagen zählen nur von Hand nachgetragene Einsätze.` : "");
 }
 
 // ---------- "Einsatz heute?" ----------
@@ -547,7 +597,7 @@ function drawRing() {
   let s = `<svg viewBox="0 0 380 380" role="img" aria-label="Einsätze je Uhrzeit. ${esc(m.cur.label)}: ${esc(m.cur.v)}">`;
   hours.forEach((n, h) => {
     const step = Math.min(4, Math.floor((n / max) * 5));
-    s += `<path class="seg" d="${arc(h * 15, h * 15 + 15, R0, R1)}" fill="var(--heat-${step})" data-tip="${h}–${h + 1} Uhr: <b>${n}</b> Einsätze seit ${since}"/>`;
+    s += `<path class="seg" d="${arc(h * 15, h * 15 + 15, R0, R1)}" fill="var(--heat-${step})" data-tip="${h}–${h + 1} Uhr: <b>${einsaetze(n)}</b> seit ${since}"/>`;
   });
   s += `<path d="${arc(DAY_START * 15, NIGHT_START * 15, RB, RB + 5)}" fill="var(--band-day)"/>`;
   s += `<path d="${arc(NIGHT_START * 15, (24 + DAY_START) * 15, RB, RB + 5)}" fill="var(--band-night)"/>`;
@@ -564,7 +614,7 @@ function drawRing() {
   if (m.other) s += text(C, C + 38, `${m.other.short}: ${esc(m.other.v)}`, "", 11);
   $("#chance-ring").innerHTML = s + "</svg>";
   $("#ring-legend").innerHTML = `<div class="legend">weniger ${[0, 1, 2, 3, 4].map((i) => `<i style="background:var(--heat-${i})"></i>`).join("")} mehr</div>` +
-    `<div class="legend"><i class="band" style="background:var(--band-day)"></i>Tag 06–22 <i class="band" style="background:var(--band-night)"></i>Nacht 22–06</div>` +
+    `<div class="legend"><i class="band" style="background:var(--band-day)"></i>Tag 6–22 Uhr <i class="band" style="background:var(--band-night)"></i>Nacht 22–6 Uhr</div>` +
     `<p class="note">Jedes Stück ist eine Stunde. Je dunkler, desto mehr Einsätze gab es seit ${since} zu dieser Uhrzeit.</p>`;
 }
 
@@ -587,7 +637,7 @@ function alarmsIn(iso, night) {
 // What the page says about the night of `date`: a percentage, or for a special night the same
 // night in earlier years.
 function nightInfo(date, est, first, last) {
-  const pct = { v: `~${Math.round(100 * est.pNight)} %`, d: `an ${est.night} von ${est.nNight} vergleichbaren Tagen gab es mindestens einen Einsatz` };
+  const pct = { v: `~${Math.round(100 * est.pNight)} %`, d: `in ${est.night} von ${est.nNight} vergleichbaren Nächten gab es mindestens einen Einsatz` };
   const special = specialNight(isoDate(date));
   if (!special) return pct;
   const [name, plural] = special;
@@ -601,7 +651,7 @@ function nightInfo(date, est, first, last) {
   const which = hits === past.length ? (past.length === 1 ? "in der letzten" : past.length === 2 ? "in beiden bisherigen" : `in allen ${past.length} bisherigen`)
     : `in ${hits} von ${past.length} bisherigen`;
   return {
-    name, v: hits === past.length ? "sehr wahrscheinlich" : `${hits} von ${past.length}`,
+    name, v: hits === past.length ? "bisher jedes Jahr" : `${hits} von ${past.length}`,
     d: `${which} ${past.length === 1 ? name : plural} gab es Einsätze (${past.map(([y, n]) => `${y}: ${n}`).join(", ")})`,
   };
 }
@@ -623,9 +673,9 @@ function renderChance() {
   const est = estimate(today, first, last, win);
   const estY = estimate(yesterday, first, lastFor(yesterday), win); // what the page said yesterday
   const scope = est.strict
-    ? `${WEEKDAYS_LONG[weekday(today)]}e im ${MONTHS[(today.getMonth() + 11) % 12]}–${MONTHS[(today.getMonth() + 1) % 12]}`
+    ? `${WEEKDAYS_LONG[weekday(today)]}e von ${MONTHS_LONG[(today.getMonth() + 11) % 12]} bis ${MONTHS_LONG[(today.getMonth() + 1) % 12]}`
     : `alle ${WEEKDAYS_LONG[weekday(today)]}e`;
-  const day = { short: "Tag", label: "Heute tagsüber", time: "06–22 Uhr", v: `~${Math.round(100 * est.pDay)} %`, d: `an ${est.day} von ${est.n} vergleichbaren Tagen gab es mindestens einen Einsatz` };
+  const day = { short: "Tag", label: "Heute tagsüber", time: "6–22 Uhr", v: `~${Math.round(100 * est.pDay)} %`, d: `an ${est.day} von ${est.n} vergleichbaren Tagen gab es mindestens einen Einsatz` };
   const ni = nightInfo(today, est, first, last);
   const night = { short: "Nacht", label: ni.name ? `Heute: ${ni.name}` : "Heute Nacht", time: "22–6 Uhr", v: ni.v, d: ni.d };
   const niY = nightInfo(yesterday, estY, first, lastFor(yesterday));
@@ -652,9 +702,12 @@ function renderChance() {
     ? ["Diese Nacht", niY.v, "läuft noch"]
     : ["Letzte Nacht", niY.v, count(alarmsIn(iy, true))]);
   $("#t-yesterday tbody").innerHTML = rows.map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  // Last night reaches past midnight, which the website may not have reached yet.
   $("#yesterday-listed").textContent = yesterday > LISTED
     ? `Die Website hat bisher nur Einsätze bis ${fmtDate(isoDate(LISTED))} eingetragen. Hier zählen deshalb nur die von Hand nachgetragenen.`
-    : "";
+    : h >= DAY_START && isoDate(LISTED) === iy
+      ? "Die Website hat bisher Einsätze bis gestern eingetragen. Einsätze nach Mitternacht fehlen in der letzten Zeile deshalb vielleicht noch."
+      : "";
 
   $("#chance-method").textContent =
     (ni.name ? `Die ${ni.name} wird nicht mit anderen Nächten verglichen, sondern nur mit derselben Nacht in den Vorjahren. ` : "") +
@@ -680,13 +733,13 @@ function renderChance() {
   $("#t-backtest tbody").innerHTML = btRows.map(({ b, range, rate, fit }) =>
     `<tr><td style="white-space:nowrap">${range}</td><td>${num(b.n)}-mal</td><td>${num(b.hit)} von ${num(b.n)} <span style="white-space:nowrap">(${rate} %)</span></td><td>${fit}</td></tr>`).join("");
   // Read one row out loud: the one with the most estimates.
-  const ex = btRows.reduce((a, r) => (r.b.n > a.b.n ? r : a));
-  $("#backtest-example").textContent =
-    `So liest man eine Zeile: ${num(ex.b.n)}-mal sagte die Seite ${ex.range}. In ${num(ex.b.hit)} dieser Fälle gab es wirklich einen Einsatz, ` +
+  const ex = btRows.reduce((a, r) => (!a || r.b.n > a.b.n ? r : a), null); // null with under half a year of data
+  $("#backtest-example").textContent = !ex ? "" :
+    `So liest man eine Zeile: ${num(ex.b.n)}-mal sagte die Schätzung ${ex.range}. In ${num(ex.b.hit)} dieser Fälle gab es wirklich einen Einsatz, ` +
     `das sind ${ex.rate} %. ` + {
       "Ja": "Das liegt im geschätzten Bereich, die Schätzung passt also.",
-      "Nein, zu niedrig": "Das liegt über dem geschätzten Bereich, hier hat die Seite also zu niedrig geschätzt.",
-      "Nein, zu hoch": "Das liegt unter dem geschätzten Bereich, hier hat die Seite also zu hoch geschätzt.",
+      "Nein, zu niedrig": "Das liegt über dem geschätzten Bereich, hier lag die Schätzung also zu niedrig.",
+      "Nein, zu hoch": "Das liegt unter dem geschätzten Bereich, hier lag die Schätzung also zu hoch.",
       "Zu wenige Fälle": "Das sind noch zu wenige Fälle, um es zu beurteilen.",
     }[ex.fit];
 
@@ -697,30 +750,31 @@ function renderChance() {
     const rate = n ? Math.round((100 * hit) / n) : 0;
     return { lo, hi, label, n, hit, rate, fit: backtestFit({ lo, hi, n }, rate) };
   }).filter((g) => g.n);
-  const nowPct = pNow == null ? null : 100 * pNow;
+  // Rounded first, so "jetzt ~10 %" never sits under "unter 10 %".
+  const nowPct = pNow == null ? null : Math.round(100 * pNow);
   $("#backtest-note").textContent =
-    `Für jeden Tag und jede Nacht ab ${fmtDate(isoDate(addDays(first, 182)))} wurde nachgerechnet, was die Seite damals gesagt hätte, ` +
+    `Für jeden Tag und jede Nacht ab ${fmtDate(isoDate(addDays(first, 182)))} wurde nachgerechnet, was die Schätzung damals gesagt hätte, ` +
     `und nachgesehen, ob es dann wirklich einen Einsatz gab (${num(bt.n)} Schätzungen). Jedes Bild zeigt das umgerechnet auf 100 solche Tage oder Nächte.`;
   const isNow = (g) => nowPct != null && nowPct >= g.lo && nowPct < g.hi;
   const anyNow = groups.some(isNow);
   $("#backtest-odds").innerHTML = groups.map((g) => {
     const now = isNow(g);
     // the others keep an invisible tag so the dots of all three line up
-    const tag = now ? `<span class="tag">heute ~${Math.round(nowPct)} %</span>` : anyNow ? '<span class="tag ghost">heute</span>' : "";
-    return `<figure class="odd${now ? " now" : ""}" data-tip="Die Seite sagte ${g.label}: bei ${num(g.hit)} von ${num(g.n)} Schätzungen gab es wirklich einen Einsatz (${g.rate} %).">` +
-      `<figcaption>Die Seite sagte<br><b>${g.label}</b>${tag}</figcaption>` +
+    const tag = now ? `<span class="tag">jetzt ~${nowPct} %</span>` : anyNow ? '<span class="tag ghost">jetzt</span>' : "";
+    return `<figure class="odd${now ? " now" : ""}" data-tip="Die Schätzung sagte ${g.label}: bei ${num(g.hit)} von ${num(g.n)} Schätzungen gab es wirklich einen Einsatz (${g.rate} %).">` +
+      `<figcaption>Die Schätzung sagte<br><b>${g.label}</b>${tag}</figcaption>` +
       hundredDots(g.rate) +
       `<div class="odd-v"><b>${g.rate}</b> von 100</div><div class="odd-d">hatten einen Einsatz<br>${num(g.n)} Schätzungen${g.n < 50 ? ", noch zu wenige" : ""}</div></figure>`;
   }).join("");
-  const low = groups[0], high = groups.at(-1), most = groups.reduce((a, g) => (g.n > a.n ? g : a));
+  const low = groups[0], high = groups.at(-1), most = groups.reduce((a, g) => (!a || g.n > a.n ? g : a), null);
   const off = groups.filter((g) => g.fit.startsWith("Nein"));
-  $("#backtest-verdict").textContent = [
+  $("#backtest-verdict").textContent = !most ? "" : [
     groups.length > 1 && high.rate >= low.rate + 10 ? "Je höher die Schätzung, desto öfter gab es wirklich einen Einsatz."
-      : groups.length > 1 ? "Hohe und niedrige Schätzungen lagen bisher nah beieinander." : "",
-    off.length ? off.map((g) => `Bei Schätzungen ${g.label} war die Seite ${g.fit === "Nein, zu niedrig" ? "etwas zu vorsichtig" : "etwas zu hoch"}: Es waren ${g.rate} von 100.`).join(" ")
-      : "Die Zahlen passen ungefähr zu dem, was die Seite gesagt hat.",
+      : groups.length > 1 ? "Nach hohen und niedrigen Schätzungen gab es bisher etwa gleich oft einen Einsatz." : "",
+    off.length ? off.map((g) => `Im Bereich ${g.label} lag die Schätzung etwas zu ${g.fit === "Nein, zu niedrig" ? "niedrig" : "hoch"}: Es waren ${g.rate} von 100.`).join(" ")
+      : "Die Zahlen passen ungefähr zu dem, was die Schätzung gesagt hat.",
     `Die meisten Schätzungen (${num(most.n)} von ${num(bt.n)}) lagen bei ${most.label}.` +
-      (most !== low && most !== high ? " Die Seite unterscheidet also nur grob zwischen ruhigeren und unruhigeren Tagen." : ""),
+      (most !== low && most !== high ? " Die Schätzung unterscheidet also nur grob zwischen ruhigeren und unruhigeren Tagen." : ""),
   ].filter(Boolean).join(" ");
 }
 
@@ -756,14 +810,16 @@ function yearInfo(year, storm) {
   const rows = alarms.filter((r) => r.date.startsWith(year));
   const prev = alarms.filter((r) => r.date.startsWith(String(year - 1)));
   const lastDate = rows.length ? rows[0].date : "";
-  const partial = Boolean(lastDate) && Number(year) >= new Date().getFullYear();
   const listed = isoDate(LISTED);
+  // Not complete while the year runs, nor in January while the website still catches up on December.
+  const running = Number(year) >= new Date().getFullYear();
+  const partial = Boolean(lastDate) && (running || listed < `${year}-12-31`);
   const cutDate = partial ? minDate(lastDate, listed) : `${year}-12-31`;
   const cut = cutDate.startsWith(year) ? cutDate.slice(5) : "";
   const cmpRows = rows.filter((r) => r.date.slice(5) <= cut);
   const prevSame = partial ? prev.filter((r) => r.date.slice(5) <= cut) : prev;
   const delta = prevSame.length && cut ? Math.round((100 * (cmpRows.length - prevSame.length)) / prevSame.length) : null;
-  return { alarms, rows, prev, lastDate, partial, listed, cutDate, cut, cmpRows, prevSame, delta };
+  return { alarms, rows, prev, lastDate, running, partial, listed, cutDate, cut, cmpRows, prevSame, delta };
 }
 
 // The days of a leap year, so every date sits at the same place in every year.
@@ -834,7 +890,7 @@ function renderYear() {
   const year = $("#y-year").value;
   const storm = $("#y-storm").checked;
   const info = yearInfo(year, storm);
-  const { rows, prevSame, partial, lastDate, listed, cutDate, cut, delta } = info;
+  const { rows, prevSame, running, partial, lastDate, listed, cutDate, cut, delta } = info;
 
   const byDay = topCounts(rows, (r) => r.date, 1)[0];
   const byMonth = topCounts(rows, (r) => r.date.slice(5, 7), 1)[0];
@@ -843,20 +899,22 @@ function renderYear() {
   const period = partial ? ` (jeweils bis ${fmtDate(cutDate).slice(0, 6)})` : "";
   const tiles = [
     ["Einsätze", rows.length, delta !== null ? `${delta >= 0 ? "+" : ""}${delta} % gegenüber ${year - 1}${period}` : ""],
-    ["Stärkster Tag", byDay ? fmtDate(byDay[0]) : "–", byDay ? `${byDay[1].length} Einsätze` : ""],
-    ["Stärkster Monat", byMonth ? MONTHS[Number(byMonth[0]) - 1] : "–", byMonth ? `${byMonth[1].length} Einsätze` : ""],
+    ["Stärkster Tag", byDay ? fmtDate(byDay[0]) : "–", byDay ? einsaetze(byDay[1].length) : ""],
+    ["Stärkster Monat", byMonth ? MONTHS[Number(byMonth[0]) - 1] : "–", byMonth ? einsaetze(byMonth[1].length) : ""],
     ["Nachts", known.length ? Math.round((100 * night) / known.length) + " %" : "–", "zwischen 22 und 6 Uhr"],
   ];
   $("#y-tiles").innerHTML = tiles.map(([l, v, d]) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
   const byHand = rows.filter((r) => r.date > listed).length;
+  const listNote = byHand ? `Die Website listet Einsätze bis ${fmtDate(listed)}, ${byHand} spätere ${byHand === 1 ? "ist" : "sind"} von Hand nachgetragen.`
+    : `Die Website listet bisher Einsätze bis ${fmtDate(listed)}.`;
   $("#y-partial").textContent = !partial ? ""
-    : byHand ? `Das Jahr ${year} läuft noch. Die Website listet Einsätze bis ${fmtDate(listed)}, ${byHand} spätere ${byHand === 1 ? "ist" : "sind"} von Hand nachgetragen.`
-    : `Das Jahr ${year} läuft noch: Daten bis ${fmtDate(lastDate)}.`;
+    : running && !byHand ? `Das Jahr ${year} läuft noch: Daten bis ${fmtDate(lastDate)}.`
+    : `${running ? `Das Jahr ${year} läuft noch. ` : ""}${listNote}`;
   // Named on screen and on the printout, so a reader knows whether the storm is in the numbers.
   const inView = (r) => r.date.startsWith(year) || (r.date.startsWith(String(year - 1)) && r.date.slice(5) <= cut);
   const big = topCounts(ALL.filter((r) => !r.standby && r.bigDay && inView(r)), (r) => r.date)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([d, l]) => `${fmtDate(d)} (${l.length} Einsätze${d.startsWith(year) ? "" : `, im Vergleich mit ${year - 1}`})`);
+    .map(([d, l]) => `${fmtDate(d)} (${einsaetze(l.length)}${d.startsWith(year) ? "" : `, im Vergleich mit ${year - 1}`})`);
   $("#y-storm-note").textContent = big.length ? `Großlagen ${storm ? "mitgezählt" : "nicht mitgezählt"}: ${big.join(", ")}.` : "";
 
   // Every year's running total; a running year's line stops where its data does.
@@ -869,17 +927,18 @@ function renderYear() {
     .map(([d]) => ({ i: DAY_SLOTS.indexOf(d.slice(5)), text: `Großlage ${fmtDate(d).slice(0, 6)}` })) : [];
   $("#y-race-note").textContent = "Einsätze ab dem 1. Januar, Tag für Tag zusammengezählt. Je steiler die Linie, desto mehr Einsätze in dieser Zeit." +
     series.filter((s) => s.own.partial).map((s) => ` Die Linie für ${s.label} endet am ${fmtDate(s.own.cutDate).slice(0, 6)}` +
-      `${s.own.cutDate === s.own.listed ? ", dem neuesten Einsatz auf der Website" : ""}.`).join("");
+      `${s.own.cutDate === s.own.listed ? ", dem Tag des neuesten Einsatzes auf der Website" : ""}.`).join("") +
+    (series.some((s) => s.sel) ? "" : ` Für ${year} listet die Website noch keine Einsätze, deshalb fehlt diese Linie noch.`);
   raceChart($("#y-race"), series, { marks: series.some((s) => s.sel) ? marks : [] });
 
   const months = Array(12).fill(0);
   for (const r of rows) months[Number(r.date.slice(5, 7)) - 1]++;
-  columnChart($("#y-months"), months.map((n, m) => ({ value: n, tip: `${MONTHS[m]} ${year}: <b>${n}</b> Einsätze`, tick: MONTHS[m] })), { height: 180 });
+  columnChart($("#y-months"), months.map((n, m) => ({ value: n, tip: `${MONTHS[m]} ${year}: <b>${einsaetze(n)}</b>`, tick: MONTHS[m] })), { height: 180 });
 
   const prevGroups = {};
   for (const r of prevSame) prevGroups[r.group] = (prevGroups[r.group] || 0) + 1;
   barList($("#y-groups"), topCounts(rows, (r) => r.group).map(([g, list]) => ({
-    label: g, value: list.length, tip: `<b>${esc(g)}</b>: ${list.length} Einsätze<br>${year - 1}${partial ? ` bis ${fmtDate(cutDate).slice(0, 6)}` : ""}: ${prevGroups[g] || 0}`,
+    label: g, value: list.length, tip: `<b>${esc(g)}</b>: ${einsaetze(list.length)}<br>${year - 1}${partial ? ` bis ${fmtDate(cutDate).slice(0, 6)}` : ""}: ${prevGroups[g] || 0}`,
   })));
 
   const notable = rows.filter((r) => NOTABLE.test(r.base) || /presseportal/.test(r.remarks));
@@ -905,7 +964,7 @@ function storyCards(year, storm) {
   const times = (n) => `<span class="st-nw">${n}-mal</span>`;
 
   add("red", `<div class="st-kicker">Freiwillige Feuerwehr Hannover-Linden</div><div class="st-title">Das Einsatzjahr ${year}</div>` +
-    (info.partial ? `<div class="st-text">Das Jahr läuft noch. Gezählt ist alles bis zum ${fmtDate(info.lastDate)}.</div>` : "") +
+    (info.partial ? `<div class="st-text">${info.running ? "Das Jahr läuft noch. " : ""}Gezählt ist alles bis zum ${fmtDate(info.lastDate)}.</div>` : "") +
     `<div class="st-small">Zum Weiterblättern tippen oder wischen.</div>`);
 
   // Average per week only over days the data fully covers.
@@ -913,10 +972,11 @@ function storyCards(year, storm) {
   const weeks = ((parseDate(info.cutDate) - parseDate(`${year}-01-01`)) / 864e5 + 1) / 7;
   const big = topCounts(ALL.filter((r) => !r.standby && r.bigDay && r.date.startsWith(year)), (r) => r.date)
     .sort(([a], [b]) => a.localeCompare(b));
-  const bigText = big.length === 1 ? `die Großlage am ${dm(big[0][0])} mit ${big[0][1].length} Einsätzen`
-    : `die Großlagen am ${big.map(([d, l]) => `${dm(d)} (${l.length} Einsätze)`).join(" und ")}`;
+  const bigText = big.length === 1 ? `die Großlage am ${dm(big[0][0])} mit ${einsaetze(big[0][1].length, true)}`
+    : `die Großlagen am ${big.map(([d, l]) => `${dm(d)} (${einsaetze(l.length)})`).join(" und ")}`;
   add("dark", `<div class="st-kicker">Einsätze</div><div class="st-hero">${num(rows.length)}</div>` +
-    `<div class="st-text">Im Schnitt ${(covered.length / weeks).toFixed(1).replace(".", ",")} pro Woche.</div>` +
+    // No average while the website hasn't reached the year yet (hand entries only, e.g. on 01.01.)
+    (info.cut ? `<div class="st-text">Im Schnitt ${(covered.length / weeks).toFixed(1).replace(".", ",")} pro Woche.</div>` : "") +
     (big.length ? `<div class="st-small">${storm ? "Mitgezählt" : "Nicht mitgezählt"}: ${bigText}.</div>` : ""));
 
   const [bd, bl] = topCounts(rows, (r) => r.date, 1)[0];
@@ -993,7 +1053,7 @@ function storyCards(year, storm) {
     const without = withBig ? yearInfo(year, false).delta : null;
     add("navy", `<div class="st-kicker">Im Vergleich zu ${prevYear}</div>` +
       `<div class="st-hero" ${fit(`${sign(info.delta)} %`)}><span data-to="${info.delta}" data-sign="1">${sign(info.delta)}</span> %</div>` +
-      `<div class="st-text">${info.cmpRows.length} Einsätze ${year}, ${info.prevSame.length} in ${prevYear}${period}.</div>` +
+      `<div class="st-text">${einsaetze(info.cmpRows.length)} im Jahr ${year}, ${info.prevSame.length} im Jahr ${prevYear}${period}.</div>` +
       `<div class="st-chart"></div>` +
       (without !== null ? `<div class="st-small">Ohne Großlagen: ${sign(without)} %</div>` : ""),
       (root) => raceChart(root.querySelector(".st-chart"), [
@@ -1005,7 +1065,7 @@ function storyCards(year, storm) {
   const facts = [
     ["Einsätze", rows.length],
     ["Nachts", nightShare === null ? "–" : `${nightShare} %`],
-    ["Stärkster Tag", `${dm(bd)}<small>${bl.length} Einsätze</small>`],
+    ["Stärkster Tag", `${dm(bd)}<small>${einsaetze(bl.length)}</small>`],
     ["Längste Pause", quiet && quiet.len > 1 ? `${quiet.len} Tage` : "–"],
     ["Häufigstes Stichwort", esc(kb)],
     ["Häufigster Ort", places.length ? esc(places[0][0]) : "–"],
@@ -1118,9 +1178,16 @@ async function renderMap(rows) {
     const p = GEO[r.geoKey] || GEO[`${r.street}|${r.district}`];
     if (p) { points.push([p[0], p[1], 1]); located.push({ p, date: r.date }); } else missing++;
   }
-  replaySetup(located.reverse()); // oldest first
+  // Only a new selection resets a running time-lapse, not a redraw (a phone's toolbar hiding resizes the window).
+  located.reverse(); // oldest first
+  const key = located.map((l) => l.date + l.p).join("|");
+  if (key !== replay.key || !el.offsetWidth) {
+    replaySetup(located);
+    replay.key = key;
+  }
   $("#map-note").textContent = Object.keys(GEO).length
-    ? `${points.length} Einsätze auf der Karte. ${missing} ohne bekannte Adresse (z. B. Autobahn) fehlen.`
+    ? `${einsaetze(points.length)} auf der Karte.` +
+      (missing ? ` ${missing} ohne bekannte Adresse (z. B. Autobahn) ${missing === 1 ? "fehlt" : "fehlen"}.` : "")
     : "Die Karte erscheint nach der nächsten täglichen Aktualisierung.";
   el.hidden = !points.length;
   if (!points.length || !el.offsetWidth) {
@@ -1153,7 +1220,7 @@ async function renderMap(rows) {
 // ---------- Zeitraffer ----------
 // Plays the selected alarms on the map in date order: each one flashes where it happened and stays
 // as a faint dot, so busy places build up. `pos` counts days since the first alarm.
-const replay = { rows: [], first: null, days: 0, pos: 0, shown: 0, layer: null, clock: null, raf: 0 };
+const replay = { rows: [], key: "", first: null, days: 0, pos: 0, shown: 0, layer: null, clock: null, raf: 0 };
 
 function replayStop() {
   cancelAnimationFrame(replay.raf);
@@ -1239,7 +1306,7 @@ $("#rp-reset").addEventListener("click", () => {
 // ---------- Wetter ----------
 const WEATHER_BUCKETS = [
   ["Windböen", "gust", [[0, 40, "unter 40 km/h"], [40, 60, "40–60 km/h"], [60, 80, "60–80 km/h"], [80, 999, "ab 80 km/h"]]],
-  ["Niederschlag", "rain", [[0, 0.1, "trocken"], [0.1, 5, "bis 5 mm"], [5, 20, "5–20 mm"], [20, 999, "über 20 mm"]]],
+  ["Niederschlag", "rain", [[0, 0.1, "trocken"], [0.1, 5, "bis 5 mm"], [5, 20, "5–20 mm"], [20, 999, "ab 20 mm"]]],
   ["Höchsttemperatur", "tmax", [[-99, 0, "unter 0 °C"], [0, 10, "0–10 °C"], [10, 20, "10–20 °C"], [20, 30, "20–30 °C"], [30, 99, "ab 30 °C"]]],
 ];
 
@@ -1265,7 +1332,7 @@ function renderWeather(rows, year, dropped) {
       const avg = ds.length ? n / ds.length : 0;
       return {
         label, value: Math.round(avg * 100) / 100, display: ds.length ? avg.toFixed(2).replace(".", ",") : "keine Tage",
-        tip: `<b>${label}</b><br>${ds.length} Tage, ${n} Einsätze<br>Ø ${avg.toFixed(2).replace(".", ",")} pro Tag`,
+        tip: `<b>${label}</b><br>${ds.length} ${ds.length === 1 ? "Tag" : "Tage"}, ${einsaetze(n)}<br>Ø ${avg.toFixed(2).replace(".", ",")} pro Tag`,
       };
     }));
   });
@@ -1303,10 +1370,15 @@ try { $("#admin-link").hidden = !localStorage.getItem("gh-token"); } catch {}
 const getJSON = (u, fallback) => fetch(u, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : fallback)).catch(() => fallback);
 
 Promise.all([
-  getJSON("data/alarms.json"), getJSON("data/keywords.json", KW), getJSON("data/manual.json", { rows: [] }),
+  getJSON("data/alarms.json", null), getJSON("data/keywords.json", KW), getJSON("data/manual.json", { rows: [] }),
   getJSON("data/geo.json", {}), getJSON("data/weather.json", { days: {} }),
 ])
   .then(([data, kw, manual, geo, weather]) => {
+    if (!data) {
+      $("#updated").textContent = "–";
+      $("#listed").textContent = " · Die Einsätze konnten nicht geladen werden. Bitte die Seite neu laden.";
+      return;
+    }
     KW = kw;
     GEO = geo;
     WEATHER = weather.days;
@@ -1315,7 +1387,7 @@ Promise.all([
     // Only alarms: events (Veranstaltung) can be listed ahead of time.
     const newest = data.rows.reduce((m, r) => (r.category === "Einsatz" && r.date > m ? r.date : m), "");
     LISTED = newest ? parseDate(newest) : UPDATED;
-    $("#updated").textContent = new Date(data.updated).toLocaleDateString("de-DE");
+    $("#updated").textContent = new Date(data.updated).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
     if (listBehind()) {
       const byHand = ALL.some((r) => r.manual && parseDate(r.date) > LISTED);
       $("#listed").textContent = ` · Die Website listet Einsätze bis ${fmtDate(newest)}${byHand ? ", neuere sind von Hand nachgetragen" : ""}.`;
@@ -1331,9 +1403,14 @@ Promise.all([
     document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => showView(b.dataset.view)));
     let v = "overview";
     try { v = localStorage.getItem("view") || v; } catch {}
-    showView(v);
-    render();
+    showView(v); // draws the chosen view
     renderChance();
-    let resize;
-    window.addEventListener("resize", () => { clearTimeout(resize); resize = setTimeout(render, 150); });
+    // Only a change of width needs new charts; height changes when a phone's toolbar hides.
+    let resize, width = innerWidth;
+    window.addEventListener("resize", () => {
+      if (innerWidth === width) return;
+      width = innerWidth;
+      clearTimeout(resize);
+      resize = setTimeout(render, 150);
+    });
   });
