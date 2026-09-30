@@ -271,6 +271,19 @@ body > footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(-
 @keyframes rp-flash { from { transform: scale(4); fill-opacity: .95; } to { transform: scale(1); fill-opacity: .4; } }
 @media (prefers-reduced-motion: reduce) { .rp-flash { animation: none; } }
 
+/* ---------- Einsatzradius ---------- */
+#c-radius { height: min(70vh, 560px); border-radius: 10px; border: 1px solid var(--border); }
+/* A grey map, so the coloured lines and dots stand out; dark in dark mode. */
+#c-radius .leaflet-tile-pane { filter: grayscale(1) contrast(.8) brightness(1.1); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) #c-radius .leaflet-tile-pane { filter: grayscale(1) invert(1) contrast(.8) brightness(.9); }
+}
+:root[data-theme="dark"] #c-radius .leaflet-tile-pane { filter: grayscale(1) invert(1) contrast(.8) brightness(.9); }
+@media (max-width: 520px) { #radius-tiles { grid-template-columns: 1fr 1fr; } #radius-tiles .tile:last-child { grid-column: 1 / -1; } }
+.ra-canvas { position: absolute; top: 0; left: 0; z-index: 450; pointer-events: none; }
+.replay .seg { margin: 0; }
+.dots-legend i.wache { border-radius: 2px; background: var(--accent); }
+
 /* ---------- Jahr als Story ---------- */
 /* Its own colours, the same in light and dark mode, so a screenshot looks the same for everyone. */
 body.story-open { overflow: hidden; }

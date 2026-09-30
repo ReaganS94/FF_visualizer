@@ -14,7 +14,7 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   type, district or hour with the dots moving to their new places), calendar, year spiral (one turn per year,
   one piece per day, the same date at the same angle every year), time of day, keywords, districts, repeat addresses
   (streets with three or more alarms, and fire alarm systems that go off more than once),
-  map (with a time-lapse that plays the alarms in date order), weather, searchable list, annual report (with a
+  map (with a time-lapse that plays the alarms in date order), Einsatzradius (see below), weather, searchable list, annual report (with a
   year comparison and the year as a story, see below), and an "Einsatz heute?" estimate that is explicitly only a guess.
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `docs/admin.html`: form for adding alarms before the website lists them (see below).
@@ -46,6 +46,14 @@ aren't matched yet are called "vorläufig" (tag in the list and on the "Letzter 
   phone's back button closes it. The longest quiet spell always counts Großlage days as busy and stops at the
   website's newest alarm.
 - Both follow the "Großlagen mitzählen" checkbox of the Jahresrückblick.
+
+## Einsatzradius
+
+A line from the Wache (Teichstraße 8) to every alarm with a known address, over a grey OpenStreetMap map
+(dark in dark mode), with rings every 1, 2, 5 or 10 km depending on the zoom. "Abspielen" sends the lines out
+in date order, and the tiles and the "Wie weit weg?" bars count along. Distances are straight lines, not
+driving routes. The Wache's position (`WACHE` in `app.js`) is the middle of two map services' positions for
+the address, which are 25 m apart. The view follows the filters above it.
 
 ## Mythen-Check
 

@@ -30,6 +30,7 @@
   <button data-view="districts">Stadtteile</button>
   <button data-view="addresses">Stammadressen</button>
   <button data-view="map">Karte</button>
+  <button data-view="radius">Einsatzradius</button>
   <button data-view="weather">Wetter</button>
   <button data-view="myths">Mythen-Check</button>
   <button data-view="quiz">Quiz</button>
@@ -121,6 +122,26 @@
       <button type="button" id="rp-reset" hidden>Zeitraffer beenden</button>
     </div>
     <div id="c-map"></div>
+  </section>
+
+  <section data-view="radius">
+    <h2>Wie weit fährt die Feuerwehr Linden?</h2>
+    <p class="note">Jede Linie führt von der Wache in der Teichstraße 8 zu einem Einsatz. Die Entfernung ist Luftlinie, keine Fahrstrecke. „Abspielen“ schickt die Linien der Reihe nach los. <span id="radius-note"></span></p>
+    <div class="tiles" id="radius-tiles"></div>
+    <div class="replay">
+      <button type="button" id="ra-play" class="primary">▶ Abspielen</button>
+      <label>Tempo <select id="ra-speed">
+        <option value="7">langsam (1 Woche pro Sekunde)</option>
+        <option value="30" selected>normal (1 Monat pro Sekunde)</option>
+        <option value="91">schnell (1 Quartal pro Sekunde)</option>
+      </select></label>
+      <div class="seg" role="group" aria-label="Ausschnitt"><span>Ausschnitt</span><button type="button" data-radius="near">Linden</button><button type="button" data-radius="all">Alle Einsätze</button></div>
+    </div>
+    <div class="legend dots-legend"><span><i class="wache"></i>Wache</span><span><i class="brand"></i>Brand</span><span><i class="hilfe"></i>Technische Hilfe</span><span><i class="unwetter"></i>Unwetter</span><span><i class="other"></i>Andere</span></div>
+    <div id="c-radius"></div>
+    <p class="note" id="radius-outside"></p>
+    <h2>Wie weit weg?</h2>
+    <div class="chart" id="c-radius-km"></div>
   </section>
 
   <section data-view="weather">

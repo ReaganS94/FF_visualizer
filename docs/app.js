@@ -115,15 +115,18 @@ function selection() {
 
 // ---------- tooltip ----------
 const tip = $("#tip");
+function placeTip(html, cx, cy) {
+  tip.innerHTML = html;
+  tip.hidden = false;
+  const x = Math.min(cx + 14, window.innerWidth - tip.offsetWidth - 8);
+  const y = cy + 14 + tip.offsetHeight > window.innerHeight ? cy - tip.offsetHeight - 10 : cy + 14;
+  tip.style.left = x + "px";
+  tip.style.top = y + "px";
+}
 document.addEventListener("mousemove", (e) => {
   const t = e.target.closest("[data-tip]");
   if (!t) { tip.hidden = true; return; }
-  tip.innerHTML = t.dataset.tip;
-  tip.hidden = false;
-  const x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
-  const y = e.clientY + 14 + tip.offsetHeight > window.innerHeight ? e.clientY - tip.offsetHeight - 10 : e.clientY + 14;
-  tip.style.left = x + "px";
-  tip.style.top = y + "px";
+  placeTip(t.dataset.tip, e.clientX, e.clientY);
 });
 
 // ---------- chart helpers ----------
@@ -157,9 +160,10 @@ function columnChart(el, items, { height = 220 } = {}) {
 }
 
 // Horizontal ranked bars with the value at the end (hi: false greys a bar out, as above).
-function barList(el, items, { labelWidth = 170 } = {}) {
+// scaleTo keeps the scale fixed while the values grow (the Einsatzradius playback).
+function barList(el, items, { labelWidth = 170, scaleTo = 1 } = {}) {
   const W = el.clientWidth || 1000, R = 40;
-  const max = Math.max(1, ...items.map((d) => d.value));
+  const max = Math.max(scaleTo, ...items.map((d) => d.value));
   // Labels left of the bars; if one doesn't fit (long keyword names on a phone), each label goes above its bar.
   const draw = (stacked) => {
     const row = stacked ? 38 : 26, L = stacked ? 0 : Math.min(labelWidth, W * 0.5), top = stacked ? 18 : 3;
@@ -1204,13 +1208,17 @@ document.addEventListener("keydown", (e) => {
 // ---------- Karte ----------
 let map, heat;
 
+// Each script loads once, however many views ask for it (the Karte and the Einsatzradius both use Leaflet).
+const scripts = {};
 function loadScript(src) {
-  return new Promise((ok, fail) => {
+  return (scripts[src] ||= new Promise((ok, fail) => {
     const s = document.createElement("script");
-    s.src = src; s.onload = ok; s.onerror = fail;
+    s.src = src; s.onload = ok;
+    s.onerror = (e) => { delete scripts[src]; fail(e); };
     document.head.appendChild(s);
-  });
+  }));
 }
+const LEAFLET = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
 
 async function renderMap(rows) {
   const el = $("#c-map");
@@ -1239,10 +1247,8 @@ async function renderMap(rows) {
     if (heat) { map.removeLayer(heat); heat = null; }
     return;
   }
-  if (!window.L) {
-    await loadScript("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js");
-    await loadScript("https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js");
-  }
+  await loadScript(LEAFLET);
+  await loadScript("https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js");
   if (!map) {
     map = L.map(el).setView([52.37, 9.73], 13);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1346,6 +1352,279 @@ $("#rp-reset").addEventListener("click", () => {
   replayClear();
   if (heat) heat.addTo(map);
 });
+
+// ---------- Einsatzradius ----------
+// A line from the Wache to every alarm, over a grey map; "Abspielen" sends the lines out in date order.
+// Distances are straight lines on a flat grid around the Wache, which is close enough within a city.
+const WACHE = [52.36847, 9.71195]; // Teichstraße 8 (two map services agree to within 25 m)
+const KM_X = 111.32 * Math.cos((WACHE[0] * Math.PI) / 180), KM_Y = 110.57;
+const RADIUS_BINS = [[0, 0.5, "bis 500 m"], [0.5, 1, "0,5–1 km"], [1, 2, "1–2 km"], [2, 3, "2–3 km"], [3, 5, "3–5 km"], [5, Infinity, "über 5 km"]];
+const FLY = 900, FADE = 900; // ms a line takes to reach its alarm, and to fade out after it lands
+const radius = { map: null, canvas: null, clock: null, dpr: 1, pts: [], key: "", first: null, days: 0,
+  shown: null, queue: [], flights: [], playing: false, day: 0, t: 0, raf: 0 };
+
+function fmtKm(k) {
+  const m = Math.round(k * 100) * 10;
+  return m < 1000 ? `${m} m` : `${k.toFixed(1).replace(".", ",")} km`;
+}
+
+// The located alarms, oldest first, with their distance and the day since the first one.
+function radiusPoints(rows) {
+  const pts = [];
+  for (const r of rows) {
+    const ll = GEO[r.geoKey] || GEO[`${r.street}|${r.district}`];
+    if (!ll) continue;
+    const km = Math.hypot((ll[1] - WACHE[1]) * KM_X, (ll[0] - WACHE[0]) * KM_Y);
+    pts.push({ r, ll, km, kind: dotKind(r) });
+  }
+  pts.reverse();
+  const first = pts.length ? parseDate(pts[0].r.date) : null;
+  for (const p of pts) p.day = Math.round((parseDate(p.r.date) - first) / 864e5);
+  return pts;
+}
+
+async function renderRadius(rows) {
+  const el = $("#c-radius");
+  const pts = radiusPoints(rows);
+  // Only a new selection resets a running playback, not a redraw.
+  const key = pts.map((p) => p.r.date + p.r.time + p.ll).join("|");
+  if (key !== radius.key) {
+    radiusReset();
+    Object.assign(radius, { pts, key, first: pts.length ? parseDate(pts[0].r.date) : null, days: pts.length ? pts.at(-1).day : 0 });
+  }
+  const missing = rows.length - pts.length;
+  $("#radius-note").textContent = !Object.keys(GEO).length ? "Die Karte erscheint nach der nächsten täglichen Aktualisierung."
+    : missing ? `${missing} ${missing === 1 ? "Einsatz" : "Einsätze"} ohne bekannte Adresse (z. B. Autobahn) ${missing === 1 ? "fehlt" : "fehlen"}.` : "";
+  radiusStats();
+  $("#ra-play").disabled = !pts.length;
+  el.hidden = !pts.length;
+  if (!el.offsetWidth) {
+    if (radius.playing) radiusPause(); // leaving the view pauses it
+    return;
+  }
+  await loadScript(LEAFLET);
+  if (!radius.map) radiusMap(el);
+  radius.map.invalidateSize();
+  radiusSize();
+  radiusDraw();
+  radiusOutside();
+}
+
+function radiusMap(el) {
+  const map = (radius.map = L.map(el, { zoomSnap: 0.25 }));
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map);
+  const Clock = L.Control.extend({ options: { position: "topright" }, onAdd: () => L.DomUtil.create("div", "rp-clock") });
+  radius.clock = new Clock().addTo(map).getContainer();
+  radius.clock.hidden = true;
+  // The lines go on a canvas over the map and under its buttons, redrawn whenever the map moves.
+  radius.canvas = L.DomUtil.create("canvas", "ra-canvas", el);
+  radiusFit("near");
+  map.on("resize", () => { radiusSize(); radiusDraw(); });
+  map.on("move", () => radiusDraw());
+  map.on("moveend", radiusOutside);
+  // The canvas can't follow Leaflet's zoom animation, so it steps aside until the zoom ends.
+  map.on("zoomanim", () => { radius.canvas.style.visibility = "hidden"; });
+  map.on("zoomend", () => { radius.canvas.style.visibility = ""; radiusDraw(); });
+  // The page's tooltip shows whatever data-tip the pointer is over, so the map carries the nearest alarm's.
+  map.on("mousemove", (e) => {
+    const g = radiusNear(e.containerPoint);
+    if (g) el.dataset.tip = radiusTip(g); else delete el.dataset.tip;
+  });
+  map.on("mouseout", () => { delete el.dataset.tip; });
+  map.on("click", (e) => {
+    const g = radiusNear(e.containerPoint);
+    if (g) placeTip(radiusTip(g), e.originalEvent.clientX, e.originalEvent.clientY); else tip.hidden = true;
+  });
+}
+
+function radiusSize() {
+  const { canvas } = radius, el = $("#c-radius"), dpr = Math.min(2, devicePixelRatio || 1);
+  canvas.width = el.clientWidth * dpr;
+  canvas.height = el.clientHeight * dpr;
+  canvas.style.width = el.clientWidth + "px";
+  canvas.style.height = el.clientHeight + "px";
+  radius.dpr = dpr;
+}
+
+// "near": Linden, 3 km around the Wache; "all": every alarm of the selection.
+function radiusFit(which) {
+  const { map, pts } = radius;
+  if (!map) return;
+  if (which === "all" && pts.length) map.fitBounds(L.latLngBounds([WACHE, ...pts.map((p) => p.ll)]), { padding: [24, 24] });
+  else map.fitBounds(L.latLng(WACHE).toBounds(6000));
+}
+
+function radiusOutside() {
+  if (!radius.map) return;
+  const b = radius.map.getBounds(), out = radius.pts.filter((p) => !b.contains(p.ll)).length;
+  $("#radius-outside").textContent = out ? `${out} ${out === 1 ? "Einsatz liegt" : "Einsätze liegen"} außerhalb des Ausschnitts.` : "";
+}
+
+// Tiles and distance bars count what's on the map: every alarm, or the ones sent out so far while playing.
+function radiusStats() {
+  const list = radius.shown || radius.pts;
+  const km = list.map((p) => p.km).sort((a, b) => a - b);
+  const far = list.reduce((m, p) => (!m || p.km > m.km ? p : m), null);
+  $("#radius-tiles").innerHTML = [
+    [km.length ? fmtKm(km[Math.floor(km.length / 2)]) : "–", "Die Hälfte der Einsätze liegt näher als das"],
+    [km.length ? `${pct(km.filter((k) => k <= 2).length, km.length)} %` : "–", "im Umkreis von 2 km"],
+    [far ? fmtKm(far.km) : "–", "am weitesten weg", far ? `${esc(far.r.street)}, ${esc(far.r.district)}, ${fmtDate(far.r.date)}` : ""],
+  ].map(([v, l, d]) => `<div class="tile"><div class="v">${v}</div><div class="l">${l}</div>${d ? `<div class="d">${d}</div>` : ""}</div>`).join("");
+  const count = (l, [lo, hi]) => l.filter((p) => p.km >= lo && p.km < hi).length;
+  barList($("#c-radius-km"), RADIUS_BINS.map((b) => {
+    const n = count(list, b);
+    return { label: b[2], value: n, tip: `${b[2]}: ${einsaetze(n)}${list.length ? ` (${pct(n, list.length)} %)` : ""}` };
+  }), { labelWidth: 90, scaleTo: Math.max(1, ...RADIUS_BINS.map((b) => count(radius.pts, b))) });
+}
+
+// The alarms at the dot nearest to the pointer (one street shares one spot on the map), oldest first.
+function radiusNear(at) {
+  const now = performance.now();
+  const list = (radius.shown || radius.pts).filter((p) => !radius.shown || !(p.land > now));
+  let best = null, bd = 12;
+  for (const p of list) {
+    const q = radius.map.latLngToContainerPoint(p.ll), d = Math.hypot(q.x - at.x, q.y - at.y);
+    if (d < bd) { bd = d; best = p; }
+  }
+  return best && list.filter((p) => p.ll[0] === best.ll[0] && p.ll[1] === best.ll[1]);
+}
+
+function radiusTip(group) {
+  const p = group.at(-1), r = p.r;
+  const place = `${esc(r.street)}, ${esc(r.district)}`;
+  if (group.length === 1) {
+    return `<b>${fmtDate(r.date)}${r.timeUnknown ? "" : `, ${r.time} Uhr`}</b><br>${esc(r.name)}${r.event ? ` · ${esc(r.event)}` : ""}<br>${place}<br>${fmtKm(p.km)} Luftlinie`;
+  }
+  return `<b>${place}</b><br>${einsaetze(group.length)}, ${fmtKm(p.km)} Luftlinie<br>zuletzt ${fmtDate(r.date)}: ${esc(r.name)}`;
+}
+
+function radiusDraw(now = performance.now()) {
+  const { map, canvas, dpr } = radius;
+  if (!map || !canvas.width) return;
+  const ctx = canvas.getContext("2d"), W = canvas.width / dpr, H = canvas.height / dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement), color = (k) => css.getPropertyValue(k).trim();
+  const spoke = color("--accent"), halo = color("--surface"), ink = color("--text"), edge = color("--panel");
+  const kindColor = Object.fromEntries(DOT_ORDER.map((k) => [k, color(`--dot-${k}`)]));
+  const font = getComputedStyle(document.body).fontFamily;
+  const label = (text, x, y, weight = 400) => {
+    ctx.font = `${weight} 12px ${font}`;
+    ctx.lineWidth = 3; ctx.lineJoin = "round"; ctx.strokeStyle = halo; ctx.strokeText(text, x, y);
+    ctx.fillStyle = ink; ctx.fillText(text, x, y);
+  };
+  const o = map.latLngToContainerPoint(WACHE);
+  const perKm = o.y - map.latLngToContainerPoint([WACHE[0] + 1 / KM_Y, WACHE[1]]).y;
+  const at = (p) => map.latLngToContainerPoint(p.ll);
+  // A slight bend to the right of the direction of travel, so lines to one street don't hide each other.
+  const bend = (q) => [(o.x + q.x) / 2 - (q.y - o.y) * 0.18, (o.y + q.y) / 2 + (q.x - o.x) * 0.18];
+
+  // rings every 1, 2, 5 or 10 km, whichever keeps them apart
+  const step = [1, 2, 5, 10].find((s) => s * perKm >= 50) || 10;
+  const reach = Math.hypot(Math.max(o.x, W - o.x), Math.max(o.y, H - o.y));
+  ctx.strokeStyle = ink; ctx.globalAlpha = 0.5; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
+  for (let k = step; k * perKm < reach; k += step) { ctx.beginPath(); ctx.arc(o.x, o.y, k * perKm, 0, 2 * Math.PI); ctx.stroke(); }
+  ctx.setLineDash([]); ctx.globalAlpha = 1;
+
+  const list = radius.shown || radius.pts;
+  if (!radius.shown) { // at rest every line faintly, a star around the Wache
+    ctx.strokeStyle = spoke; ctx.globalAlpha = 0.2; ctx.lineWidth = 1; ctx.beginPath();
+    for (const p of list) { const q = at(p), [mx, my] = bend(q); ctx.moveTo(o.x, o.y); ctx.quadraticCurveTo(mx, my, q.x, q.y); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  ctx.lineWidth = 1; ctx.strokeStyle = edge;
+  for (const p of list) {
+    if (radius.shown && p.land > now) continue; // still on its way
+    const q = at(p);
+    ctx.fillStyle = kindColor[p.kind]; ctx.beginPath(); ctx.arc(q.x, q.y, 3.5, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+  }
+  // Each new alarm: the line grows from the Wache, then fades while a ring spreads where it landed.
+  radius.flights = radius.flights.filter((f) => now - f.t < FLY + FADE);
+  for (const f of radius.flights) {
+    const age = now - f.t;
+    if (age < 0) continue;
+    const q = at(f.p), [mx, my] = bend(q), e = 1 - (1 - Math.min(1, age / FLY)) ** 3;
+    const pt = (t) => [(1 - t) ** 2 * o.x + 2 * (1 - t) * t * mx + t * t * q.x, (1 - t) ** 2 * o.y + 2 * (1 - t) * t * my + t * t * q.y];
+    ctx.globalAlpha = age < FLY ? 0.9 : 0.9 * (1 - (age - FLY) / FADE);
+    ctx.strokeStyle = spoke; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(o.x, o.y);
+    for (let i = 1; i <= 24; i++) ctx.lineTo(...pt((i / 24) * e));
+    ctx.stroke();
+    ctx.beginPath();
+    if (age < FLY) { ctx.fillStyle = spoke; ctx.arc(...pt(e), 2.5, 0, 2 * Math.PI); ctx.fill(); }
+    else { ctx.strokeStyle = kindColor[f.p.kind]; ctx.lineWidth = 2; ctx.arc(q.x, q.y, 3 + ((age - FLY) / FADE) * 14, 0, 2 * Math.PI); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  }
+  // ring labels on top of the dots, above each ring (below it where the top is off the map)
+  ctx.textAlign = "center";
+  for (let k = step; k * perKm < reach; k += step) {
+    const y = o.y - k * perKm - 4;
+    label(`${k} km`, o.x, y > 14 ? y : o.y + k * perKm + 14);
+  }
+  // the Wache
+  ctx.fillStyle = spoke; ctx.strokeStyle = edge; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.rect(o.x - 6, o.y - 6, 12, 12); ctx.fill(); ctx.stroke();
+  ctx.textAlign = "left";
+  label("Wache", o.x + 10, o.y + 16, 600);
+}
+
+// ---------- Einsatzradius: playback ----------
+function radiusReset() {
+  cancelAnimationFrame(radius.raf);
+  Object.assign(radius, { raf: 0, playing: false, shown: null, queue: [], flights: [] });
+  $("#ra-play").textContent = "▶ Abspielen";
+  if (radius.clock) radius.clock.hidden = true;
+}
+
+function radiusPause() {
+  radius.playing = false; // lines already on their way still land
+  $("#ra-play").textContent = "▶ Weiter";
+}
+
+function radiusPlay() {
+  if (!radius.map || !radius.pts.length) return;
+  if (radius.playing) return radiusPause();
+  if (!radius.shown) { // start from the first alarm, a moment before it
+    Object.assign(radius, { shown: [], queue: [...radius.pts], flights: [], day: -3 });
+    radiusStats();
+  }
+  radius.playing = true;
+  $("#ra-play").textContent = "❚❚ Pause";
+  radius.clock.hidden = false;
+  $("#c-radius").scrollIntoView({ block: "nearest", behavior: "smooth" }); // on phones the map sits below the controls
+  if (!radius.raf) { radius.t = performance.now(); radius.raf = requestAnimationFrame(radiusFrame); }
+}
+
+function radiusFrame(now) {
+  // at most 0.1 s per frame, so a tab left in the background doesn't jump ahead
+  const dt = Math.min(0.1, (now - radius.t) / 1000);
+  radius.t = now;
+  if (radius.playing) {
+    radius.day += dt * Number($("#ra-speed").value);
+    const before = radius.shown.length;
+    while (radius.queue.length && radius.queue[0].day <= radius.day) {
+      const p = radius.queue.shift(), t = now + (calm() ? 0 : Math.random() * 250);
+      p.land = calm() ? 0 : t + FLY;
+      radius.shown.push(p);
+      if (!calm()) radius.flights.push({ p, t });
+    }
+    if (radius.shown.length !== before) radiusStats();
+    const day = Math.max(0, Math.min(radius.days, Math.floor(radius.day)));
+    radius.clock.innerHTML = `<b>${fmtDate(isoDate(addDays(radius.first, day)))}</b>${einsaetze(radius.shown.length)}`;
+    if (!radius.queue.length && !radius.flights.length) { // all landed: back to the whole picture
+      Object.assign(radius, { playing: false, shown: null });
+      $("#ra-play").textContent = "▶ Nochmal abspielen";
+      radius.clock.hidden = true;
+      radiusStats();
+    }
+  }
+  radiusDraw(now);
+  radius.raf = radius.playing || radius.flights.length ? requestAnimationFrame(radiusFrame) : 0;
+}
+
+$("#ra-play").addEventListener("click", radiusPlay);
+document.querySelectorAll("[data-radius]").forEach((b) => b.addEventListener("click", () => radiusFit(b.dataset.radius)));
 
 // ---------- Wetter ----------
 const WEATHER_BUCKETS = [
@@ -1900,6 +2179,7 @@ function render() {
   renderList(rows);
   renderYear();
   renderMap(rows);
+  renderRadius(rows);
   const dropped = new Set($("#f-storm").checked ? [] : ALL.filter((r) => r.bigDay).map((r) => r.date));
   renderWeather(rows.filter((r) => !r.standby), $("#f-year").value, dropped);
   if ($("section[data-view=myths]").classList.contains("active")) renderMyths(); // same for every filter, and only worked out once opened
