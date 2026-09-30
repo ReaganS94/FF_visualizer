@@ -250,7 +250,8 @@ body > footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(-
 }
 
 #c-map { height: min(70vh, 560px); border-radius: 10px; border: 1px solid var(--border); margin-top: 8px; }
-.leaflet-container { background: var(--empty); }
+/* Leaflet's layers use z-index 400 to 1000; keep them inside the map so the tooltip and overlays stay on top. */
+.leaflet-container { background: var(--empty); isolation: isolate; }
 
 .replay { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin: 4px 0 10px; color: var(--text-2); font-size: .9rem; }
 .replay button {
