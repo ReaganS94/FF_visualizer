@@ -355,7 +355,12 @@ function addressList(el, groups, empty) {
     const districts = [...new Set(list.map((r) => r.district).filter(Boolean))].map((d) => `<span>${esc(d)}</span>`).join(", ");
     // What usually happens there: alarm systems and smoke alarms by the event text, the rest by keyword.
     const kind = (r) => (isBMA(r) ? "Brandmeldeanlage" : isRWM(r) ? "Rauchwarnmelder" : r.name.replace(/\s*\(.*\)$/, ""));
-    const what = topCounts(list, kind, 2).map(([k, l]) => `${l.length}× ${esc(k)}`).join(" · ");
+    // Types with at least two alarms by name (at most three), the rest summed up, so the line adds up to the total.
+    const kinds = topCounts(list, kind, 99);
+    const named = kinds.filter(([, l]) => l.length >= 2).slice(0, 3), rest = kinds.slice(named.length);
+    const restN = rest.reduce((a, [, l]) => a + l.length, 0);
+    const what = [...named, ...(rest.length === 1 ? rest : [])].map(([k, l]) => `${l.length}× ${esc(k)}`)
+      .concat(rest.length > 1 ? [named.length ? `${restN}× andere` : `${restN} verschiedene Einsatzarten`] : []).join(" · ");
     const alarms = list.map((r) => `<tr><td>${fmtDate(r.date)}${r.manual ? ' <span class="tag">vorläufig</span>' : ""}</td>` +
       `<td>${r.timeUnknown ? "?" : esc(r.time)}</td><td title="${esc(r.name)}">${esc(r.keyword)}</td><td>${esc(r.event)}</td></tr>`).join("");
     return `<details class="addr" data-k="${esc(street)}"${open.has(street) ? " open" : ""}><summary>` +
