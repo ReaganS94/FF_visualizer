@@ -20,15 +20,26 @@ try { token = localStorage.getItem("gh-token") || ""; } catch {}
 
 // ---------- GitHub API ----------
 async function gh(path, opts = {}) {
-  const res = await fetch(API + path, {
-    ...opts,
-    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", ...(opts.headers || {}) },
-  });
+  let res;
+  try {
+    res = await fetch(API + path, {
+      ...opts,
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", ...(opts.headers || {}) },
+    });
+  } catch {
+    // A save may have gone through even though the answer never arrived.
+    const hint = opts.method ? " Bitte die Seite neu laden und nachsehen, ob die Änderung schon da ist." : "";
+    throw new Error("Keine Verbindung zu GitHub." + hint);
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     // A token without "Contents: Read and write" still logs in (the repo is readable) but can't save.
     const hint = res.status === 403 ? " Der Schlüssel braucht die Berechtigung „Contents: Read and write“." : "";
-    const err = new Error((body.message || res.statusText) + hint);
+    // GitHub answers in English; the cases a person can fix themselves get a German sentence.
+    const text = res.status === 401 ? "Der Schlüssel ist ungültig oder abgelaufen."
+      : res.status === 404 ? "Der Schlüssel hat keinen Zugriff auf das Repository."
+      : body.message || res.statusText;
+    const err = new Error(text + hint);
     err.status = res.status;
     throw err;
   }
@@ -123,28 +134,50 @@ async function loadEditor() {
   try {
     renderManual((await readManual()).rows);
   } catch (err) {
+    if (err.status === 401) {
+      // Expired key: back to the login form, which is where the message is visible.
+      try { localStorage.removeItem("gh-token"); } catch {}
+      token = "";
+      show();
+      $("#login-msg").textContent = `Bitte neu anmelden. ${err.message}`;
+      return;
+    }
     $("#save-msg").textContent = `Konnte die Liste nicht laden: ${err.message}`;
-    if (err.status === 401) { token = ""; show(); }
   }
 }
 
 // Same rule as the statistics page: the website's entry replaces ours once it appears. It also
 // flags a probable double entry before saving.
+const at = (r) => new Date(`${r.date}T${r.time}`).getTime();
 function sameAlarm(a, b) {
-  const at = (r) => new Date(`${r.date}T${r.time}`).getTime();
   const base = (k) => k.split("/")[0].trim().toLowerCase();
   return base(a.keyword) === base(b.keyword) && Math.abs(at(a) - at(b)) <= 60 * 60 * 1000;
 }
-const onWebsite = (m) => scraped.some((r) => sameAlarm(r, m));
-// The website lists alarms in order, so once it shows a later one, this one should be there too.
-// If it isn't, the website probably wrote it with another keyword or time and it would count twice.
-const at = (r) => new Date(`${r.date}T${r.time}`).getTime();
-const toCheck = (m) => {
-  const newest = Math.max(0, ...scraped.filter((r) => r.category === "Einsatz").map(at));
-  return !onWebsite(m) && at(m) < newest;
-};
-// One hand entry, identified by the fields a person would notice
-const sameEntry = (a, b) => a.date === b.date && a.time === b.time && a.keyword === b.keyword && a.street === b.street;
+
+// Each website alarm stands in for at most one hand entry (closest in time first). Same copy in app.js.
+function matchedManual(scraped, manual) {
+  const seen = new Set();
+  const web = scraped.filter((r) => {
+    const k = [r.date, r.time, r.keyword, tidyStreet(r.street)].join("|");
+    if (r.category !== "Einsatz" || seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  const pairs = [];
+  web.forEach((r, i) => manual.forEach((m, j) => { if (sameAlarm(r, m)) pairs.push([Math.abs(at(r) - at(m)), i, j]); }));
+  pairs.sort((a, b) => a[0] - b[0]);
+  const usedWeb = new Set(), matched = new Set();
+  for (const [, i, j] of pairs) {
+    if (usedWeb.has(i) || matched.has(manual[j])) continue;
+    usedWeb.add(i);
+    matched.add(manual[j]);
+  }
+  return matched;
+}
+
+// One hand entry, all fields equal (two identical entries are still two, and each button acts on one)
+const FIELDS = ["date", "time", "keyword", "event", "street", "district", "remarks"];
+const sameEntry = (a, b) => FIELDS.every((k) => (a[k] || "") === (b[k] || ""));
 const manualRows = () => JSON.parse($("#t-manual").dataset.rows || "[]");
 
 let editing = null; // the hand entry being changed, or null when adding
@@ -166,10 +199,15 @@ function clearForm() {
 }
 
 function renderManual(rows) {
+  const matched = matchedManual(scraped, rows);
+  // The website lists alarms in order, so once it shows a later one, this one should be there too.
+  // If it isn't, the website probably wrote it with another keyword or time and it would count twice.
+  const newest = Math.max(0, ...scraped.filter((r) => r.category === "Einsatz").map(at).filter(Number.isFinite));
+  const toCheck = (m) => !matched.has(m) && at(m) < newest;
   $("#t-manual tbody").innerHTML = rows.map((r, i) => `<tr>
-    <td>${fmtDate(r.date)}</td><td>${esc(r.time)}</td><td>${esc(r.keyword)}</td><td>${esc(r.event)}</td>
+    <td>${esc(fmtDate(r.date))}</td><td>${esc(r.time)}</td><td>${esc(r.keyword)}</td><td>${esc(r.event)}</td>
     <td>${esc(r.street)}, ${esc(r.district)}</td>
-    <td>${onWebsite(r) ? "auf der Website" : toCheck(r) ? '<span class="tag">bitte prüfen</span>' : "nur hier"}</td>
+    <td>${matched.has(r) ? "auf der Website" : toCheck(r) ? '<span class="tag">bitte prüfen</span>' : "nur hier"}</td>
     <td class="actions"><button type="button" class="link" data-edit="${i}">Bearbeiten</button>
       <button type="button" class="link" data-del="${i}">Löschen</button></td></tr>`).join("")
     || `<tr><td colspan="7">Noch keine.</td></tr>`;
@@ -184,7 +222,8 @@ $("#t-manual").addEventListener("click", async (e) => {
   const row = manualRows()[del];
   if (!confirm(`Eintrag vom ${fmtDate(row.date)} ${row.time} (${row.event}) löschen?`)) return;
   try {
-    renderManual(await updateManual((rows) => rows.filter((r) => !sameEntry(r, row)), `Nachtrag gelöscht: ${row.date} ${row.keyword}`));
+    const drop = (rows) => { const i = rows.findIndex((r) => sameEntry(r, row)); return i < 0 ? rows : rows.filter((_, j) => j !== i); };
+    renderManual(await updateManual(drop, `Nachtrag gelöscht: ${row.date} ${row.keyword}`));
     if (editing && sameEntry(editing, row)) { setEditing(null); clearForm(); }
     $("#save-msg").textContent = "Gelöscht.";
   } catch (err) {
@@ -200,7 +239,9 @@ $("#cancel-edit").addEventListener("click", () => {
 
 // Before saving: is this alarm probably already there, on the website or among the hand entries?
 function confirmNoDouble(row) {
-  const others = manualRows().filter((r) => !(editing && sameEntry(r, editing)));
+  const others = manualRows();
+  const self = editing ? others.findIndex((r) => sameEntry(r, editing)) : -1;
+  if (self >= 0) others.splice(self, 1);
   const hit = scraped.find((r) => r.category === "Einsatz" && sameAlarm(r, row)) || others.find((r) => sameAlarm(r, row));
   if (!hit) return true;
   const where = others.includes(hit) ? "hier schon nachgetragen" : "schon auf der Website";
@@ -216,14 +257,18 @@ $("#f-alarm").addEventListener("submit", async (e) => {
     keyword: f.keyword.value.trim(), event: f.event.value.trim(),
     street: tidyStreet(f.street.value.trim()), district: f.district.value.trim(), remarks: f.remarks.value.trim(),
   };
-  if (!confirmNoDouble(row)) { $("#save-msg").textContent = "Nicht gespeichert."; return; }
+  const future = at(row) > Date.now() + 10 * 60 * 1000;
+  if ((future && !confirm(`${fmtDate(row.date)} ${row.time} liegt in der Zukunft. Trotzdem speichern?`)) || !confirmNoDouble(row)) {
+    $("#save-msg").textContent = "Nicht gespeichert.";
+    return;
+  }
   const old = editing;
   $("#save").disabled = true;
   $("#save-msg").textContent = "Speichere …";
   try {
     // Editing replaces the old entry in the same commit; if it was deleted meanwhile, the new one is added.
     const change = old
-      ? (rows) => (rows.some((r) => sameEntry(r, old)) ? rows.map((r) => (sameEntry(r, old) ? row : r)) : [...rows, row])
+      ? (rows) => { const i = rows.findIndex((r) => sameEntry(r, old)); return i < 0 ? [...rows, row] : rows.map((r, j) => (j === i ? row : r)); }
       : (rows) => [...rows, row];
     const message = old ? `Nachtrag geändert: ${row.date} ${row.time} ${row.keyword}` : `Einsatz nachgetragen: ${row.date} ${row.time} ${row.keyword}`;
     renderManual(await updateManual(change, message));

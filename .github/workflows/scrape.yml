@@ -41,6 +41,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Daten aktualisiert $(date -u +%F)"
-          # The admin page may have committed in the meantime.
-          git pull --rebase
-          git push
+          # The admin page may have committed in the meantime, even between the pull and the push.
+          for i in 1 2 3; do
+            git pull --rebase && git push && exit 0
+            sleep 5
+          done
+          exit 1

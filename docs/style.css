@@ -308,6 +308,7 @@ body.story-open { overflow: hidden; }
 #c-spiral svg { display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; }
 #c-spiral .day-seg { stroke-width: .6; }
 #c-spiral .day-seg.unlisted { opacity: .45; }
+#c-calendar .cell.unlisted { opacity: .45; }
 #c-spiral .day-seg:hover { stroke: var(--text); stroke-width: 1.5; }
 #c-spiral text.year-mark { fill: var(--text); font-size: 10.5px; font-weight: 700; }
 #c-spiral text.center { fill: var(--text); font-size: 15px; font-weight: 700; }

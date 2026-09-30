@@ -76,7 +76,7 @@
 
   <section data-view="hours">
     <h2>Wochentag × Uhrzeit</h2>
-    <p class="note">Einträge mit Platzhalter-Uhrzeit 00:00 an Großlage-Tagen sind hier ausgelassen, weil die echte Uhrzeit unbekannt ist.</p>
+    <p class="note">Einsätze einer Großlage, die ohne echte Uhrzeit eingetragen wurden, fehlen hier.</p>
     <div class="chart" id="c-heat"></div>
     <h2>Nach Uhrzeit</h2>
     <div class="chart" id="c-hours"></div>
@@ -106,7 +106,7 @@
         <option value="91">schnell (1 Quartal pro Sekunde)</option>
       </select></label>
       <input type="range" id="rp-pos" min="0" max="0" value="0" aria-label="Datum im Zeitraffer">
-      <button type="button" id="rp-reset" hidden>Zurück zur Übersicht</button>
+      <button type="button" id="rp-reset" hidden>Zeitraffer beenden</button>
     </div>
     <div id="c-map"></div>
   </section>
@@ -144,7 +144,7 @@
     <h2>Nach Einsatzart</h2>
     <div class="chart" id="y-groups"></div>
     <h2>Besondere Einsätze</h2>
-    <p class="note">Größere Lagen (z. B. b2, b3, Wasserrettung, MANV) und Einsätze mit Pressebericht. Wachbesetzungen sind nicht mitgezählt.</p>
+    <p class="note">Größere Einsätze (z. B. b2, b3, Wasserrettung, MANV) und Einsätze mit Pressebericht. Wachbesetzungen sind nicht mitgezählt.</p>
     <div class="table-wrap"><table id="y-notable">
       <thead><tr><th>Datum</th><th>Art</th><th>Ereignis</th><th>Ort</th></tr></thead>
       <tbody></tbody>
@@ -152,7 +152,7 @@
   </section>
 
   <section data-view="chance">
-    <div class="disclaimer"><strong>Nur eine Schätzung.</strong> Diese Zahl wird aus vergangenen Einsätzen berechnet und sagt nichts darüber, was heute wirklich passiert. Bitte nicht zur Planung oder Einsatzbereitschaft verwenden.</div>
+    <div class="disclaimer"><strong>Nur eine Schätzung.</strong> Diese Zahlen werden aus vergangenen Einsätzen berechnet und sagen nichts darüber, was heute wirklich passiert. Bitte nicht danach planen und die Einsatzbereitschaft nicht davon abhängig machen.</div>
     <div class="chance-grid">
       <div>
         <div id="chance-ring"></div>
@@ -179,7 +179,7 @@
       <summary>Genaue Zahlen</summary>
       <p class="note" id="backtest-example"></p>
       <div class="table-wrap"><table id="t-backtest">
-        <thead><tr><th>Die Seite sagte</th><th>So oft</th><th>Davon wirklich mit Einsatz</th><th>Passt?</th></tr></thead>
+        <thead><tr><th>Die Schätzung sagte</th><th>So oft</th><th>Davon wirklich mit Einsatz</th><th>Passt?</th></tr></thead>
         <tbody></tbody>
       </table></div>
     </details>
