@@ -191,10 +191,11 @@ function roundRight(x, y, w, h, r) {
 }
 
 // Sequential blue ramp, light to dark (dark mode flips so "more" stays more visible).
+// Darker = more in both modes, like the ring on "Einsatz heute?" (Reagan's choice).
 function rampColors() {
   const dark = getComputedStyle(document.documentElement).colorScheme === "dark";
   return dark
-    ? ["var(--empty)", "#184f95", "#256abf", "#3987e5", "#86b6ef", "#cde2fb"]
+    ? ["var(--empty)", "#cde2fb", "#86b6ef", "#3987e5", "#256abf", "#184f95"]
     : ["var(--empty)", "#b7d3f6", "#6da7ec", "#2a78d6", "#1c5cab", "#0d366b"];
 }
 function legend(labels, colors) {
@@ -216,7 +217,8 @@ function renderOverview(rows) {
   tiles.push(["Einsätze", rows.length, "in der Auswahl"]);
   tiles.push(["Ø pro Woche", days ? (covered / (days / 7)).toFixed(1).replace(".", ",") : "–", days && to < rows[0].date ? `bis ${fmtDate(to)}` : "über den gewählten Zeitraum"]);
   tiles.push(["Nachts", known ? Math.round((100 * night) / known) + " %" : "–", "zwischen 22 und 6 Uhr"]);
-  tiles.push(["Letzter Einsatz", rows.length ? fmtDate(rows[0].date) : "–", rows.length ? esc(rows[0].event) : ""]);
+  tiles.push(["Letzter Einsatz", rows.length ? fmtDate(rows[0].date) : "–",
+    rows.length ? esc(rows[0].event) + (rows[0].manual ? ' <span class="tag">vorläufig</span>' : "") : ""]);
   $("#tiles").innerHTML = tiles.map(([l, v, d]) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
 
   if (!rows.length) { $("#c-months").innerHTML = ""; return; }
@@ -499,7 +501,7 @@ function renderSpiral(rows) {
   el.innerHTML = s + "</svg>" + legend(["0", "1", "2", "3–4", "5+"], ["var(--empty)", "var(--heat-1)", "var(--heat-2)", "var(--heat-3)", "var(--heat-4)"]);
   $("#spiral-note").textContent = "Jede Runde ist ein Jahr, jedes Stück ein Tag. Derselbe Tag liegt in jedem Jahr an derselben Stelle, " +
     "so stehen die Jahreszeiten übereinander. Je dunkler, desto mehr Einsätze an diesem Tag." +
-    (end > listed ? ` Tage nach dem ${fmtDate(listed)} sind blasser: Die Website listet sie noch nicht, an diesen Tagen zählen nur von Hand nachgetragene Einsätze.` : "");
+    (end > listed ? ` Tage nach dem ${fmtDate(listed)} sind blasser: Die Website listet sie noch nicht, an diesen Tagen zählen nur vorläufige Einträge.` : "");
 }
 
 // ---------- "Einsatz heute?" ----------
@@ -704,7 +706,7 @@ function renderChance() {
   $("#t-yesterday tbody").innerHTML = rows.map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
   // Last night reaches past midnight, which the website may not have reached yet.
   $("#yesterday-listed").textContent = yesterday > LISTED
-    ? `Die Website hat bisher nur Einsätze bis ${fmtDate(isoDate(LISTED))} eingetragen. Hier zählen deshalb nur die von Hand nachgetragenen.`
+    ? `Die Website hat bisher nur Einsätze bis ${fmtDate(isoDate(LISTED))} eingetragen. Hier zählen deshalb nur vorläufige Einträge.`
     : h >= DAY_START && isoDate(LISTED) === iy
       ? "Die Website hat bisher Einsätze bis gestern eingetragen. Einsätze nach Mitternacht fehlen in der letzten Zeile deshalb vielleicht noch."
       : "";
@@ -905,7 +907,7 @@ function renderYear() {
   ];
   $("#y-tiles").innerHTML = tiles.map(([l, v, d]) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
   const byHand = rows.filter((r) => r.date > listed).length;
-  const listNote = byHand ? `Die Website listet Einsätze bis ${fmtDate(listed)}, ${byHand} spätere ${byHand === 1 ? "ist" : "sind"} von Hand nachgetragen.`
+  const listNote = byHand ? `Die Website listet Einsätze bis ${fmtDate(listed)}, ${byHand === 1 ? "1 späterer ist" : `${byHand} spätere sind`} vorläufig eingetragen.`
     : `Die Website listet bisher Einsätze bis ${fmtDate(listed)}.`;
   $("#y-partial").textContent = !partial ? ""
     : running && !byHand ? `Das Jahr ${year} läuft noch: Daten bis ${fmtDate(lastDate)}.`
@@ -1324,6 +1326,9 @@ function renderWeather(rows, year, dropped) {
   // Only days the selection covers: the chosen year, and not the Großlage days that were filtered out
   // (they'd otherwise count as stormy days without alarms).
   const covered = days.filter((d) => d >= first && d <= last && (!year || d.startsWith(year)) && !dropped.has(d));
+  // Without a mouse the tooltip never shows, so the number of days goes next to the label.
+  const touch = matchMedia("(hover: none)").matches;
+  const tage = (n) => `${n} ${n === 1 ? "Tag" : "Tage"}`;
   box.innerHTML = WEATHER_BUCKETS.map(([title, , ], i) => `<h2>${title}</h2><div class="chart" id="c-weather-${i}"></div>`).join("");
   WEATHER_BUCKETS.forEach(([title, field, buckets], i) => {
     barList($(`#c-weather-${i}`), buckets.map(([lo, hi, label]) => {
@@ -1331,8 +1336,9 @@ function renderWeather(rows, year, dropped) {
       const n = ds.reduce((a, d) => a + (perDay[d] || 0), 0);
       const avg = ds.length ? n / ds.length : 0;
       return {
-        label, value: Math.round(avg * 100) / 100, display: ds.length ? avg.toFixed(2).replace(".", ",") : "keine Tage",
-        tip: `<b>${label}</b><br>${ds.length} ${ds.length === 1 ? "Tag" : "Tage"}, ${einsaetze(n)}<br>Ø ${avg.toFixed(2).replace(".", ",")} pro Tag`,
+        label: touch && ds.length ? `${label} · ${tage(ds.length)}` : label,
+        value: Math.round(avg * 100) / 100, display: ds.length ? avg.toFixed(2).replace(".", ",") : "keine Tage",
+        tip: `<b>${label}</b><br>${tage(ds.length)}, ${einsaetze(n)}<br>Ø ${avg.toFixed(2).replace(".", ",")} pro Tag`,
       };
     }));
   });
@@ -1390,7 +1396,7 @@ Promise.all([
     $("#updated").textContent = new Date(data.updated).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
     if (listBehind()) {
       const byHand = ALL.some((r) => r.manual && parseDate(r.date) > LISTED);
-      $("#listed").textContent = ` · Die Website listet Einsätze bis ${fmtDate(newest)}${byHand ? ", neuere sind von Hand nachgetragen" : ""}.`;
+      $("#listed").textContent = ` · Die Website listet Einsätze bis ${fmtDate(newest)}${byHand ? ", neuere sind vorläufig eingetragen" : ""}.`;
     }
     const years = [...new Set(ALL.map((r) => r.date.slice(0, 4)))].sort().reverse();
     $("#f-year").innerHTML += years.map((y) => `<option>${y}</option>`).join("");

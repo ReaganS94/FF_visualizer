@@ -23,15 +23,16 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 
 `/admin.html` saves alarms into `docs/data/manual.json` via the GitHub API. It needs a fine-grained personal
 access token limited to this repository with "Contents: Read and write"; the token is stored only in that
-browser. A manual entry is ignored once the website lists an alarm on the same day with the same keyword
-within an hour of it, so nothing is counted twice.
+browser. A manual entry is ignored once the website lists an alarm with the same keyword within an hour of
+it, so nothing is counted twice. Each website alarm stands in for at most one hand entry (closest in time
+first), so two alarms with the same keyword within an hour both stay until the website lists both.
 The street field suggests the spellings the website uses, and "Strasse" or "Str." is saved as "Straße".
 Entries can be edited in place (one commit). Before saving, the page asks for confirmation if the same keyword
 within an hour is already on the website or among the hand entries.
 Each entry's status is "auf der Website" once matched, "nur hier" while the website hasn't reached it, and
 "bitte prüfen" when the website already lists later alarms but none matching this one (probably written with
-another keyword or time; then it would count twice). On the statistics page, the list tags hand entries that
-aren't matched yet as "vorläufig".
+another keyword or time; then it would count twice). On the statistics page, hand entries that
+aren't matched yet are called "vorläufig" (tag in the list and on the "Letzter Einsatz" tile, and in the notes).
 
 ## Jahresrückblick
 
