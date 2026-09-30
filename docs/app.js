@@ -1381,6 +1381,172 @@ function renderWeather(rows, year, dropped) {
   });
 }
 
+// ---------- Mythen-Check ----------
+// Popular beliefs tested against the alarms. The days of a myth are compared with similar days (by
+// default the same weekday, at most 30 days from the same date in any year). Drawing one similar day
+// for each myth day, many times over, shows how far the average moves by chance alone.
+let FERIEN = [];     // school holidays in Lower Saxony, [[first, last], ...] from data/ferien.json
+let HEIMSPIELE = []; // Hannover 96 home games, from data/heimspiele.json
+let mythCache = null;
+
+// Full moons after Meeus, "Astronomical Algorithms", ch. 49 (a few minutes off at most), as Hannover dates.
+function fullMoons(from, to) {
+  const rad = Math.PI / 180, out = [];
+  const berlin = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" }); // "YYYY-MM-DD"
+  for (let k = Math.floor((from.getFullYear() - 2000) * 12.3685) - 1.5; ; k++) {
+    const T = k / 1236.85;
+    const E = 1 - 0.002516 * T - 0.0000074 * T * T;
+    const M = (2.5534 + 29.1053567 * k) * rad;
+    const Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T * T) * rad;
+    const F = (160.7108 + 390.67050284 * k - 0.0016118 * T * T) * rad;
+    const O = (124.7746 - 1.56375588 * k) * rad;
+    const jde = 2451550.09766 + 29.530588861 * k + 0.00015437 * T * T
+      - 0.40614 * Math.sin(Mp) + 0.17302 * E * Math.sin(M) + 0.01614 * Math.sin(2 * Mp) + 0.01043 * Math.sin(2 * F)
+      + 0.00734 * E * Math.sin(Mp - M) - 0.00515 * E * Math.sin(Mp + M) + 0.00209 * E * E * Math.sin(2 * M)
+      - 0.00111 * Math.sin(Mp - 2 * F) - 0.00057 * Math.sin(Mp + 2 * F) + 0.00056 * E * Math.sin(2 * Mp + M)
+      - 0.00042 * Math.sin(3 * Mp) + 0.00042 * E * Math.sin(M + 2 * F) + 0.00038 * E * Math.sin(M - 2 * F)
+      - 0.00024 * E * Math.sin(2 * Mp - M) - 0.00017 * Math.sin(O);
+    const when = new Date((jde - 2440587.5) * 864e5);
+    if (when > addDays(to, 1)) return out;
+    if (when >= addDays(from, -1)) out.push(berlin.format(when));
+  }
+}
+
+// Public holidays in Lower Saxony, without 01.01 (that one is Silvester's)
+function holidays(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4; // Easter, Gauss/Meeus
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const easter = new Date(y, Math.floor((h + l - 7 * m + 114) / 31) - 1, ((h + l - 7 * m + 114) % 31) + 1);
+  return [addDays(easter, -2), addDays(easter, 1), new Date(y, 4, 1), addDays(easter, 39), addDays(easter, 50),
+    new Date(y, 9, 3), new Date(y, 9, 31), new Date(y, 11, 25), new Date(y, 11, 26)].map(isoDate);
+}
+
+// Seeded random numbers (mulberry32), so the result stays the same on every visit until new alarms come in
+function rng(seed) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// days: [{date, wd, doy, n}]. Returns the myth days' average and what similar days give by chance.
+function testMyth(days, is, similar, seed) {
+  const hits = days.filter(is), others = days.filter((o) => !is(o));
+  const paired = hits.map((h) => [h, others.filter((o) => similar(h, o)).map((o) => o.n)]).filter(([, p]) => p.length);
+  const used = paired.map(([h]) => h), pools = paired.map(([, p]) => p);
+  const n = used.length;
+  if (!n) return null;
+  const avg = used.reduce((a, d) => a + d.n, 0) / n;
+  const rand = rng(seed), sims = [];
+  for (let s = 0; s < 2000; s++) {
+    let t = 0;
+    for (const p of pools) t += p[Math.floor(rand() * p.length)];
+    sims.push(t / n);
+  }
+  sims.sort((a, b) => a - b);
+  return {
+    hits: used, n, avg, base: sims.reduce((a, b) => a + b, 0) / sims.length,
+    lo: sims[Math.floor(sims.length * 0.025)], hi: sims[Math.ceil(sims.length * 0.975) - 1],
+    atLeast: sims.filter((v) => v >= avg - 1e-9).length / sims.length,
+    atMost: sims.filter((v) => v <= avg + 1e-9).length / sims.length,
+  };
+}
+
+function mythResults() {
+  const first = ALL.length ? parseDate(ALL[ALL.length - 1].date) : new Date();
+  const last = minDate(addDays(UPDATED, -1), addDays(LISTED, -1));
+  const key = `${ALL.length}|${isoDate(last)}|${HEIMSPIELE.length}|${FERIEN.length}`;
+  if (mythCache?.key === key) return mythCache;
+  const perDay = {}, big = new Set();
+  for (const r of ALL) if (!r.standby) perDay[r.date] = (perDay[r.date] || 0) + 1;
+  for (const r of ALL) if (r.bigDay) big.add(r.date);
+  const all = [];
+  for (let d = first; d <= last; d = addDays(d, 1)) {
+    const date = isoDate(d);
+    if (!big.has(date)) all.push({ date, wd: weekday(d), doy: Math.round((d - new Date(d.getFullYear(), 0, 1)) / 864e5), n: perDay[date] || 0 });
+  }
+  // 01.01 only counts for Silvester: with its dozen alarms it would make any winter comparison look busy.
+  const days = all.filter((d) => d.date.slice(5) !== "01-01");
+  const near = (a, b) => { const g = Math.abs(a.doy - b.doy); return Math.min(g, 365 - g) <= 30; };
+  const alike = (a, b) => a.wd === b.wd && near(a, b);
+  const moons = fullMoons(first, last);
+  const moonDays = new Set(moons.flatMap((m) => [-1, 0, 1].map((o) => isoDate(addDays(parseDate(m), o)))));
+  const hol = new Set();
+  for (let y = first.getFullYear(); y <= last.getFullYear(); y++) holidays(y).forEach((d) => hol.add(d));
+  const games = new Set(HEIMSPIELE);
+  const list = (hits) => hits.map((h) => `${fmtDate(h.date)} (${einsaetze(h.n)})`).join(", ");
+  const myths = [
+    { title: "Bei Vollmond ist mehr los.", label: "Vollmond-Tage", on: "An Vollmond-Tagen", cmp: "Ähnliche Tage ohne Vollmond", vs: "an ähnlichen Tagen ohne Vollmond", pool: days,
+      is: (d) => moonDays.has(d.date), similar: alike,
+      about: (t) => `${t.n} Tage: jeweils der Tag mit Vollmond und die Tage davor und danach, dann ist der Mond fast voll.` },
+    { title: "Am Freitag, dem 13., ist mehr los.", label: "Freitage, der 13.", on: "An Freitagen, dem 13.,", cmp: "Andere Freitage", vs: "an anderen Freitagen", pick: "andere Freitage", pool: days,
+      is: (d) => d.wd === 4 && d.date.slice(8) === "13", similar: alike,
+      about: (t) => `Bisher gab es erst ${t.n} solche Tage: ${list(t.hits)}.` },
+    { title: "An Feiertagen ist mehr los.", label: "Feiertage", on: "An Feiertagen", cmp: "Ähnliche Tage ohne Feiertag", vs: "an ähnlichen Tagen ohne Feiertag", pool: days,
+      is: (d) => hol.has(d.date), similar: alike,
+      about: (t) => `${t.n} gesetzliche Feiertage in Niedersachsen. Neujahr zählt bei Silvester.` },
+    FERIEN.length && { title: "In den Ferien ist mehr los.", label: "Ferientage", on: "In den Ferien", cmp: "Ähnliche Tage ohne Ferien", vs: "an ähnlichen Tagen ohne Ferien", pool: days,
+      is: (d) => FERIEN.some(([a, b]) => d.date >= a && d.date <= b), similar: alike,
+      about: (t) => `${t.n} Tage Schulferien in Niedersachsen, die Wochenenden in den Ferien eingeschlossen.` },
+    games.size && { title: "Wenn 96 zu Hause spielt, ist mehr los.", label: "Heimspieltage", on: "An Heimspieltagen", cmp: "Ähnliche Tage ohne Heimspiel", vs: "an ähnlichen Tagen ohne Heimspiel", pool: days,
+      is: (d) => games.has(d.date), similar: alike,
+      about: (t) => `${t.n} Heimspiele von Hannover 96 in der Liga. Das Stadion liegt nah an Linden.` },
+    { title: "Bei Hitze gibt es mehr Einsätze.", label: "Tage ab 30 °C", on: "An Tagen ab 30 °C", cmp: "Ähnliche Tage unter 30 °C", vs: "an ähnlichen Tagen unter 30 °C", pool: days.filter((d) => WEATHER[d.date]),
+      is: (d) => WEATHER[d.date].tmax >= 30, similar: alike,
+      about: (t) => `${t.n} Tage mit mindestens 30 °C in Hannover (Daten: Open-Meteo).` },
+    { title: "Am Wochenende ist mehr los.", label: "Samstage und Sonntage", on: "Am Wochenende", cmp: "Werktage", vs: "an Werktagen", pick: "Werktage", pool: days,
+      is: (d) => d.wd >= 5, similar: (a, b) => b.wd < 5 && near(a, b),
+      about: (t) => `${t.n} Samstage und Sonntage, verglichen mit Montag bis Freitag in derselben Jahreszeit.` },
+    { title: "Silvester ist die Nacht des Jahres.", label: "Neujahrstage", on: "Am Neujahrstag", cmp: "Andere Tage um den Jahreswechsel", vs: "an anderen Tagen um den Jahreswechsel", pick: "andere Tage um den Jahreswechsel", pool: all,
+      is: (d) => d.date.slice(5) === "01-01", similar: near,
+      about: (t) => `Zum Vergleich, weil es jeder weiß: So sieht ein echter Unterschied aus. Gezählt wird der 01.01., ` +
+        `weil die Silvester-Einsätze meist nach Mitternacht liegen: ${list(t.hits)}.` },
+  ].filter(Boolean);
+  const results = myths.map((m, i) => ({ ...m, t: testMyth(m.pool, m.is, m.similar, 1000 + i) })).filter((m) => m.t);
+  mythCache = { key, results, first, last, days: all.length };
+  return mythCache;
+}
+
+// p: how often chance gives at least as many alarms (or at most as few, for fewer) as the myth days had.
+function mythVerdict(t, pick = "ähnliche Tage") {
+  const more = t.avg >= t.base, p = more ? t.atLeast : t.atMost;
+  const k = Math.round(100 * p);
+  const tries = `Wählt man ebenso viele zufällige ${pick}, kommen sie in ${k ? `${k} von 100` : "keinem von 100"} Versuchen auf ${more ? "mindestens" : "höchstens"} so ${more ? "viele" : "wenige"} Einsätze`;
+  if (p < 0.025) return ["yes", more ? "Stimmt" : "Im Gegenteil", `${tries}. Da steckt also mehr dahinter als Zufall.`];
+  if (t.n < 10) return ["few", "Zu wenige Tage", `${tries}. Bei nur ${t.n} Tagen reicht das nicht für eine Aussage.`];
+  if (p < 0.1) return ["maybe", more ? "Vielleicht" : "Vielleicht weniger", `${tries}. Das ist ein Hinweis, aber noch kein Beleg.`];
+  return ["none", "Kein Unterschied", `${tries}. Das ist also gut mit Zufall zu erklären.`];
+}
+
+function renderMyths() {
+  const { results, first, last, days } = mythResults();
+  const dec = (x) => x.toFixed(2).replace(".", ",");
+  $("#myths-note").textContent = `Gezählt werden ${days.toLocaleString("de-DE")} Tage vom ${fmtDate(isoDate(first))} bis ${fmtDate(isoDate(last))}, ` +
+    "ohne Großlagen und ohne Wachbesetzungen.";
+  $("#c-myths").innerHTML = results.map((m) => {
+    const { t } = m;
+    const [cls, verdict, why] = mythVerdict(t, m.pick);
+    const r = t.base ? t.avg / t.base : t.avg ? Infinity : 1;
+    const [how, word] = r === Infinity ? ["mehr", "als"] : r >= 1.95 ? [`${r.toFixed(1).replace(".", ",")}-mal so viele`, "wie"]
+      : r >= 1.1 ? [`${Math.round(100 * (r - 1))} % mehr`, "als"]
+      : r > 0.9 ? ["etwa gleich viele", "wie"] : [`${Math.round(100 * (1 - r))} % weniger`, "als"];
+    const max = [0.5, 1, 2, 5, 10, 20, 50].find((v) => v >= 1.1 * Math.max(t.avg, t.hi)) || 100;
+    const x = (v) => `${((100 * v) / max).toFixed(2)}%`;
+    return `<article class="myth ${cls}"><header><h3>${m.title}</h3><span class="verdict">${verdict}</span></header>` +
+      `<div class="myth-strip" role="img" aria-label="${esc(m.label)}: ${dec(t.avg)} pro Tag. ${esc(m.cmp)}: zufällig ${dec(t.lo)} bis ${dec(t.hi)}.">` +
+      `<span class="myth-band" style="left:${x(t.lo)};width:calc(${x(t.hi - t.lo)} + 2px)"></span>` +
+      `<span class="myth-base" style="left:${x(t.base)}"></span><span class="myth-dot" style="left:${x(t.avg)}"></span></div>` +
+      `<div class="myth-axis">${[0, max / 2, max].map((v) => `<span style="left:${x(v)}">${String(v).replace(".", ",")}</span>`).join("")}</div>` +
+      `<ul class="myth-legend"><li><i class="k-dot"></i>${esc(m.label)}: <b>${dec(t.avg)}</b> Einsätze pro Tag</li>` +
+      `<li><i class="k-band"></i>${esc(m.cmp)}: <b>${dec(t.base)}</b>, durch Zufall zwischen ${dec(t.lo)} und ${dec(t.hi)}</li></ul>` +
+      `<p>${m.on} gab es ${how} Einsätze ${word} ${m.vs}. ${why}</p>` +
+      `<p class="myth-about">${esc(m.about(t))}</p></article>`;
+  }).join("");
+}
+
 // ---------- wiring ----------
 function render() {
   const rows = selection();
@@ -1397,11 +1563,12 @@ function render() {
   renderMap(rows);
   const dropped = new Set($("#f-storm").checked ? [] : ALL.filter((r) => r.bigDay).map((r) => r.date));
   renderWeather(rows.filter((r) => !r.standby), $("#f-year").value, dropped);
+  if ($("section[data-view=myths]").classList.contains("active")) renderMyths(); // same for every filter, and only worked out once opened
 }
 
 function showView(v) {
   document.querySelectorAll("[data-view]").forEach((el) => el.classList.toggle("active", el.dataset.view === v));
-  $("#filters").style.display = v === "chance" || v === "year" ? "none" : "";
+  $("#filters").style.display = ["chance", "year", "myths"].includes(v) ? "none" : "";
   try { localStorage.setItem("view", v); } catch {}
   if (ALL.length) render(); // hidden sections have no width, so draw charts once visible
 }
@@ -1416,8 +1583,9 @@ const getJSON = (u, fallback) => fetch(u, { cache: "no-cache" }).then((r) => (r.
 Promise.all([
   getJSON("data/alarms.json", null), getJSON("data/keywords.json", KW), getJSON("data/manual.json", { rows: [] }),
   getJSON("data/geo.json", {}), getJSON("data/weather.json", { days: {} }),
+  getJSON("data/ferien.json", { ranges: [] }), getJSON("data/heimspiele.json", { seasons: {} }),
 ])
-  .then(([data, kw, manual, geo, weather]) => {
+  .then(([data, kw, manual, geo, weather, ferien, heimspiele]) => {
     if (!data) {
       $("#updated").textContent = "–";
       $("#listed").textContent = " · Die Einsätze konnten nicht geladen werden. Bitte die Seite neu laden.";
@@ -1426,6 +1594,8 @@ Promise.all([
     KW = kw;
     GEO = geo;
     WEATHER = weather.days;
+    FERIEN = ferien.ranges || [];
+    HEIMSPIELE = Object.values(heimspiele.seasons || {}).flat();
     ALL = clean(mergeManual(data.rows, manual.rows));
     UPDATED = new Date(data.updated);
     // Only alarms: events (Veranstaltung) can be listed ahead of time.
