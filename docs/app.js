@@ -551,11 +551,14 @@ function renderSpiral(rows) {
 }
 
 // ---------- "Einsatz heute?" ----------
-// Share of comparable past days (same weekday, month within ±1) that had at least one alarm
-// in the window. Deliberately simple so anyone can check it by hand.
-const MIN_DAYS = 20;
+// Day (6–22 Uhr): share of past days with the same weekday that had at least one alarm, blended with
+// the rate over all days, and on a day forecast at 30 °C or more blended again with the past hot days.
+// Night (22–6 Uhr): the share of all past nights. Replaying every day since July 2024 picked this over
+// the earlier weekday-and-month version: at night no weekday or month pattern held from one year to
+// the next, and by day the month added nothing once the weekday was known. Deliberately simple so
+// anyone can check it by hand.
 const PRIOR = 10;
-const monthDist = (a, b) => Math.min(Math.abs(a - b), 12 - Math.abs(a - b));
+const HOT = 30; // °C, the heat rule
 // Nights that are busy every year whatever the weekday (Silvester: 20 alarms in 2024, 14 in 2025).
 // They get no percentage: the page shows the same night of earlier years instead, and they are
 // left out when estimating ordinary nights.
@@ -575,32 +578,25 @@ function alarmWindows() {
 
 // Uses only days from `first` to `last`, so the backtest can hide the future from itself.
 function estimate(target, first, last, win) {
-  const pick = (strict) => {
-    const days = [];
-    // walk back from `last` to the newest same weekday, then in weekly steps
-    let d = addDays(last, -((weekday(last) - weekday(target) + 7) % 7));
-    for (; d >= first; d = addDays(d, -7)) {
-      if (!strict || monthDist(d.getMonth(), target.getMonth()) <= 1) days.push(isoDate(d));
-    }
-    return days;
-  };
-  let strict = true, days = pick(true);
-  if (days.length < MIN_DAYS) { strict = false; days = pick(false); }
-  // With only ~30 comparable days a single lucky week swings the result a lot, so blend in the
-  // rate over all days (as if we had seen PRIOR extra average days). The backtest showed this helps.
-  let total = 0, totDay = 0, totalNights = 0, totNight = 0;
+  // the same weekday, walking back from `last` in weekly steps
+  const days = [];
+  for (let d = addDays(last, -((weekday(last) - weekday(target) + 7) % 7)); d >= first; d = addDays(d, -7)) days.push(isoDate(d));
+  let total = 0, totDay = 0, nights = 0, night = 0, hot = 0, hotDay = 0;
   for (let d = first; d <= last; d = addDays(d, 1)) {
     const k = isoDate(d);
     total++; totDay += win.inDay.has(k);
-    if (!specialNight(k)) { totalNights++; totNight += win.inNight.has(k); }
+    if (!specialNight(k)) { nights++; night += win.inNight.has(k); }
+    if (WEATHER[k]?.tmax >= HOT) { hot++; hotDay += win.inDay.has(k); }
   }
-  const blend = (hits, n, base) => (n + PRIOR ? (hits + PRIOR * base) / (n + PRIOR) : 0);
-  const nights = days.filter((d) => !specialNight(d));
+  // About 30 to 140 same weekdays: a single lucky week still moves the share, so blend in the rate
+  // over all days (as if we had seen PRIOR extra average days).
+  const blend = (hits, n, base) => (hits + PRIOR * base) / (n + PRIOR);
   const day = days.filter((d) => win.inDay.has(d)).length;
-  const night = nights.filter((d) => win.inNight.has(d)).length;
+  const weekdayP = blend(day, days.length, total ? totDay / total : 0);
+  const tmax = WEATHER[isoDate(target)]?.tmax, heat = tmax >= HOT;
   return {
-    strict, n: days.length, nNight: nights.length, day, night,
-    pDay: blend(day, days.length, totDay / total), pNight: blend(night, nights.length, totNight / totalNights),
+    n: days.length, day, weekdayP, heat, tmax, hot, hotDay, nights, night,
+    pDay: heat ? blend(hotDay, hot, weekdayP) : weekdayP, pNight: nights ? night / nights : 0,
   };
 }
 
@@ -685,7 +681,7 @@ function alarmsIn(iso, night) {
 // What the page says about the night of `date`: a percentage, or for a special night the same
 // night in earlier years.
 function nightInfo(date, est, first, last) {
-  const pct = { v: `~${Math.round(100 * est.pNight)} %`, d: `in ${est.night} von ${est.nNight} vergleichbaren Nächten gab es mindestens einen Einsatz` };
+  const pct = { v: `~${Math.round(100 * est.pNight)} %`, d: `in ${est.night} von ${est.nights} bisherigen Nächten gab es mindestens einen Einsatz` };
   const special = specialNight(isoDate(date));
   if (!special) return pct;
   const [name, plural] = special;
@@ -720,10 +716,11 @@ function renderChance() {
 
   const est = estimate(today, first, last, win);
   const estY = estimate(yesterday, first, lastFor(yesterday), win); // what the page said yesterday
-  const scope = est.strict
-    ? `${WEEKDAYS_LONG[weekday(today)]}e von ${MONTHS_LONG[(today.getMonth() + 11) % 12]} bis ${MONTHS_LONG[(today.getMonth() + 1) % 12]}`
-    : `alle ${WEEKDAYS_LONG[weekday(today)]}e`;
-  const day = { short: "Tag", label: "Heute tagsüber", time: "6–22 Uhr", v: `~${Math.round(100 * est.pDay)} %`, d: `an ${est.day} von ${est.n} vergleichbaren Tagen gab es mindestens einen Einsatz` };
+  const wd = WEEKDAYS_LONG[weekday(today)];
+  const sameDays = `an ${est.day} von ${est.n} ${wd}en`;
+  const day = { short: "Tag", label: "Heute tagsüber", time: "6–22 Uhr", v: `~${Math.round(100 * est.pDay)} %`, d: est.heat
+    ? `heute bis ${Math.round(est.tmax)} °C angesagt: an ${est.hotDay} von ${est.hot} so heißen Tagen gab es mindestens einen Einsatz, ${sameDays}`
+    : `${sameDays} gab es mindestens einen Einsatz` };
   const ni = nightInfo(today, est, first, last);
   const night = { short: "Nacht", label: ni.name ? `Heute: ${ni.name}` : "Heute Nacht", time: "22–6 Uhr", v: ni.v, d: ni.d };
   const niY = nightInfo(yesterday, estY, first, lastFor(yesterday));
@@ -759,17 +756,29 @@ function renderChance() {
 
   $("#chance-method").textContent =
     (ni.name ? `Die ${ni.name} wird nicht mit anderen Nächten verglichen, sondern nur mit derselben Nacht in den Vorjahren. ` : "") +
-    `So wird gerechnet: Vergleichbare Tage sind ${scope} vom ${fmtDate(isoDate(first))} bis ${fmtDate(isoDate(last))}. ` +
-    `Gezählt wird, an wie vielen davon im jeweiligen Zeitfenster mindestens ein Einsatz war. ` +
-    `Weil das nur wenige Tage sind, wird der Wert etwas zum Durchschnitt aller Tage hin ausgeglichen ` +
-    `(so, als kämen ${PRIOR} durchschnittliche Tage dazu). Wachbesetzungen zählen nicht, die Silvesternacht zählt nicht als vergleichbare Nacht.`;
+    `So wird gerechnet: Für den Tag zählt, an wie vielen ${wd}en vom ${fmtDate(isoDate(first))} bis ${fmtDate(isoDate(last))} ` +
+    `zwischen 6 und 22 Uhr mindestens ein Einsatz war. Weil das nur wenige Tage sind, wird der Wert etwas zum Durchschnitt ` +
+    `aller Tage hin ausgeglichen (so, als kämen ${PRIOR} durchschnittliche Tage dazu). Sind ${HOT} °C oder mehr angesagt, ` +
+    `werden zusätzlich die bisherigen so heißen Tage verglichen. Für die Nacht zählt der Anteil aller bisherigen Nächte mit Einsatz: ` +
+    `Nachts hat sich kein Muster nach Wochentag oder Jahreszeit von einem Jahr aufs nächste gehalten. ` +
+    `Wachbesetzungen zählen nicht, die Silvesternacht zählt nicht als vergleichbare Nacht.`;
 
+  // Storm forecast: show how past stormy days went. So far they had an alarm no more often than other
+  // days, so the percentage above is left as it is.
   const w = WEATHER[isoDate(today)];
-  const warn = w && (w.gust >= 60 || w.rain >= 20);
-  $("#chance-weather").hidden = !warn;
-  if (warn) {
-    $("#chance-weather").textContent = `Wetter heute laut Vorhersage: Böen bis ${Math.round(w.gust)} km/h, ${w.rain.toFixed(1).replace(".", ",")} mm Regen. ` +
-      `Bei solchem Wetter gab es bisher deutlich mehr Einsätze als sonst (siehe Ansicht „Wetter“). Die Zahlen oben berücksichtigen das nicht.`;
+  let windy = 0, windyHit = 0, all = 0, allHit = 0;
+  if (w?.gust >= 60) {
+    for (let d = first; d <= last; d = addDays(d, 1)) {
+      const k = isoDate(d), hit = win.inDay.has(k);
+      all++; allHit += hit;
+      if (WEATHER[k]?.gust >= 60) { windy++; windyHit += hit; }
+    }
+  }
+  $("#chance-weather").hidden = windy < 10;
+  if (windy >= 10) {
+    $("#chance-weather").textContent = `Heute sind Sturmböen bis ${Math.round(w.gust)} km/h angesagt. An bisherigen Tagen mit solchen Böen ` +
+      `gab es tagsüber an ${windyHit} von ${windy} Tagen mindestens einen Einsatz (${pct(windyHit, windy)}\u00a0%), an allen Tagen zusammen ` +
+      `in ${pct(allHit, all)}\u00a0%.`;
   }
 
   const bt = backtest(first, last, win);
@@ -804,8 +813,12 @@ function renderChance() {
     `Für jeden Tag und jede Nacht ab ${fmtDate(isoDate(addDays(first, 182)))} wurde nachgerechnet, was die Schätzung damals gesagt hätte, ` +
     `und nachgesehen, ob es dann wirklich einen Einsatz gab (${num(bt.n)} Schätzungen). Jedes Bild zeigt das umgerechnet auf 100 solche Tage oder Nächte.`;
   const isNow = (g) => nowPct != null && nowPct >= g.lo && nowPct < g.hi;
-  const anyNow = groups.some(isNow);
-  $("#backtest-odds").innerHTML = groups.map((g) => {
+  // A group with only a few estimates would fill a whole picture from a handful of days, so it is only
+  // drawn when today's estimate falls into it ("Genaue Zahlen" still lists it), and it never decides the verdict.
+  const sized = groups.filter((g) => g.n >= 50);
+  const shown = groups.filter((g) => g.n >= 50 || isNow(g));
+  const anyNow = shown.some(isNow);
+  $("#backtest-odds").innerHTML = shown.map((g) => {
     const now = isNow(g);
     // the others keep an invisible tag so the dots of all three line up
     const tag = now ? `<span class="tag">jetzt ~${nowPct} %</span>` : anyNow ? '<span class="tag ghost">jetzt</span>' : "";
@@ -814,11 +827,11 @@ function renderChance() {
       hundredDots(g.rate) +
       `<div class="odd-v"><b>${g.rate}</b> von 100</div><div class="odd-d">hatten einen Einsatz<br>${num(g.n)} Schätzungen${g.n < 50 ? ", noch zu wenige" : ""}</div></figure>`;
   }).join("");
-  const low = groups[0], high = groups.at(-1), most = groups.reduce((a, g) => (!a || g.n > a.n ? g : a), null);
+  const low = sized[0], high = sized.at(-1), most = groups.reduce((a, g) => (!a || g.n > a.n ? g : a), null);
   const off = groups.filter((g) => g.fit.startsWith("Nein"));
   $("#backtest-verdict").textContent = !most ? "" : [
-    groups.length > 1 && high.rate >= low.rate + 10 ? "Je höher die Schätzung, desto öfter gab es wirklich einen Einsatz."
-      : groups.length > 1 ? "Nach hohen und niedrigen Schätzungen gab es bisher etwa gleich oft einen Einsatz." : "",
+    sized.length > 1 && high.rate >= low.rate + 10 ? "Je höher die Schätzung, desto öfter gab es wirklich einen Einsatz."
+      : sized.length > 1 ? "Nach hohen und niedrigen Schätzungen gab es bisher etwa gleich oft einen Einsatz." : "",
     off.length ? off.map((g) => `Im Bereich ${g.label} lag die Schätzung etwas zu ${g.fit === "Nein, zu niedrig" ? "niedrig" : "hoch"}: Es waren ${g.rate} von 100.`).join(" ")
       : "Die Zahlen passen ungefähr zu dem, was die Schätzung gesagt hat.",
     `Die meisten Schätzungen (${num(most.n)} von ${num(bt.n)}) lagen bei ${most.label}.` +

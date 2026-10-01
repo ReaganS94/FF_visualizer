@@ -113,9 +113,17 @@ Settings → Pages → Build and deployment → "Deploy from a branch" → `main
 
 ## How "Einsatz heute?" works
 
-Comparable days are past days with the same weekday within one month of today's month (all
-same weekdays if there are fewer than 20). The page shows the share of those days that had at least
-one alarm during the day (06–22) and at night (22–06). It is a rough guess, not a forecast.
+Day (06–22): the share of past days with the same weekday that had at least one alarm during the day,
+blended with the average of all days as if 10 average days were added. When 30 °C or more is forecast,
+that value is blended again with the share of past days that hot. Night (22–06): the share of all past
+nights with an alarm, the same for every night. It is a rough guess, not a forecast.
+
+This was chosen on 01.10.2026 by replaying every day and night from July 2024 with only the alarms up to
+two days earlier and comparing about 20 rules (Brier score). Weekday plus heat was the only day rule clearly
+better than the old one (same weekday within one month of the date). At night no rule beat the plain
+average, because the weekday and season patterns at night changed from one year to the next. Days with
+gusts of 60 km/h or more had an alarm no more often than other days, so a storm only adds a note to the
+page and does not change the percentage.
 
 The page shows the estimate for the current window in the middle of a 24-hour ring. Each hour of the
 ring is shaded by how many alarms happened at that time of day since the data starts, and a hand
