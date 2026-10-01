@@ -109,6 +109,9 @@ Settings → Pages → Build and deployment → "Deploy from a branch" → `main
   backtest, weather view) stops at the day before its newest alarm; the Jahresrückblick comparison, the weekly
   average and the calendar stop at that day itself. The page says how far the list reaches when it's more than
   two days behind. A year counts as complete only once the website lists an alarm from 31.12. or later.
+- The weather view leaves out 31.12 and 01.01 (Silvester): the fireworks bring many alarms whatever the
+  weather, and two stormy Neujahr days (2025 and 2026) made days with gusts of 60–80 km/h look twice as busy
+  as calm days. Without them those days average 0.41 alarms against 0.53.
 - A day with 10 or more alarms is a "Großlage" (e.g. the storm on 14.07.2026), except 01.01, which Silvester
   fills every year. The storm's rows were entered with the placeholder time 00:00, so they are left out of the
   time-of-day charts. The Jahresrückblick has its own "Großlagen mitzählen" checkbox and names the Großlage days.
