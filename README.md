@@ -8,7 +8,9 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   leave duplicates; if the site suddenly shows far fewer rows for a year, nothing is removed.
 - `.github/workflows/scrape.yml`: runs the scrapers twice a day and commits the data.
   It can also be started by hand under Actions → "Einsätze aktualisieren" → Run workflow.
-- `scraper/weather.py`: daily weather for Hannover from Open-Meteo into `docs/data/weather.json`.
+- `scraper/weather.py`: daily weather for Hannover from Open-Meteo into `docs/data/weather.json`, including the
+  forecast for today and the next six days and a weather code per day for the outlook's symbols (if the codes
+  can't be loaded, the rest is saved without them).
 - `scraper/geocode.py`: looks up each street once via OpenStreetMap Nominatim, cached in `docs/data/geo.json`. Streets Nominatim can't match (typos, crossings like "NieschlagS/WittekindS", a different district) are retried with Photon, which tolerates typos; its answer only counts if the name is close and the place is in Hannover.
 - `docs/`: the static site (no build step). Views: overview, dot wall (every alarm one dot, regrouped by month,
   type, district or hour with the dots moving to their new places), calendar, year spiral (one turn per year,
@@ -136,6 +138,14 @@ using only alarms up to two days earlier. The page shows it as three pictures of
 10 %, 10–30 % and from 30 %, each with how many of 100 such days or nights really had an alarm (the group
 today's estimate falls into is marked), plus a short verdict. The detailed table (0–10 %, 10–20 %, …, with
 a "Passt?" column: Ja, zu niedrig, zu hoch, or too few cases below 50) sits behind "Genaue Zahlen".
+
+"Die nächsten 7 Tage" shows the forecast for today and the next six days: a symbol (sun, cloud, rain, snow,
+fog, thunderstorm), the highest and lowest temperature as a band coloured from cold blue to hot red, the
+strongest gusts, and the day estimate as a small ring (darker = higher). Days of 30 °C or more glow orange;
+days with gusts of 60 km/h or more or a thunderstorm are tinted violet, with a little movement (switched off
+when the device asks for less motion). Days further ahead fade, because the forecast gets less sure. Notes
+above it name the hot and stormy days and say how often past days with that weather had an alarm, against
+the other days; only the temperature changes the estimate. A thunderstorm after tomorrow says "möglich".
 
 Silvester night (31.12., 22–06) is busy every year (20 alarms in 2024, 14 in 2025), so it gets no
 percentage. On 31.12. the page shows how many alarms the same night had in earlier years, and that
