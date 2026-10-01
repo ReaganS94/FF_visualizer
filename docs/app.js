@@ -764,8 +764,7 @@ function renderChance() {
     `Wachbesetzungen zählen nicht, die Silvesternacht zählt nicht als vergleichbare Nacht.`;
 
   // Storm forecast: show how past stormy days went. So far they had an alarm no more often than other
-  // days, so the percentage above is left as it is. (Their higher average in the weather view comes
-  // from two stormy Neujahr days, i.e. Silvester.)
+  // days, so the percentage above is left as it is.
   const w = WEATHER[isoDate(today)];
   let windy = 0, windyHit = 0, all = 0, allHit = 0;
   if (w?.gust >= 60) {
