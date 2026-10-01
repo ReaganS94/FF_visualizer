@@ -700,6 +700,201 @@ function nightInfo(date, est, first, last) {
   };
 }
 
+// ---------- Die nächsten 7 Tage ----------
+// Today and the next six days from the weather forecast, each with the day estimate (weekday plus the
+// heat rule, so only the temperature changes it). Hot, stormy and thunder days are tinted, and days
+// further ahead fade because the forecast gets less sure.
+const GUST = 60; // km/h, Sturmböen
+const isHot = (w) => w.tmax >= HOT, isStorm = (w) => w.gust >= GUST, isThunder = (w) => w.code >= 95;
+// weather code (WMO, from Open-Meteo) -> symbol and word
+const WX = [
+  [(c) => c >= 95, "thunder", "Gewitter"],
+  [(c) => (c >= 71 && c <= 77) || c === 85 || c === 86, "snow", "Schnee"],
+  [(c) => c >= 51 && c <= 82, "rain", "Regen"],
+  [(c) => c === 45 || c === 48, "fog", "Nebel"],
+  [(c) => c === 3, "cloud", "bewölkt"],
+  [(c) => c === 1 || c === 2, "part", "teils sonnig"],
+  [() => true, "sun", "sonnig"],
+];
+// Without a code (weather saved before the symbols were added) only rain can be told.
+const wxKind = (w) => (w.code == null ? (w.rain >= 1 ? ["rain", "Regen"] : null) : WX.find(([is]) => is(w.code)).slice(1));
+
+// How often past days with this weather had an alarm during the day, against the other days.
+function weatherFacts(first, last, win, is) {
+  const f = { on: 0, onHit: 0, off: 0, offHit: 0 };
+  for (let d = first; d <= last; d = addDays(d, 1)) {
+    const k = isoDate(d), w = WEATHER[k];
+    if (!w) continue;
+    const hit = win.inDay.has(k);
+    if (is(w)) { f.on++; f.onHit += hit; } else { f.off++; f.offHit += hit; }
+  }
+  return f;
+}
+// [nominative, dative], e.g. ["Gewittertage", "Gewittertagen"]
+const factsText = (f, [nom, dat]) => !f.on ? "" : f.on < 10 ? `Bisher gab es erst ${f.on} ${nom}, zu wenige für einen Vergleich.`
+  : `An bisherigen ${dat} gab es tagsüber an ${f.onHit} von ${f.on} mindestens einen Einsatz (${pct(f.onHit, f.on)}\u00a0%), an den anderen Tagen in ${pct(f.offHit, f.off)}\u00a0%.`;
+
+function renderOutlook(ahead, first, last, win) {
+  $("#outlook").hidden = !ahead.length;
+  if (!ahead.length) return;
+  $("#outlook-title").textContent = ahead.length > 1 ? `Die nächsten ${ahead.length} Tage` : "Das Wetter heute";
+  const name = (i) => (i === 0 ? "heute" : i === 1 ? "morgen" : WEEKDAYS_LONG[weekday(ahead[i].d)]);
+  const list = (is, what) => ahead.map((a, i) => (is(a.w) ? `${name(i)}${what ? ` ${what(a.w)}` : ""}` : "")).filter(Boolean).join(", ");
+  const notes = [];
+  const hot = list(isHot, (w) => `bis ${Math.round(w.tmax)}\u00a0°C`);
+  if (hot) {
+    notes.push(`<div class="wx-note hot"><b>Hitze angesagt:</b> ${hot}. ` +
+      `${factsText(weatherFacts(first, last, win, isHot), [`Tage ab ${HOT}\u00a0°C`, `Tagen ab ${HOT}\u00a0°C`])} Die Schätzung für diese Tage ist deshalb höher.</div>`);
+  }
+  // A thunderstorm is only a rough hint after tomorrow.
+  const near = (w) => isThunder(w) && ahead.findIndex((a) => a.w === w) < 2, far = (w) => isThunder(w) && !near(w);
+  const storm = list(isStorm, (w) => `bis ${Math.round(w.gust)} km/h`), tNear = list(near), tFar = list(far);
+  if (storm || tNear || tFar) {
+    notes.push(`<div class="wx-note storm">` +
+      (storm ? `<b>Sturmböen angesagt:</b> ${storm}. ` : "") + (tNear ? `<b>Gewitter angesagt:</b> ${tNear}. ` : "") + (tFar ? `<b>Gewitter möglich:</b> ${tFar}. ` : "") +
+      (storm ? factsText(weatherFacts(first, last, win, isStorm), ["Tage mit Sturmböen", "Tagen mit Sturmböen"]) + " " : "") +
+      (tNear || tFar ? factsText(weatherFacts(first, last, win, isThunder), ["Gewittertage", "Gewittertagen"]) + " " : "") +
+      `In die Schätzung geht nur die Temperatur ein.</div>`);
+  }
+  if (!notes.length) notes.push(`<p class="note">In diesen Tagen sind weder ${HOT}\u00a0°C noch Sturmböen oder Gewitter angesagt.</p>`);
+  $("#outlook-notes").innerHTML = notes.join("");
+  // Großlagen so far: how much wind the weather data showed on those days.
+  const big = [...new Set(ALL.filter((r) => r.bigDay).map((r) => r.date))].filter((d) => WEATHER[d]).sort();
+  const calm = big.length && big.every((d) => WEATHER[d].gust < GUST);
+  $("#outlook-note").textContent = `Wettervorhersage für Hannover (Daten: Open-Meteo). Je weiter ein Tag weg ist, desto blasser: ` +
+    `Temperaturen stimmen meist für etwa fünf Tage, Sturm und Gewitter nur für ein bis zwei Tage.` +
+    (calm ? ` Großlagen kündigen sich hier oft nicht an: ${big.length === 1 ? "am" : "an den Tagen"} ${big.map(fmtDate).join(" und ")} ` +
+      `zeigten die Wetterdaten nur Böen bis ${Math.round(Math.max(...big.map((d) => WEATHER[d].gust)))} km/h.` : "");
+  drawOutlook();
+}
+
+function wxIcon(kind, x, y) {
+  const g = (body) => `<g transform="translate(${x.toFixed(1)} ${y})">${body}</g>`;
+  const rays = (r0, r1) => Array.from({ length: 8 }, (_, i) => {
+    const c = Math.cos((i * Math.PI) / 4), s = Math.sin((i * Math.PI) / 4);
+    return `<line x1="${(r0 * c).toFixed(1)}" y1="${(r0 * s).toFixed(1)}" x2="${(r1 * c).toFixed(1)}" y2="${(r1 * s).toFixed(1)}"/>`;
+  }).join("");
+  // the inner group turns on hot days, so its own transform stays free for the animation
+  const sun = (dx, dy, k) => `<g transform="translate(${dx} ${dy}) scale(${k})"><g class="wx-sun"><circle r="7"/>${rays(10, 13.5)}</g></g>`;
+  const cloud = (dx, dy, cls = "wx-cloud") => `<g class="${cls}" transform="translate(${dx} ${dy})"><circle cx="-6" cy="2" r="6.5"/>` +
+    `<circle cx="2" cy="-3" r="8.5"/><circle cx="9" cy="2.5" r="6"/><rect x="-12.5" y="2" width="27.5" height="7" rx="3.5"/></g>`;
+  const drops = (cls, mark) => `<g class="${cls}">${[-7, 0, 7].map(mark).join("")}</g>`;
+  switch (kind) {
+    case "sun": return g(sun(0, 0, 1));
+    case "part": return g(sun(-5, -5, 0.8) + cloud(3, 4));
+    case "cloud": return g(cloud(0, 0));
+    case "rain": return g(cloud(0, -4) + drops("wx-rain", (dx) => `<line x1="${dx + 1}" y1="9" x2="${dx - 2}" y2="16"/>`));
+    case "snow": return g(cloud(0, -4) + drops("wx-snow", (dx, i) => `<circle cx="${dx}" cy="${12 + (i % 2) * 3}" r="1.8"/>`));
+    case "fog": return g(`<g class="wx-fog">${[-6, 0, 6].map((dy, i) => `<line x1="${-13 + i * 3}" y1="${dy}" x2="${13 - i * 3}" y2="${dy}"/>`).join("")}</g>`);
+    case "thunder": return g(cloud(0, -6, "wx-cloud dark") + `<path class="wx-bolt" d="M1 1L-5 11H0L-3 20L6 7H1L4 1Z"/>`);
+  }
+  return "";
+}
+
+const WIND_PATH = "M0 -4H9a2.5 2.5 0 1 0-2.5-2.5M0 1H13a2.5 2.5 0 1 1-2.5 2.5";
+
+// Catmull-Rom through the points, as cubic curves.
+function smoothPath(pts, move = "M") {
+  const f = (n) => n.toFixed(1);
+  return pts.map(([x, y], i) => {
+    if (!i) return `${move}${f(x)} ${f(y)}`;
+    const p0 = pts[i - 2] || pts[i - 1], p1 = pts[i - 1], p3 = pts[i + 1] || [x, y];
+    return `C${f(p1[0] + (x - p0[0]) / 6)} ${f(p1[1] + (y - p0[1]) / 6)} ${f(x - (p3[0] - p1[0]) / 6)} ${f(y - (p3[1] - p1[1]) / 6)} ${f(x)} ${f(y)}`;
+  }).join("");
+}
+
+// Colours of the temperature band, hottest first.
+const TEMP_STOPS = [[36, "#a3160d"], [30, "#e0542c"], [25, "#f2994a"], [18, "#f2c94c"], [10, "#7cc6c0"], [0, "#5aa0e0"], [-10, "#3d6fd1"]];
+
+function drawOutlook() {
+  const el = $("#outlook-chart"), ahead = chanceModel?.ahead;
+  if (!el || !ahead?.length || !el.clientWidth) return;
+  const n = ahead.length, W = el.clientWidth, cw = Math.min(140, W / n), x0 = (W - cw * n) / 2, H = 278;
+  const narrow = cw < 84, f = (v) => v.toFixed(1);
+  const cx = (i) => x0 + cw * (i + 0.5);
+  const T0 = 172, T1 = 90; // temperature band from bottom to top
+  const maxT = Math.max(...ahead.map((a) => a.w.tmax)), minT = Math.min(...ahead.map((a) => a.w.tmin));
+  // The 30 °C line only shows once it gets warm; otherwise it would squeeze the band.
+  const heatLine = maxT >= HOT - 5;
+  const hi = Math.max(heatLine ? HOT + 2 : maxT + 2, maxT + 1), lo = Math.min(minT - 1, hi - 10);
+  const ty = (t) => T0 - ((t - lo) / (hi - lo)) * (T0 - T1);
+  const off = (t) => Math.min(1, Math.max(0, (hi - t) / (hi - lo)));
+  const fade = n > 2 ? `<linearGradient id="wx-fade" gradientUnits="userSpaceOnUse" x1="${f(cx(1))}" x2="${f(cx(n - 1))}" y1="0" y2="0">` +
+    `<stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#6a6a6a"/></linearGradient>` +
+    `<mask id="wx-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="url(#wx-fade)"/></mask>` : "";
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Wetter und Schätzung für die nächsten ${n} Tage"><defs>` +
+    `<linearGradient id="wx-temp" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${f(ty(hi))}" y2="${f(ty(lo))}">` +
+    TEMP_STOPS.map(([t, c]) => `<stop offset="${off(t).toFixed(3)}" stop-color="${c}"/>`).join("") + `</linearGradient>` +
+    `<linearGradient id="wx-hot" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--wx-hot)" stop-opacity=".38"/><stop offset=".75" stop-color="var(--wx-hot)" stop-opacity=".06"/></linearGradient>` +
+    `<linearGradient id="wx-storm" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--wx-storm)" stop-opacity=".34"/><stop offset=".75" stop-color="var(--wx-storm)" stop-opacity=".06"/></linearGradient>` +
+    fade + `</defs>`;
+  // columns
+  ahead.forEach((a, i) => {
+    const x = x0 + cw * i + 2, w = cw - 4, cls = [isHot(a.w) && "hot", (isStorm(a.w) || isThunder(a.w)) && "storm", i === 0 && "now"].filter(Boolean).join(" ");
+    s += `<g class="wx-col ${cls}"><rect class="wx-card" x="${f(x)}" y="0" width="${f(w)}" height="${H}" rx="10"/>`;
+    if (isHot(a.w)) s += `<rect class="wx-hotbg" x="${f(x)}" y="0" width="${f(w)}" height="${H}" rx="10" fill="url(#wx-hot)"/>`;
+    if (isStorm(a.w) || isThunder(a.w)) s += `<rect class="wx-stormbg${isThunder(a.w) ? " thunder" : ""}" x="${f(x)}" y="0" width="${f(w)}" height="${H}" rx="10" fill="url(#wx-storm)"/>`;
+    const day = i === 0 ? "Heute" : i === 1 ? "Morgen" : (narrow ? WEEKDAYS : WEEKDAYS_LONG)[weekday(a.d)];
+    s += `<text x="${f(cx(i))}" y="20" class="wx-day" style="font-size:${narrow ? 12 : 13}px">${day}</text>`;
+    s += `<text x="${f(cx(i))}" y="35" class="wx-date">${fmtDate(isoDate(a.d)).slice(0, 6)}</text></g>`;
+  });
+  // the forecast itself, fading with distance
+  s += `<g class="wx-fc"${fade ? ' mask="url(#wx-mask)"' : ""}>`;
+  ahead.forEach((a, i) => { const k = wxKind(a.w); if (k) s += `<g class="wx-icon${isHot(a.w) ? " hot" : ""}">${wxIcon(k[0], cx(i), 60)}</g>`; });
+  if (heatLine) {
+    // the label goes to the end where it is furthest from that day's temperature
+    const gap = (i) => Math.abs(ty(ahead[i].w.tmax) - 9 - (ty(HOT) - 4));
+    const right = n > 1 && gap(n - 1) > gap(0);
+    s += `<line class="wx-heatline" x1="${f(x0 + 4)}" x2="${f(x0 + cw * n - 4)}" y1="${f(ty(HOT))}" y2="${f(ty(HOT))}"/>` +
+      `<text class="wx-heatlabel" x="${f(right ? x0 + cw * n - 8 : x0 + 8)}" y="${f(ty(HOT) - 4)}" style="text-anchor:${right ? "end" : "start"}">${HOT}\u00a0°C</text>`;
+  }
+  const top = ahead.map((a, i) => [cx(i), ty(a.w.tmax)]), bottom = ahead.map((a, i) => [cx(i), ty(a.w.tmin)]);
+  if (n > 1) {
+    s += `<path class="wx-band" d="${smoothPath(top)}${smoothPath([...bottom].reverse(), "L")}Z"/>`;
+    s += `<path class="wx-tmax" d="${smoothPath(top)}"/><path class="wx-tmin" d="${smoothPath(bottom)}"/>`;
+  } else {
+    s += `<line class="wx-tmax" x1="${f(top[0][0])}" x2="${f(top[0][0])}" y1="${f(top[0][1])}" y2="${f(bottom[0][1])}"/>`;
+  }
+  ahead.forEach((a, i) => {
+    const [x, y] = top[i], [, yb] = bottom[i];
+    s += `<circle class="wx-dot" cx="${f(x)}" cy="${f(y)}" r="3.5"/>` +
+      `<text x="${f(x)}" y="${f(y - 9)}" class="wx-tmaxlabel${isHot(a.w) ? " hot" : ""}">${Math.round(a.w.tmax)}°</text>` +
+      `<text x="${f(x)}" y="${f(yb + 15)}" class="wx-tminlabel">${Math.round(a.w.tmin)}°</text>`;
+  });
+  ahead.forEach((a, i) => {
+    const x = cx(i), st = isStorm(a.w);
+    s += `<g class="wx-wind${st ? " storm" : ""}" transform="translate(${f(x - 17)} 210)"><path d="${WIND_PATH}"/></g>` +
+      `<text x="${f(x + 7)}" y="214" class="wx-gust${st ? " storm" : ""}">${Math.round(a.w.gust)}</text>`;
+  });
+  s += `</g>`;
+  // the day estimate as a small ring: darker = more, like the ring above
+  const R = 17, C = 2 * Math.PI * R, RY = 250;
+  ahead.forEach((a, i) => {
+    const p = a.est.pDay, step = p < 0.15 ? 1 : p < 0.25 ? 2 : p < 0.4 ? 3 : 4, x = cx(i);
+    s += `<circle class="wx-ring" cx="${f(x)}" cy="${RY}" r="${R}"/>` +
+      `<circle cx="${f(x)}" cy="${RY}" r="${R}" fill="none" stroke="var(--heat-${step})" stroke-width="6" stroke-dasharray="${f(p * C)} ${f(C)}" transform="rotate(-90 ${f(x)} ${RY})"/>` +
+      `<text x="${f(x)}" y="${RY + 4}" class="wx-pct">${Math.round(100 * p)}<tspan dx="1" style="font-size:8px">%</tspan></text>`;
+  });
+  // one invisible target per column for the tooltip
+  ahead.forEach((a, i) => {
+    const k = wxKind(a.w), e = a.est, wd = WEEKDAYS_LONG[weekday(a.d)];
+    const why = e.heat ? `an ${e.hotDay} von ${e.hot} Tagen ab ${HOT}\u00a0°C und an ${e.day} von ${e.n} ${wd}en gab es mindestens einen Einsatz`
+      : `an ${e.day} von ${e.n} ${wd}en gab es mindestens einen Einsatz`;
+    const tip = `<b>${wd}, ${fmtDate(isoDate(a.d))}</b><br>` +
+      [k && k[1], `${Math.round(a.w.tmin)} bis ${Math.round(a.w.tmax)}\u00a0°C`, `Böen bis ${Math.round(a.w.gust)} km/h`].filter(Boolean).join(" · ") +
+      (isStorm(a.w) ? "<br>Sturmböen" : "") + (isThunder(a.w) ? `<br>Gewitter ${i < 2 ? "angesagt" : "möglich"}` : "") +
+      `<br>Schätzung tagsüber: <b>~${Math.round(100 * e.pDay)}\u00a0%</b><br>${why}`;
+    s += `<rect class="wx-hit" x="${f(x0 + cw * i)}" y="0" width="${f(cw)}" height="${H}" data-tip="${esc(tip)}"/>`;
+  });
+  el.innerHTML = s + `</svg>`;
+  const icon = (body) => `<svg viewBox="-10 -10 20 20" width="18" height="18" aria-hidden="true">${body}</svg>`;
+  $("#outlook-legend").innerHTML =
+    `<span>${icon(`<g class="wx-wind" transform="translate(-7 1)"><path d="${WIND_PATH}"/></g>`)} Windböen in km/h</span>` +
+    `<span>${icon(`<circle class="wx-ring" r="6.5" style="stroke-width:3"/><circle r="6.5" fill="none" stroke="var(--heat-3)" stroke-width="3" stroke-dasharray="16 41" transform="rotate(-90)"/>`)} ` +
+    `Schätzung: mindestens ein Einsatz tagsüber</span>` +
+    `<span><i class="wx-key hot"></i>ab ${HOT}\u00a0°C</span><span><i class="wx-key storm"></i>Sturmböen ab ${GUST} km/h oder Gewitter</span>`;
+}
+
 let chanceModel = null;
 
 function renderChance() {
@@ -763,23 +958,15 @@ function renderChance() {
     `Nachts hat sich kein Muster nach Wochentag oder Jahreszeit von einem Jahr aufs nächste gehalten. ` +
     `Wachbesetzungen zählen nicht, die Silvesternacht zählt nicht als vergleichbare Nacht.`;
 
-  // Storm forecast: show how past stormy days went. So far they had an alarm no more often than other
-  // days, so the percentage above is left as it is.
-  const w = WEATHER[isoDate(today)];
-  let windy = 0, windyHit = 0, all = 0, allHit = 0;
-  if (w?.gust >= 60) {
-    for (let d = first; d <= last; d = addDays(d, 1)) {
-      const k = isoDate(d), hit = win.inDay.has(k);
-      all++; allHit += hit;
-      if (WEATHER[k]?.gust >= 60) { windy++; windyHit += hit; }
-    }
+  // The next days from the weather forecast, each with its day estimate.
+  const ahead = [];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(today, i), w = WEATHER[isoDate(d)];
+    if (!w) break;
+    ahead.push({ d, w, est: i ? estimate(d, first, last, win) : est });
   }
-  $("#chance-weather").hidden = windy < 10;
-  if (windy >= 10) {
-    $("#chance-weather").textContent = `Heute sind Sturmböen bis ${Math.round(w.gust)} km/h angesagt. An bisherigen Tagen mit solchen Böen ` +
-      `gab es tagsüber an ${windyHit} von ${windy} Tagen mindestens einen Einsatz (${pct(windyHit, windy)}\u00a0%), an allen Tagen zusammen ` +
-      `in ${pct(allHit, all)}\u00a0%.`;
-  }
+  chanceModel.ahead = ahead;
+  renderOutlook(ahead, first, last, win);
 
   const bt = backtest(first, last, win);
   const num = (x) => x.toLocaleString("de-DE");
@@ -2208,6 +2395,7 @@ function render() {
   renderWeather(rows.filter((r) => !r.standby), $("#f-year").value, dropped);
   if ($("section[data-view=myths]").classList.contains("active")) renderMyths(); // same for every filter, and only worked out once opened
   if ($("section[data-view=quiz]").classList.contains("active") && !quiz.qs.length) quizShow();
+  drawOutlook(); // needs the width, so only once the view shows
 }
 
 function showView(v) {
