@@ -1656,8 +1656,10 @@ function renderWeather(rows, year, dropped) {
   const first = rows.length ? rows[rows.length - 1].date : "";
   const last = isoDate(minDate(addDays(UPDATED, -1), addDays(LISTED, -1)));
   // Only days the selection covers: the chosen year, and not the Großlage days that were filtered out
-  // (they'd otherwise count as stormy days without alarms).
-  const covered = days.filter((d) => d >= first && d <= last && (!year || d.startsWith(year)) && !dropped.has(d));
+  // (they'd otherwise count as stormy days without alarms). Silvester and Neujahr are left out too: their
+  // fireworks alarms come whatever the weather, and two stormy Neujahr days made windy days look busy.
+  const covered = days.filter((d) => d >= first && d <= last && (!year || d.startsWith(year)) && !dropped.has(d) &&
+    !["12-31", "01-01"].includes(d.slice(5)));
   // Without a mouse the tooltip never shows, so the number of days goes next to the label.
   const touch = matchMedia("(hover: none)").matches;
   const tage = (n) => `${n} ${n === 1 ? "Tag" : "Tage"}`;
