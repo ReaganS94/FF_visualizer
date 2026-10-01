@@ -122,8 +122,9 @@ This was chosen on 01.10.2026 by replaying every day and night from July 2024 wi
 two days earlier and comparing about 20 rules (Brier score). Weekday plus heat was the only day rule clearly
 better than the old one (same weekday within one month of the date). At night no rule beat the plain
 average, because the weekday and season patterns at night changed from one year to the next. Days with
-gusts of 60 km/h or more have more alarms in total but not more often at least one, so a storm only adds a
-note to the page and does not change the percentage.
+gusts of 60 km/h or more had an alarm no more often than other days, so a storm only adds a note to the
+page and does not change the percentage. (In the weather view such days look busier only because of two
+stormy Neujahr days, which count Silvester.)
 
 The page shows the estimate for the current window in the middle of a 24-hour ring. Each hour of the
 ring is shaded by how many alarms happened at that time of day since the data starts, and a hand
