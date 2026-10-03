@@ -108,6 +108,10 @@
 52.3763,
 9.72819
 ],
+"Bergstraße|Bemerode": [
+52.33744,
+9.83002
+],
 "Berhard-Caspar-Straße|Linden-Mitte": [
 52.36527,
 9.7015
@@ -222,6 +226,10 @@
 52.38104,
 9.73434
 ],
+"Dachenhausenstraße|Calenberger Neustadt": [
+52.36921,
+9.72474
+],
 "Davenstedter Straße|Linden-Mitte": [
 52.36588,
 9.69764
@@ -281,6 +289,10 @@
 "Erderstraße|Linden-Nord": [
 52.37597,
 9.70257
+],
+"Ernst-August-Galerie|Mitte": [
+52.378,
+9.7376
 ],
 "Ernst-August-Platz|Mitte": [
 52.376,
@@ -417,6 +429,7 @@
 52.36386,
 9.71453
 ],
+"Goethekreisel|Calenberger Neustadt": null,
 "Goetheplatz|Calenberger Neustadt": [
 52.37268,
 9.72355
@@ -690,6 +703,7 @@
 52.3903,
 9.7476
 ],
+"Kreißstraße|Misburg-Süd": null,
 "Kronenstraße|Oststadt": [
 52.38254,
 9.74317
@@ -965,6 +979,10 @@
 52.36998,
 9.71029
 ],
+"Raschplatz|Mitte": [
+52.37884,
+9.74384
+],
 "Rathenaustraße|Mitte": [
 52.3739,
 9.74121
@@ -1142,6 +1160,10 @@
 "Sudersenstraße|Linden-Nord": [
 52.37139,
 9.70309
+],
+"Tannenbergallee|List": [
+52.40223,
+9.74865
 ],
 "Teichstraße|Linden-Mitte": [
 52.36801,
