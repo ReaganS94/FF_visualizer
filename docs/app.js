@@ -1,9 +1,10 @@
 import { WEEKDAYS, WEEKDAYS_LONG, MONTHS, MONTHS_LONG, parseDate, isoDate, addDays, weekday, fmtDate, minDate, maxDate } from "./lib/dates.js";
 import { esc, einsaetze, weitere } from "./lib/text.js";
 import { BIG_DAY, stamp, mergeManual, clean } from "./lib/alarms.js";
-
-const DAY_START = 6;      // "tagsüber" = 06:00–21:59, "nachts" = 22:00–05:59
-const NIGHT_START = 22;
+import { HOT, GUST, isHot, isStorm, isThunder, wxKind, weatherFacts } from "./lib/weather.js";
+import {
+  DAY_START, NIGHT_START, PRIOR, specialNight, alarmWindows, lastCovered, estimate, backtest, backtestFit, backtestGroups, alarmsIn,
+} from "./lib/estimate.js";
 
 let ALL = [];             // cleaned alarms
 let KW = { groups: {}, codes: {} }; // keyword names, from data/keywords.json
@@ -463,72 +464,7 @@ function renderSpiral(rows) {
 }
 
 // ---------- "Einsatz heute?" ----------
-// Day (6–22 Uhr): share of past days with the same weekday that had at least one alarm, blended with
-// the rate over all days, and on a day forecast at 30 °C or more blended again with the past hot days.
-// Night (22–6 Uhr): the share of all past nights. Replaying every day since July 2024 picked this over
-// the earlier weekday-and-month version: at night no weekday or month pattern held from one year to
-// the next, and by day the month added nothing once the weekday was known. Deliberately simple so
-// anyone can check it by hand.
-const PRIOR = 10;
-const HOT = 30; // °C, the heat rule
-// Nights that are busy every year whatever the weekday (Silvester: 20 alarms in 2024, 14 in 2025).
-// They get no percentage: the page shows the same night of earlier years instead, and they are
-// left out when estimating ordinary nights.
-const SPECIAL_NIGHTS = { "12-31": ["Silvesternacht", "Silvesternächten"] };
-const specialNight = (iso) => SPECIAL_NIGHTS[iso.slice(5)];
-
-function alarmWindows() {
-  const inDay = new Set(), inNight = new Set();
-  for (const r of ALL) {
-    if (r.standby) continue;
-    if (r.timeUnknown || (r.hour >= DAY_START && r.hour < NIGHT_START)) inDay.add(r.date);
-    else if (r.hour >= NIGHT_START) inNight.add(r.date);
-    else inNight.add(isoDate(addDays(parseDate(r.date), -1))); // 00:00–05:59 belongs to the previous evening's night
-  }
-  return { inDay, inNight };
-}
-
-// Uses only days from `first` to `last`, so the backtest can hide the future from itself.
-function estimate(target, first, last, win) {
-  // the same weekday, walking back from `last` in weekly steps
-  const days = [];
-  for (let d = addDays(last, -((weekday(last) - weekday(target) + 7) % 7)); d >= first; d = addDays(d, -7)) days.push(isoDate(d));
-  let total = 0, totDay = 0, nights = 0, night = 0, hot = 0, hotDay = 0;
-  for (let d = first; d <= last; d = addDays(d, 1)) {
-    const k = isoDate(d);
-    total++; totDay += win.inDay.has(k);
-    if (!specialNight(k)) { nights++; night += win.inNight.has(k); }
-    if (WEATHER[k]?.tmax >= HOT) { hot++; hotDay += win.inDay.has(k); }
-  }
-  // About 30 to 140 same weekdays: a single lucky week still moves the share, so blend in the rate
-  // over all days (as if we had seen PRIOR extra average days).
-  const blend = (hits, n, base) => (hits + PRIOR * base) / (n + PRIOR);
-  const day = days.filter((d) => win.inDay.has(d)).length;
-  const weekdayP = blend(day, days.length, total ? totDay / total : 0);
-  const tmax = WEATHER[isoDate(target)]?.tmax, heat = tmax >= HOT;
-  return {
-    n: days.length, day, weekdayP, heat, tmax, hot, hotDay, nights, night,
-    pDay: heat ? blend(hotDay, hot, weekdayP) : weekdayP, pNight: nights ? night / nights : 0,
-  };
-}
-
-// Would the page have been right? Replays the estimate for every past day using only older data.
-function backtest(first, last, win) {
-  const bins = [[0, 10], [10, 20], [20, 30], [30, 40], [40, 101]].map(([lo, hi]) => ({ lo, hi, n: 0, hit: 0, sum: 0 }));
-  let n = 0;
-  for (let t = addDays(first, 182); t <= last; t = addDays(t, 1)) {
-    const e = estimate(t, first, addDays(t, -2), win);
-    if (!e.n) continue;
-    for (const [k, set, day] of [["day", win.inDay, isoDate(t)], ["night", win.inNight, isoDate(t)]]) {
-      if (k === "night" && specialNight(day)) continue; // the page shows no percentage for these
-      const p = 100 * e[k === "day" ? "pDay" : "pNight"];
-      const b = bins.find((b) => p >= b.lo && p < b.hi);
-      b.n++; b.sum += p; if (set.has(day)) b.hit++;
-      n++;
-    }
-  }
-  return { bins: bins.filter((b) => b.n), n };
-}
+// The estimate and its backtest are in lib/estimate.js; this draws the view.
 
 // 24-hour ring: one segment per hour, darker = more alarms at that time of day since the data
 // starts. The centre shows the estimate for the window we're in, a pointer marks the current time.
@@ -582,14 +518,6 @@ setInterval(() => {
   if (key !== chanceModel.key) renderChance(); else drawRing();
 }, 60 * 1000);
 
-// Alarms in a day (06–22) or night (22–06, into the next morning) window of `iso`.
-function alarmsIn(iso, night) {
-  const next = isoDate(addDays(parseDate(iso), 1));
-  return ALL.filter((r) => !r.standby && (night
-    ? !r.timeUnknown && ((r.date === iso && r.hour >= NIGHT_START) || (r.date === next && r.hour < DAY_START))
-    : r.date === iso && (r.timeUnknown || (r.hour >= DAY_START && r.hour < NIGHT_START)))).length;
-}
-
 // What the page says about the night of `date`: a percentage, or for a special night the same
 // night in earlier years.
 function nightInfo(date, est, first, last) {
@@ -600,7 +528,7 @@ function nightInfo(date, est, first, last) {
   const past = [];
   for (let y = first.getFullYear(); y < date.getFullYear(); y++) {
     const d = new Date(y, date.getMonth(), date.getDate());
-    if (d >= first && d <= last) past.push([y, alarmsIn(isoDate(d), true)]); // only nights the data fully covers
+    if (d >= first && d <= last) past.push([y, alarmsIn(ALL, isoDate(d), true)]); // only nights the data fully covers
   }
   if (!past.length) return pct;
   const hits = past.filter(([, n]) => n > 0).length;
@@ -615,33 +543,8 @@ function nightInfo(date, est, first, last) {
 // ---------- Die nächsten 7 Tage ----------
 // Today and the next six days from the weather forecast, each with the day estimate (weekday plus the
 // heat rule, so only the temperature changes it). Hot, stormy and thunder days are tinted, and days
-// further ahead fade because the forecast gets less sure.
-const GUST = 60; // km/h, Sturmböen
-const isHot = (w) => w.tmax >= HOT, isStorm = (w) => w.gust >= GUST, isThunder = (w) => w.code >= 95;
-// weather code (WMO, from Open-Meteo) -> symbol and word
-const WX = [
-  [(c) => c >= 95, "thunder", "Gewitter"],
-  [(c) => (c >= 71 && c <= 77) || c === 85 || c === 86, "snow", "Schnee"],
-  [(c) => c >= 51 && c <= 82, "rain", "Regen"],
-  [(c) => c === 45 || c === 48, "fog", "Nebel"],
-  [(c) => c === 3, "cloud", "bewölkt"],
-  [(c) => c === 1 || c === 2, "part", "teils sonnig"],
-  [() => true, "sun", "sonnig"],
-];
-// Without a code (weather saved before the symbols were added) only rain can be told.
-const wxKind = (w) => (w.code == null ? (w.rain >= 1 ? ["rain", "Regen"] : null) : WX.find(([is]) => is(w.code)).slice(1));
+// further ahead fade because the forecast gets less sure. The weather rules are in lib/weather.js.
 
-// How often past days with this weather had an alarm during the day, against the other days.
-function weatherFacts(first, last, win, is) {
-  const f = { on: 0, onHit: 0, off: 0, offHit: 0 };
-  for (let d = first; d <= last; d = addDays(d, 1)) {
-    const k = isoDate(d), w = WEATHER[k];
-    if (!w) continue;
-    const hit = win.inDay.has(k);
-    if (is(w)) { f.on++; f.onHit += hit; } else { f.off++; f.offHit += hit; }
-  }
-  return f;
-}
 // [nominative, dative], e.g. ["Gewittertage", "Gewittertagen"]
 const factsText = (f, [nom, dat]) => !f.on ? "" : f.on < 10 ? `Bisher gab es erst ${f.on} ${nom}, zu wenige für einen Vergleich.`
   : `An bisherigen ${dat} gab es tagsüber an ${f.onHit} von ${f.on} mindestens einen Einsatz (${pct(f.onHit, f.on)}\u00a0%), an den anderen Tagen in ${pct(f.offHit, f.off)}\u00a0%.`;
@@ -656,7 +559,7 @@ function renderOutlook(ahead, first, last, win) {
   const hot = list(isHot, (w) => `bis ${Math.round(w.tmax)}\u00a0°C`);
   if (hot) {
     notes.push(`<div class="wx-note hot"><b>Hitze angesagt:</b> ${hot}. ` +
-      `${factsText(weatherFacts(first, last, win, isHot), [`Tage ab ${HOT}\u00a0°C`, `Tagen ab ${HOT}\u00a0°C`])} Die Schätzung für diese Tage ist deshalb höher.</div>`);
+      `${factsText(weatherFacts(first, last, win, isHot, WEATHER), [`Tage ab ${HOT}\u00a0°C`, `Tagen ab ${HOT}\u00a0°C`])} Die Schätzung für diese Tage ist deshalb höher.</div>`);
   }
   // A thunderstorm is only a rough hint after tomorrow.
   const near = (w) => isThunder(w) && ahead.findIndex((a) => a.w === w) < 2, far = (w) => isThunder(w) && !near(w);
@@ -664,8 +567,8 @@ function renderOutlook(ahead, first, last, win) {
   if (storm || tNear || tFar) {
     notes.push(`<div class="wx-note storm">` +
       (storm ? `<b>Sturmböen angesagt:</b> ${storm}. ` : "") + (tNear ? `<b>Gewitter angesagt:</b> ${tNear}. ` : "") + (tFar ? `<b>Gewitter möglich:</b> ${tFar}. ` : "") +
-      (storm ? factsText(weatherFacts(first, last, win, isStorm), ["Tage mit Sturmböen", "Tagen mit Sturmböen"]) + " " : "") +
-      (tNear || tFar ? factsText(weatherFacts(first, last, win, isThunder), ["Gewittertage", "Gewittertagen"]) + " " : "") +
+      (storm ? factsText(weatherFacts(first, last, win, isStorm, WEATHER), ["Tage mit Sturmböen", "Tagen mit Sturmböen"]) + " " : "") +
+      (tNear || tFar ? factsText(weatherFacts(first, last, win, isThunder, WEATHER), ["Gewittertage", "Gewittertagen"]) + " " : "") +
       `In die Schätzung geht nur die Temperatur ein.</div>`);
   }
   if (!notes.length) notes.push(`<p class="note">In diesen Tagen sind weder ${HOT}\u00a0°C noch Sturmböen oder Gewitter angesagt.</p>`);
@@ -810,19 +713,16 @@ function drawOutlook() {
 let chanceModel = null;
 
 function renderChance() {
-  const win = alarmWindows();
+  const win = alarmWindows(ALL);
   const now = new Date();
   const today = new Date(now); today.setHours(0, 0, 0, 0);
   const yesterday = addDays(today, -1);
   const first = parseDate(ALL[ALL.length - 1].date);
-  // Only count days the data fully covers: yesterday's night ends this morning, and days after the
-  // last scrape or after the website's newest entry would otherwise look alarm-free.
-  const scraped = new Date(UPDATED); scraped.setHours(0, 0, 0, 0);
-  const lastFor = (d) => minDate(addDays(minDate(scraped, d), -2), addDays(LISTED, -1));
-  const last = lastFor(today);
+  // Only count days the data fully covers.
+  const last = lastCovered(today, UPDATED, LISTED), lastY = lastCovered(yesterday, UPDATED, LISTED);
 
-  const est = estimate(today, first, last, win);
-  const estY = estimate(yesterday, first, lastFor(yesterday), win); // what the page said yesterday
+  const est = estimate(today, first, last, win, WEATHER);
+  const estY = estimate(yesterday, first, lastY, win, WEATHER); // what the page said yesterday
   const wd = WEEKDAYS_LONG[weekday(today)];
   const sameDays = `an ${est.day} von ${est.n} ${wd}en`;
   const day = { short: "Tag", label: "Heute tagsüber", time: "6–22 Uhr", v: `~${Math.round(100 * est.pDay)} %`, d: est.heat
@@ -830,7 +730,7 @@ function renderChance() {
     : `${sameDays} gab es mindestens einen Einsatz` };
   const ni = nightInfo(today, est, first, last);
   const night = { short: "Nacht", label: ni.name ? `Heute: ${ni.name}` : "Heute Nacht", time: "22–6 Uhr", v: ni.v, d: ni.d };
-  const niY = nightInfo(yesterday, estY, first, lastFor(yesterday));
+  const niY = nightInfo(yesterday, estY, first, lastY);
   const running = { short: "Nacht", label: niY.name ? `Diese ${niY.name}` : "Diese Nacht", time: "seit 22 Uhr", v: niY.v, d: niY.d };
 
   // The window we're in right now: before 6 it's still last night.
@@ -849,10 +749,10 @@ function renderChance() {
   // Yesterday: what the page estimated against what has been entered since.
   const count = (n) => (n ? `${n} ${n === 1 ? "Einsatz" : "Einsätze"}` : "keiner");
   const iy = isoDate(yesterday);
-  const rows = [["Gestern tagsüber", `~${Math.round(100 * estY.pDay)} %`, count(alarmsIn(iy, false))]];
+  const rows = [["Gestern tagsüber", `~${Math.round(100 * estY.pDay)} %`, count(alarmsIn(ALL, iy, false))]];
   rows.push(h < DAY_START
     ? ["Diese Nacht", niY.v, "läuft noch"]
-    : ["Letzte Nacht", niY.v, count(alarmsIn(iy, true))]);
+    : ["Letzte Nacht", niY.v, count(alarmsIn(ALL, iy, true))]);
   $("#t-yesterday tbody").innerHTML = rows.map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
   // Last night reaches past midnight, which the website may not have reached yet.
   $("#yesterday-listed").textContent = yesterday > LISTED
@@ -875,12 +775,12 @@ function renderChance() {
   for (let i = 0; i < 7; i++) {
     const d = addDays(today, i), w = WEATHER[isoDate(d)];
     if (!w) break;
-    ahead.push({ d, w, est: i ? estimate(d, first, last, win) : est });
+    ahead.push({ d, w, est: i ? estimate(d, first, last, win, WEATHER) : est });
   }
   chanceModel.ahead = ahead;
   renderOutlook(ahead, first, last, win);
 
-  const bt = backtest(first, last, win);
+  const bt = backtest(first, last, win, WEATHER);
   const num = (x) => x.toLocaleString("de-DE");
   const btRows = bt.bins.map((b) => {
     const range = b.hi > 100 ? `ab ${b.lo} %` : `${b.lo}–${b.hi} %`, rate = Math.round((100 * b.hit) / b.n);
@@ -900,12 +800,7 @@ function renderChance() {
     }[ex.fit];
 
   // The short version: low, middle and high estimates, each as 100 dots with the ones that had an alarm filled in.
-  const groups = BACKTEST_GROUPS.map(([lo, hi, label]) => {
-    const bins = bt.bins.filter((b) => b.lo >= lo && b.lo < hi);
-    const n = bins.reduce((a, b) => a + b.n, 0), hit = bins.reduce((a, b) => a + b.hit, 0);
-    const rate = n ? Math.round((100 * hit) / n) : 0;
-    return { lo, hi, label, n, hit, rate, fit: backtestFit({ lo, hi, n }, rate) };
-  }).filter((g) => g.n);
+  const groups = backtestGroups(bt);
   // Rounded first, so "jetzt ~10 %" never sits under "unter 10 %".
   const nowPct = pNow == null ? null : Math.round(100 * pNow);
   $("#backtest-note").textContent =
@@ -938,9 +833,6 @@ function renderChance() {
   ].filter(Boolean).join(" ");
 }
 
-// Low, middle and high estimates for the short version of the check (percent from, to, label).
-const BACKTEST_GROUPS = [[0, 10, "unter 10\u00a0%"], [10, 30, "10–30\u00a0%"], [30, 101, "ab 30\u00a0%"]];
-
 // 10 × 10 dots, the first `k` filled: "k of 100".
 function hundredDots(k) {
   let s = `<svg viewBox="0 0 100 100" class="dots100" role="img" aria-label="${k} von 100">`;
@@ -948,15 +840,6 @@ function hundredDots(k) {
     s += `<circle cx="${5 + (i % 10) * 10}" cy="${5 + Math.floor(i / 10) * 10}" r="3.8"${i < k ? ' class="on"' : ""}/>`;
   }
   return s + "</svg>";
-}
-
-// A row fits when the share that really had an alarm lies in the range the page said. Fewer than
-// 50 estimates are too few to tell: one alarm more or less moves the share by several points.
-function backtestFit(b, rate) {
-  if (b.n < 50) return "Zu wenige Fälle";
-  if (rate < b.lo) return "Nein, zu hoch";
-  if (b.hi <= 100 && rate > b.hi) return "Nein, zu niedrig";
-  return "Ja";
 }
 
 // ---------- Warnungen ----------
