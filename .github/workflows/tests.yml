@@ -1,6 +1,6 @@
 name: Tests
 
-# Runs the browser tests in tests/ for every pull request and every change to main, so a broken tab or
+# Runs the tests in tests/ for every pull request and every change to main, so a broken tab or
 # chart shows up before (or right after) it reaches the site. Data updates don't start it.
 on:
   pull_request:

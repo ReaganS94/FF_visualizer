@@ -18,6 +18,9 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   (streets with three or more alarms, and fire alarm systems that go off more than once),
   map (with a time-lapse that plays the alarms in date order), Einsatzradius (see below), weather, searchable list, annual report (with a
   year comparison and the year as a story, see below), and an "Einsatz heute?" estimate that is explicitly only a guess.
+- `docs/app.js`: the page and its views. `docs/lib/`: the rules and calculations it uses, without any page
+  code, so they can be tested on their own (`dates.js`, `text.js`, and `alarms.js` with the cleaning and
+  the matching of hand entries, which the admin page uses too).
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `docs/admin.html`: form for adding alarms before the website lists them (see below).
 - `docs/manifest.webmanifest` and `docs/icons/`: let phones add the site to the home screen as an app (icon source: `icons/icon.svg`).
@@ -108,18 +111,23 @@ cd docs && python -m http.server      # then open http://localhost:8000
 
 ## Tests
 
-Browser tests in `tests/` open the site in Chromium (with [Playwright](https://playwright.dev)) and click
-through it like a visitor. They run on every pull request and every change to `main` (Actions → "Tests"),
-and the pull request shows a red check with the failing test when something broke. Nothing leaves the
-machine: Leaflet, map tiles, the warning services and GitHub are answered by the tests, so nothing is
-saved anywhere.
+Two kinds of tests, both run by `npm test` (needs Node.js 22.12 or newer). They run on every pull request
+and every change to `main` (Actions → "Tests"), and the pull request shows a red check with the failing
+test when something broke.
+
+- `tests/unit/`: the rules and calculations in `docs/lib/`, run in Node with [Vitest](https://vitest.dev),
+  in a second or so.
+- `tests/browser/`: the site itself, opened in Chromium with [Playwright](https://playwright.dev) and clicked
+  through like a visitor. Nothing leaves the machine: Leaflet, map tiles, the warning services and GitHub
+  are answered by the tests, so nothing is saved anywhere.
 
 ```sh
-npm install                              # once: Playwright and the map library the tests serve
-npx playwright install chromium          # once: the browser
-npm test                                 # all tests, about a minute
-npx playwright test tests/admin.spec.js  # one file
-npx playwright test --ui                 # watch them run step by step
+npm install                                      # once: Vitest, Playwright and the map library the tests serve
+npx playwright install chromium                  # once: the browser
+npm test                                         # all tests, about a minute
+npx vitest                                       # unit tests, again after every save
+npx playwright test tests/browser/admin.spec.js  # one browser test file
+npx playwright test --ui                         # watch the browser tests run step by step
 ```
 
 - `site.spec.js`: every tab with every year and both filters, on a computer and two phone sizes: no
@@ -129,13 +137,13 @@ npx playwright test --ui                 # watch them run step by step
 - `quiz.spec.js`: 300 rounds of the quiz; a reworded question may need its pattern updated there.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
 - `admin.spec.js`: the admin page with a made-up website list and hand entries.
-- `fixtures.js`: the setup every test shares.
+- `fixtures.js`: the setup every browser test shares.
 
 ## Publish
 
 Settings → Pages → Build and deployment → "Deploy from a branch" → `main` / `/docs`.
 
-## Data cleaning (done in the browser, see `docs/app.js`)
+## Data cleaning (done in the browser, see `docs/lib/alarms.js` and `docs/app.js`)
 
 - Only rows with category "Einsatz" are shown.
 - An alarm listed twice (same date, time, keyword and street) is counted once.

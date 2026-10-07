@@ -6,7 +6,7 @@ import { test as base, expect } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const NODE_MODULES = fileURLToPath(new URL("../node_modules/", import.meta.url));
+const NODE_MODULES = fileURLToPath(new URL("../../node_modules/", import.meta.url));
 
 // A blank 1×1 PNG for map tiles.
 const TILE = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64");
