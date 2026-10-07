@@ -1,4 +1,4 @@
-name: Einsätze aktualisieren
+name: Update data
 
 on:
   schedule:

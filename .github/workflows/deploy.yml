@@ -1,4 +1,4 @@
-name: Website veröffentlichen
+name: Publish site
 
 # Builds the site in web/ with Vite and publishes dist/ on GitHub Pages (Settings → Pages → Source:
 # "GitHub Actions"). It runs after every change to main and after every data update: the data job pushes
@@ -8,7 +8,7 @@ on:
   push:
     branches: [main]
   workflow_run:
-    workflows: ["Einsätze aktualisieren"]
+    workflows: ["Update data"]
     types: [completed]
   workflow_dispatch:
 
