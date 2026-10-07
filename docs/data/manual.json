@@ -1,6 +1,16 @@
 {
  "rows": [
   {
+   "date": "2026-10-06",
+   "time": "19:30",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Person droht zu springen",
+   "street": "Ernst-August-Platz",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
    "date": "2026-09-29",
    "time": "02:45",
    "category": "Einsatz",
