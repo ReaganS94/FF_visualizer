@@ -1047,6 +1047,102 @@ function backtestFit(b, rate) {
   return "Ja";
 }
 
+// ---------- Warnungen ----------
+// Current official warnings, loaded in the browser when "Einsatz heute?" opens and every 5 minutes while it
+// stays open. Weather warnings of the Deutscher Wetterdienst for the city come through Bright Sky, which
+// lets any website load them. NINA adds the other warnings for the Region Hannover (civil protection,
+// floods, police) where the browser may load them; its weather warnings are the same as the DWD's, so they
+// are left out. Nothing is stored.
+const WARN_EVERY = 5 * 60 * 1000;
+const warn = { at: 0, busy: false, body: null };
+const NINA_ARS = "032410000000"; // Region Hannover: NINA lists warnings per district, the last 7 digits are 0
+const WARN_LEVEL = { minor: 1, moderate: 2, severe: 3, extreme: 4 };
+const NINA_KIND = { MOWAS: "Bevölkerungsschutz", LHP: "Hochwasser", POLICE: "Polizei", KATWARN: "Katwarn", BIWAPP: "Biwapp" };
+
+function fetchJSON(url) {
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 10000);
+  return fetch(url, { signal: ctl.signal }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status)))).finally(() => clearTimeout(t));
+}
+
+async function loadWarnings() {
+  if (warn.busy) return;
+  warn.busy = true;
+  const [dwd, nina] = await Promise.all([
+    fetchJSON(`https://api.brightsky.dev/alerts?lat=${WACHE[0]}&lon=${WACHE[1]}&tz=Europe/Berlin`).catch(() => null),
+    fetchJSON(`https://warnung.bund.de/api31/dashboard/${NINA_ARS}.json`).catch(() => null),
+  ]);
+  Object.assign(warn, { busy: false, at: Date.now() });
+  renderWarnings(dwd && Array.isArray(dwd.alerts) ? dwd.alerts : null, Array.isArray(nina) ? nina : null);
+}
+
+// "heute 14:00 bis 20:00 Uhr", "bis morgen 06:00 Uhr", "ab Fr 09.10. 18:00 Uhr"
+function warnSpan(onset, expires, now) {
+  const at = (d) => {
+    const days = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 864e5);
+    const day = days === 0 ? "heute" : days === 1 ? "morgen" : days === -1 ? "gestern" : `${WEEKDAYS[weekday(d)]} ${fmtDate(isoDate(d)).slice(0, 6)}`;
+    return { day, hm: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` };
+  };
+  const a = onset && at(onset), b = expires && at(expires);
+  if (!a) return b ? `bis ${b.day} ${b.hm} Uhr` : "";
+  if (onset <= now) return b ? `bis ${b.day} ${b.hm} Uhr` : `seit ${a.day} ${a.hm} Uhr`;
+  if (!b) return `ab ${a.day} ${a.hm} Uhr`;
+  return a.day === b.day ? `${a.day} ${a.hm} bis ${b.hm} Uhr` : `${a.day} ${a.hm} bis ${b.day} ${b.hm} Uhr`;
+}
+
+// dwd, nina: the loaded lists, or null when they couldn't be loaded.
+function renderWarnings(dwd, nina) {
+  const now = new Date(), when = (s) => { const d = s ? new Date(s) : null; return d && !isNaN(d) ? d : null; };
+  const items = [];
+  for (const a of dwd || []) {
+    const expires = when(a.expires);
+    if (a.status !== "actual" || a.response_type === "allclear" || (expires && expires <= now)) continue;
+    const level = WARN_LEVEL[a.severity] || 1;
+    items.push({ level, tag: `${a.category === "health" ? "Hitze" : "Wetter"} · Stufe ${level} von 4`, title: a.headline_de || a.event_de || "",
+      onset: when(a.onset), expires, text: a.description_de, todo: a.instruction_de });
+  }
+  for (const w of nina || []) {
+    // NINA's weather warnings only stand in when the DWD's own list couldn't be loaded.
+    const d = (w.payload && w.payload.data) || {}, expires = when(w.expires);
+    if ((dwd && d.provider === "DWD") || d.msgType === "Cancel" || (expires && expires <= now)) continue;
+    const level = WARN_LEVEL[String(d.severity).toLowerCase()] || 1;
+    items.push({ level, tag: d.provider === "DWD" ? `Wetter · Stufe ${level} von 4` : NINA_KIND[d.provider] || "Warnung",
+      title: (w.i18nTitle && w.i18nTitle.de) || d.headline || "", onset: when(w.onset || w.effective || w.sent), expires, nina: true });
+  }
+  items.sort((a, b) => b.level - a.level || (a.onset || 0) - (b.onset || 0));
+
+  const link = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+  const dwdLink = (text) => link("https://www.dwd.de/DE/wetter/warnungen/warnWetter_node.html", text);
+  const ninaLink = link("https://warnung.bund.de/meldungen", "NINA");
+  const hm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const sources = (dwd && nina ? `Wetterwarnungen für die Stadt Hannover: ${dwdLink("Deutscher Wetterdienst")}. Andere Warnungen für die Region Hannover: ${ninaLink}, die Warn-App des Bundes.`
+    : dwd ? `Wetterwarnungen für die Stadt Hannover: ${dwdLink("Deutscher Wetterdienst")}. Andere Warnungen, etwa zu Bränden mit starkem Rauch oder zu Evakuierungen, stehen in der Warn-App ${ninaLink}.`
+    : nina ? `Warnungen für die Region Hannover: ${ninaLink}, die Warn-App des Bundes, mit den Wetterwarnungen des ${dwdLink("Deutschen Wetterdienstes")}.`
+    : `Die Warnungen konnten gerade nicht geladen werden. Sie stehen beim ${dwdLink("Deutschen Wetterdienst")} und in der Warn-App ${ninaLink}.`) +
+    (dwd || nina ? ` Stand: ${hm} Uhr.` : "");
+  const body = items.length
+    ? `<h2>${items.length === 1 ? "Warnung" : "Warnungen"} für Hannover</h2>` + items.map((w) =>
+      `<div class="warn l${w.level}"><div class="warn-meta"><span class="warn-tag">${esc(w.tag)}</span><span>${warnSpan(w.onset, w.expires, now)}</span></div>` +
+      `<div class="warn-title">${esc(w.title)}</div>` +
+      (w.text ? `<p class="warn-text">${esc(w.text)}</p>` : "") +
+      (w.todo ? `<details class="warn-todo"><summary>Was tun?</summary><p>${esc(w.todo)}</p></details>` : "") +
+      (w.nina ? `<p class="warn-text">Mehr dazu in ${ninaLink}.</p>` : "") + `</div>`).join("")
+    : dwd || nina ? `<p class="warn-none"><span class="warn-ok" aria-hidden="true">✓</span>Für Hannover gibt es gerade keine ${nina ? "amtlichen Warnungen" : "Wetterwarnungen"}.</p>` : "";
+  const el = $("#warnings");
+  el.hidden = false;
+  // Only redraw the list when it changed, so an opened "Was tun?" stays open over the refresh.
+  if (body !== warn.body) {
+    warn.body = body;
+    el.innerHTML = `${body}<p class="note"></p>`;
+  }
+  el.lastElementChild.innerHTML = sources;
+}
+
+// While the view stays open, and when the page comes back after a while in the background.
+const warnStale = () => Date.now() - warn.at > WARN_EVERY;
+const warnShown = () => !document.hidden && $("section[data-view=chance]").classList.contains("active");
+setInterval(() => { if (warnShown()) loadWarnings(); }, WARN_EVERY);
+document.addEventListener("visibilitychange", () => { if (warnShown() && warnStale()) loadWarnings(); });
+
 // ---------- Jahresrückblick ----------
 // Keywords worth listing individually in the annual report.
 const NOTABLE = /^(b2|b3|ob|ba2|bg2|abc2|hm2|hm3|hw\d|hu\d|manv.*)$/;
@@ -2704,6 +2800,7 @@ function showView(v) {
   document.querySelectorAll("[data-view]").forEach((el) => el.classList.toggle("active", el.dataset.view === v));
   $("#filters").style.display = ["chance", "year", "myths", "quiz"].includes(v) ? "none" : "";
   try { localStorage.setItem("view", v); } catch {}
+  if (v === "chance" && warnStale()) loadWarnings();
   if (ALL.length) render(); // hidden sections have no width, so draw charts once visible
 }
 

@@ -154,6 +154,17 @@ when the device asks for less motion). Days further ahead fade, because the fore
 above it name the hot and stormy days and say how often past days with that weather had an alarm, against
 the other days; only the temperature changes the estimate. A thunderstorm after tomorrow says "möglich".
 
+"Warnungen für Hannover", above the ring, lists the current official warnings. Each visitor's browser loads
+them when the page opens and again every 5 minutes while it stays open; nothing is stored in the repository.
+Weather warnings of the Deutscher Wetterdienst for the city (warn cell "Stadt Hannover", 803241001) come from
+Bright Sky (`api.brightsky.dev/alerts` at the Wache's position), which lets any website load them. Other
+warnings for the Region Hannover (civil protection, floods, police, Katwarn, Biwapp) come from the NINA
+dashboard (`warnung.bund.de/api31/dashboard/032410000000.json`); NINA's copies of the weather warnings are
+skipped unless Bright Sky couldn't be loaded. NINA publishes no terms for this and may refuse to be loaded
+by other websites; the box then says where to find those warnings instead. Warnings are sorted by level
+(Stufe 1–4 in yellow, orange, red and violet, as on the DWD's map), expired and lifted ones are left out,
+and the DWD is credited as its terms require. The warnings don't change the percentage.
+
 Silvester night (31.12., 22–06) is busy every year (20 alarms in 2024, 14 in 2025), so it gets no
 percentage. On 31.12. the page shows how many alarms the same night had in earlier years, and that
 night is left out when estimating ordinary nights and in the backtest. More such nights can be
