@@ -1,7 +1,7 @@
 import {
   WEEKDAYS, WEEKDAYS_LONG, MONTHS, MONTHS_LONG, parseDate, isoDate, addDays, weekday, fmtDate, minDate, maxDate, longestRun,
 } from "./lib/dates.js";
-import { esc, einsaetze, weitere } from "./lib/text.js";
+import { esc, einsaetze, weitere, fmtKm } from "./lib/text.js";
 import { BIG_DAY, stamp, mergeManual, clean } from "./lib/alarms.js";
 import { HOT, GUST, isHot, isStorm, isThunder, wxKind, weatherFacts } from "./lib/weather.js";
 import {
@@ -9,6 +9,10 @@ import {
 } from "./lib/estimate.js";
 import { NOTABLE, yearInfo, DAY_SLOTS, runningTotal } from "./lib/year.js";
 import { mythResults, mythVerdict } from "./lib/myths.js";
+import { topCounts, counted, pct } from "./lib/count.js";
+import {
+  isBMA, isRWM, addressGroups, dotKind, dotGroups, WACHE, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
+} from "./lib/places.js";
 
 let ALL = [];             // cleaned alarms
 let KW = { groups: {}, codes: {} }; // keyword names, from data/keywords.json
@@ -220,12 +224,6 @@ function renderHours(rows) {
   columnChart($("#c-hours"), hours.map((n, h) => ({ value: n, tip: `${h}–${h + 1} Uhr: <b>${einsaetze(n)}</b>`, tick: h % 3 === 0 ? `${h}` : "" })), { height: 180 });
 }
 
-function topCounts(rows, key, n = 15) {
-  const c = {};
-  for (const r of rows) { const k = key(r) || "unbekannt"; (c[k] ||= []).push(r); }
-  return Object.entries(c).sort((a, b) => b[1].length - a[1].length).slice(0, n);
-}
-
 function renderKeywords(rows) {
   barList($("#c-groups"), topCounts(rows, (r) => r.group).map(([g, list]) => {
     const codes = topCounts(list, (r) => r.base, 4).map(([c, l]) => `${esc(c)} ${esc(l[0].name)} (${l.length})`).join("<br>");
@@ -259,16 +257,7 @@ function renderList(rows) {
 }
 
 // ---------- Stammadressen ----------
-// Streets and places with repeated alarms. Grouped by street alone, since a street can cross a district border.
-const isBMA = (r) => r.base === "o" || /\bBMA\b|Brandmeldeanlage|Brandmelder/i.test(r.event);
-const isRWM = (r) => /RWM|Rauchwarnmelder|Rauchmelder/i.test(r.event);
-
-function addressGroups(rows, min) {
-  const by = {};
-  for (const r of rows) if (r.street) (by[r.street] ||= []).push(r);
-  return Object.entries(by).filter(([, l]) => l.length >= min)
-    .sort(([a, x], [b, y]) => y.length - x.length || a.localeCompare(b, "de"));
-}
+// Streets and places with repeated alarms (which ones: addressGroups in lib/places.js).
 
 function addressList(el, groups, empty) {
   if (!groups.length) { el.innerHTML = `<p class="note">${empty}</p>`; return; }
@@ -302,28 +291,11 @@ function renderAddresses(rows) {
 
 // ---------- Punktewand ----------
 // Every alarm is one dot, coloured by its type. Switching the grouping moves each dot to its new place.
-// Three colours at most stay tellable apart for everyone; the rarer types share grey.
-const DOT_KINDS = [["brand", "Brand"], ["hilfe", "Technische Hilfe"], ["unwetter", "Unwetter"]];
-const dotKind = (r) => (DOT_KINDS.find(([, g]) => g === r.group) || ["other"])[0];
+// Which colour and which group a dot gets: dotKind and dotGroups in lib/places.js.
 const DOT_ORDER = ["brand", "hilfe", "unwetter", "other"];
-const DOT_TOP_DISTRICTS = 12;
 let dotsBy = "month";
 let dotsRows = [];     // the alarms currently drawn, in dot order
 let dotsPicked = null; // the tapped alarm
-
-function dotGroups(rows, by) {
-  if (by === "month") return MONTHS.map((m, i) => ({ label: m, rows: rows.filter((r) => Number(r.date.slice(5, 7)) === i + 1) }));
-  if (by === "hour") {
-    const g = Array.from({ length: 24 }, (_, h) => ({ label: String(h), rows: rows.filter((r) => !r.timeUnknown && r.hour === h) }));
-    const unknown = rows.filter((r) => r.timeUnknown);
-    return unknown.length ? [...g, { label: "?", rows: unknown }] : g;
-  }
-  if (by === "type") return topCounts(rows, (r) => r.group, 99).map(([g, l]) => ({ label: g, rows: l }));
-  const all = topCounts(rows, (r) => r.district, 999);
-  const rest = all.slice(DOT_TOP_DISTRICTS).flatMap(([, l]) => l);
-  return [...all.slice(0, DOT_TOP_DISTRICTS).map(([d, l]) => ({ label: d, rows: l })),
-    ...(rest.length ? [{ label: weitere(all.length - DOT_TOP_DISTRICTS), rows: rest }] : [])];
-}
 
 // Where each dot goes: columns for month and hour (time runs left to right), rows for type and district.
 function dotLayout(rows, by, W) {
@@ -1074,7 +1046,6 @@ function storyCards(year, storm) {
   const dm = (iso) => fmtDate(iso).slice(0, 6);
   // big words shrink with their length so they stay on one line
   const fit = (text, max = 26) => `style="font-size:min(${max}cqw, ${(120 / text.length).toFixed(1)}cqw, 16cqh)"`;
-  const pct = (n, of) => Math.round((100 * n) / of);
   const times = (n) => `<span class="st-nw">${n}-mal</span>`;
 
   add("red", `<div class="st-kicker">Freiwillige Feuerwehr Hannover-Linden</div><div class="st-title">Das Einsatzjahr ${year}</div>` +
@@ -1413,37 +1384,14 @@ $("#rp-reset").addEventListener("click", () => {
 
 // ---------- Einsatzradius ----------
 // A line from the Wache to every alarm, over a grey map; "Abspielen" sends the lines out in date order.
-// Distances are straight lines on a flat grid around the Wache, which is close enough within a city.
-const WACHE = [52.36847, 9.71195]; // Teichstraße 8 (two map services agree to within 25 m)
-const KM_X = 111.32 * Math.cos((WACHE[0] * Math.PI) / 180), KM_Y = 110.57;
-const RADIUS_BINS = [[0, 0.5, "bis 500 m"], [0.5, 1, "0,5–1 km"], [1, 2, "1–2 km"], [2, 3, "2–3 km"], [3, 5, "3–5 km"], [5, Infinity, "über 5 km"]];
+// The distances are worked out in lib/places.js.
 const FLY = 900, FADE = 900; // ms a line takes to reach its alarm, and to fade out after it lands
 const radius = { map: null, canvas: null, clock: null, dpr: 1, pts: [], key: "", first: null, days: 0,
   shown: null, queue: [], flights: [], playing: false, day: 0, t: 0, raf: 0 };
 
-function fmtKm(k) {
-  const m = Math.round(k * 100) * 10;
-  return m < 1000 ? `${m} m` : `${k.toFixed(1).replace(".", ",")} km`;
-}
-
-// The located alarms, oldest first, with their distance and the day since the first one.
-function radiusPoints(rows) {
-  const pts = [];
-  for (const r of rows) {
-    const ll = GEO[r.geoKey] || GEO[`${r.street}|${r.district}`];
-    if (!ll) continue;
-    const km = Math.hypot((ll[1] - WACHE[1]) * KM_X, (ll[0] - WACHE[0]) * KM_Y);
-    pts.push({ r, ll, km, kind: dotKind(r) });
-  }
-  pts.reverse();
-  const first = pts.length ? parseDate(pts[0].r.date) : null;
-  for (const p of pts) p.day = Math.round((parseDate(p.r.date) - first) / 864e5);
-  return pts;
-}
-
 async function renderRadius(rows) {
   const el = $("#c-radius");
-  const pts = radiusPoints(rows);
+  const pts = radiusPoints(rows, GEO);
   // Only a new selection resets a running playback, not a redraw.
   const key = pts.map((p) => p.r.date + p.r.time + p.ll).join("|");
   if (key !== radius.key) {
@@ -1525,18 +1473,16 @@ function radiusOutside() {
 // Tiles and distance bars count what's on the map: every alarm, or the ones sent out so far while playing.
 function radiusStats() {
   const list = radius.shown || radius.pts;
-  const km = list.map((p) => p.km).sort((a, b) => a - b);
-  const far = list.reduce((m, p) => (!m || p.km > m.km ? p : m), null);
+  const { n, median, within2, far, bins } = radiusSummary(list);
   $("#radius-tiles").innerHTML = [
-    [km.length ? fmtKm(km[Math.floor(km.length / 2)]) : "–", "Die Hälfte der Einsätze liegt näher als das"],
-    [km.length ? `${pct(km.filter((k) => k <= 2).length, km.length)} %` : "–", "im Umkreis von 2 km"],
+    [n ? fmtKm(median) : "–", "Die Hälfte der Einsätze liegt näher als das"],
+    [n ? `${pct(within2, n)} %` : "–", "im Umkreis von 2 km"],
     [far ? fmtKm(far.km) : "–", "am weitesten weg", far ? `${esc(far.r.street)}, ${esc(far.r.district)}, ${fmtDate(far.r.date)}` : ""],
   ].map(([v, l, d]) => `<div class="tile"><div class="v">${v}</div><div class="l">${l}</div>${d ? `<div class="d">${d}</div>` : ""}</div>`).join("");
-  const count = (l, [lo, hi]) => l.filter((p) => p.km >= lo && p.km < hi).length;
-  barList($("#c-radius-km"), RADIUS_BINS.map((b) => {
-    const n = count(list, b);
-    return { label: b[2], value: n, tip: `${b[2]}: ${einsaetze(n)}${list.length ? ` (${pct(n, list.length)} %)` : ""}` };
-  }), { labelWidth: 90, scaleTo: Math.max(1, ...RADIUS_BINS.map((b) => count(radius.pts, b))) });
+  // The bars keep the scale of all alarms while they fill up during playback.
+  barList($("#c-radius-km"), RADIUS_BINS.map(([, , label], i) => ({
+    label, value: bins[i], tip: `${label}: ${einsaetze(bins[i])}${n ? ` (${pct(bins[i], n)} %)` : ""}`,
+  })), { labelWidth: 90, scaleTo: Math.max(1, ...radiusSummary(radius.pts).bins) });
 }
 
 // The alarms at the dot nearest to the pointer (one street shares one spot on the map), oldest first.
@@ -1789,8 +1735,6 @@ const shuffle = (a) => {
   for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
   return a;
 };
-const pct = (n, of) => Math.round((100 * n) / of);
-const counted = (list, f) => topCounts(list, f, 999).map(([k, l]) => [k, l.length]);
 const dec = (x) => x.toFixed(1).replace(".", ",");
 const andList = (a) => (a.length > 1 ? `${a.slice(0, -1).join(", ")} und ${a.at(-1)}` : a.join(""));
 
@@ -2189,19 +2133,18 @@ function quizQuestions() {
       });
     }],
     ["radius", () => {
-      const pts = radiusPoints(rows);
-      if (pts.length < 20) return null;
-      const far = pts.reduce((a, b) => (b.km > a.km ? b : a));
+      const { n, far } = radiusSummary(radiusPoints(rows, GEO));
+      if (n < 20) return null;
       return numberQ("Wie viele Kilometer Luftlinie lag der bisher weiteste Einsatz von der Wache entfernt?", Math.round(far.km), ["Kilometer", "Kilometer"], {
         explain: `Genau ${fmtKm(far.km)}, am ${fmtDate(far.r.date)}: „${esc(far.r.event)}“ (${esc(far.r.street)}, ${esc(far.r.district)}).`,
       });
     }],
     ["radius", () => {
-      const kms = radiusPoints(rows).map((p) => p.km).sort((a, b) => a - b);
-      if (kms.length < 50) return null;
-      return numberQ("Wie viel Prozent der Einsätze lagen höchstens 2 km Luftlinie von der Wache entfernt?", pct(kms.filter((k) => k <= 2).length, kms.length), "%", {
-        explain: `Die Hälfte lag sogar näher als ${fmtKm(kms[Math.floor(kms.length / 2)])}.`,
-        chart: () => quizChart(barList, RADIUS_BINS.map(([lo, hi, label]) => ({ label, value: kms.filter((k) => k >= lo && k < hi).length, hi: hi <= 2, tip: "" })), { labelWidth: 110 }),
+      const { n, median, within2, bins } = radiusSummary(radiusPoints(rows, GEO));
+      if (n < 50) return null;
+      return numberQ("Wie viel Prozent der Einsätze lagen höchstens 2 km Luftlinie von der Wache entfernt?", pct(within2, n), "%", {
+        explain: `Die Hälfte lag sogar näher als ${fmtKm(median)}.`,
+        chart: () => quizChart(barList, RADIUS_BINS.map(([, hi, label], i) => ({ label, value: bins[i], hi: hi <= 2, tip: "" })), { labelWidth: 110 }),
       });
     }],
     ["weather", () => {

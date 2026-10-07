@@ -21,8 +21,9 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 - `docs/app.js`: the page and its views. `docs/lib/`: the rules and calculations it uses, without any page
   code, so they can be tested on their own: `dates.js`, `text.js`, `alarms.js` (the cleaning and the
   matching of hand entries, which the admin page uses too), `estimate.js` ("Einsatz heute?" and its
-  backtest), `weather.js`, `year.js` (what the Jahresrückblick counts and compares) and `myths.js`
-  (the Mythen-Check).
+  backtest), `weather.js`, `year.js` (what the Jahresrückblick counts and compares), `myths.js`
+  (the Mythen-Check), `places.js` (Stammadressen, the dot wall's groups and colours, distances for the
+  Einsatzradius) and `count.js` (counting alarms by street, keyword and so on).
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `docs/admin.html`: form for adding alarms before the website lists them (see below).
 - `docs/manifest.webmanifest` and `docs/icons/`: let phones add the site to the home screen as an app (icon source: `icons/icon.svg`).
@@ -68,7 +69,7 @@ The rules are in `docs/lib/year.js`, with unit tests in `tests/unit/year.test.js
 A line from the Wache (Teichstraße 8) to every alarm with a known address, over a grey OpenStreetMap map
 (dark in dark mode), with rings every 1, 2, 5 or 10 km depending on the zoom. "Abspielen" sends the lines out
 in date order, and the tiles and the "Wie weit weg?" bars count along. Distances are straight lines, not
-driving routes. The Wache's position (`WACHE` in `app.js`) is the middle of two map services' positions for
+driving routes. The Wache's position (`WACHE` in `docs/lib/places.js`) is the middle of two map services' positions for
 the address, which are 25 m apart. The view follows the filters above it.
 
 ## Mythen-Check
