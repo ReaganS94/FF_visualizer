@@ -12,3 +12,8 @@ export function fmtKm(k) {
   const m = Math.round(k * 100) * 10;
   return m < 1000 ? `${m} m` : `${k.toFixed(1).replace(".", ",")} km`;
 }
+
+// A number with one decimal, German style: 1,5
+export const dec = (x) => x.toFixed(1).replace(".", ",");
+// "a, b und c"
+export const andList = (a) => (a.length > 1 ? `${a.slice(0, -1).join(", ")} und ${a.at(-1)}` : a.join(""));

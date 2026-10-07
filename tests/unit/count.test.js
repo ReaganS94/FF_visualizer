@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { topCounts, counted, pct } from "../../docs/lib/count.js";
+import { topCounts, counted, pct, niceMax } from "../../docs/lib/count.js";
 
 const rows = ["Brand", "Hilfe", "Brand", "", "Hilfe", "Brand", "Unwetter"].map((group, i) => ({ i, group }));
 
@@ -15,4 +15,8 @@ test("counted gives every value with its count", () => {
 
 test("pct rounds to whole percent", () => {
   expect([pct(1, 3), pct(2, 3), pct(0, 5), pct(5, 5)]).toEqual([33, 67, 0, 100]);
+});
+
+test("niceMax ends a scale at 5, or at 1, 2, 2,5 or 5 times a power of ten", () => {
+  expect([0, 3, 5, 6, 12, 20, 21, 30, 70, 101, 1000, 2400].map(niceMax)).toEqual([5, 5, 5, 10, 20, 20, 25, 50, 100, 200, 1000, 2500]);
 });
