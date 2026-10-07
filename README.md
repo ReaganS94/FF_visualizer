@@ -106,6 +106,31 @@ python scraper/scrape.py --file x.html  # import a page saved from the browser
 cd docs && python -m http.server      # then open http://localhost:8000
 ```
 
+## Tests
+
+Browser tests in `tests/` open the site in Chromium (with [Playwright](https://playwright.dev)) and click
+through it like a visitor. They run on every pull request and every change to `main` (Actions → "Tests"),
+and the pull request shows a red check with the failing test when something broke. Nothing leaves the
+machine: Leaflet, map tiles, the warning services and GitHub are answered by the tests, so nothing is
+saved anywhere.
+
+```sh
+npm install                              # once: Playwright and the map library the tests serve
+npx playwright install chromium          # once: the browser
+npm test                                 # all tests, about a minute
+npx playwright test tests/admin.spec.js  # one file
+npx playwright test --ui                 # watch them run step by step
+```
+
+- `site.spec.js`: every tab with every year and both filters, on a computer and two phone sizes: no
+  errors, no "NaN" or "undefined" in the text, no empty tab, nothing that makes the page scroll sideways.
+  Also the year as a story, and the message when the alarms can't be loaded.
+- `warnings.spec.js`: the "Warnungen für Hannover" box with made-up warnings, and when a service is down.
+- `quiz.spec.js`: 300 rounds of the quiz; a reworded question may need its pattern updated there.
+- `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
+- `admin.spec.js`: the admin page with a made-up website list and hand entries.
+- `fixtures.js`: the setup every test shares.
+
 ## Publish
 
 Settings → Pages → Build and deployment → "Deploy from a branch" → `main` / `/docs`.
