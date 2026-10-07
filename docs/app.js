@@ -2544,7 +2544,7 @@ $("#quiz-card").addEventListener("click", (e) => {
   else if (act === "step") {
     const r = $("#quiz-range");
     r.value = Number(r.value) + Number(b.dataset.d);
-    r.dispatchEvent(new Event("input"));
+    r.dispatchEvent(new Event("input", { bubbles: true })); // up to the card, which keeps the guess
   }
 });
 $("#quiz-card").addEventListener("input", (e) => {
