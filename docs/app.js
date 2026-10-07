@@ -1,10 +1,13 @@
-import { WEEKDAYS, WEEKDAYS_LONG, MONTHS, MONTHS_LONG, parseDate, isoDate, addDays, weekday, fmtDate, minDate, maxDate } from "./lib/dates.js";
+import {
+  WEEKDAYS, WEEKDAYS_LONG, MONTHS, MONTHS_LONG, parseDate, isoDate, addDays, weekday, fmtDate, minDate, maxDate, longestRun,
+} from "./lib/dates.js";
 import { esc, einsaetze, weitere } from "./lib/text.js";
 import { BIG_DAY, stamp, mergeManual, clean } from "./lib/alarms.js";
 import { HOT, GUST, isHot, isStorm, isThunder, wxKind, weatherFacts } from "./lib/weather.js";
 import {
   DAY_START, NIGHT_START, PRIOR, specialNight, alarmWindows, lastCovered, estimate, backtest, backtestFit, backtestGroups, alarmsIn,
 } from "./lib/estimate.js";
+import { NOTABLE, yearInfo, DAY_SLOTS, runningTotal } from "./lib/year.js";
 
 let ALL = [];             // cleaned alarms
 let KW = { groups: {}, codes: {} }; // keyword names, from data/keywords.json
@@ -939,38 +942,7 @@ setInterval(() => { if (warnShown()) loadWarnings(); }, WARN_EVERY);
 document.addEventListener("visibilitychange", () => { if (warnShown() && warnStale()) loadWarnings(); });
 
 // ---------- Jahresrückblick ----------
-// Keywords worth listing individually in the annual report.
-const NOTABLE = /^(b2|b3|ob|ba2|bg2|abc2|hm2|hm3|hw\d|hu\d|manv.*)$/;
-
-// What the annual report and the year story compare: a running year only up to the website's newest
-// entry (later alarms exist only where they were entered by hand), against the same period a year earlier.
-function yearInfo(year, storm) {
-  const alarms = ALL.filter((r) => !r.standby && (storm || !r.bigDay));
-  const rows = alarms.filter((r) => r.date.startsWith(year));
-  const prev = alarms.filter((r) => r.date.startsWith(String(year - 1)));
-  const lastDate = rows.length ? rows[0].date : "";
-  const listed = isoDate(LISTED);
-  // Not complete while the year runs, nor in January while the website still catches up on December.
-  const running = Number(year) >= new Date().getFullYear();
-  const partial = Boolean(lastDate) && (running || listed < `${year}-12-31`);
-  const cutDate = partial ? minDate(lastDate, listed) : `${year}-12-31`;
-  const cut = cutDate.startsWith(year) ? cutDate.slice(5) : "";
-  const cmpRows = rows.filter((r) => r.date.slice(5) <= cut);
-  const prevSame = partial ? prev.filter((r) => r.date.slice(5) <= cut) : prev;
-  const delta = prevSame.length && cut ? Math.round((100 * (cmpRows.length - prevSame.length)) / prevSame.length) : null;
-  return { alarms, rows, prev, lastDate, running, partial, listed, cutDate, cut, cmpRows, prevSame, delta };
-}
-
-// The days of a leap year, so every date sits at the same place in every year.
-const DAY_SLOTS = Array.from({ length: 366 }, (_, i) => isoDate(addDays(new Date(2024, 0, 1), i)).slice(5));
-
-// Alarms from 01.01. added up day by day; null after `until` (MM-DD), so the line stops there.
-function runningTotal(rows, until) {
-  const per = {};
-  for (const r of rows) per[r.date.slice(5)] = (per[r.date.slice(5)] || 0) + 1;
-  let sum = 0;
-  return DAY_SLOTS.map((d) => (d > until ? null : (sum += per[d] || 0)));
-}
+// What a year counts and compares with is worked out in lib/year.js; this draws the view.
 
 // One line per year. The chosen year is coloured, the others grey, each with its total at the end.
 // series: [{label, values, sel}], marks: [{i, text}] notes on the chosen line.
@@ -1028,7 +1000,7 @@ function raceChart(el, series, { height = 260, hover = true, marks = [] } = {}) 
 function renderYear() {
   const year = $("#y-year").value;
   const storm = $("#y-storm").checked;
-  const info = yearInfo(year, storm);
+  const info = yearInfo(year, storm, ALL, LISTED);
   const { rows, prevSame, running, partial, lastDate, listed, cutDate, cut, delta } = info;
 
   const byDay = topCounts(rows, (r) => r.date, 1)[0];
@@ -1059,7 +1031,7 @@ function renderYear() {
   // Every year's running total; a running year's line stops where its data does.
   const years = [...new Set(info.alarms.map((r) => r.date.slice(0, 4)))].sort();
   const series = years.map((y) => {
-    const own = y === year ? info : yearInfo(y, storm);
+    const own = y === year ? info : yearInfo(y, storm, ALL, LISTED);
     return { label: y, sel: y === year, values: runningTotal(own.rows, own.cut), own };
   }).filter((s) => s.values[0] !== null);
   const marks = storm ? topCounts(rows.filter((r) => r.bigDay && r.date.slice(5) <= cut), (r) => r.date)
@@ -1090,7 +1062,7 @@ function renderYear() {
 // Full-screen cards to tap or swipe through, one fact each, sized for a phone screenshot.
 // Uses the year and the "Großlagen mitzählen" choice of the Jahresrückblick.
 function storyCards(year, storm) {
-  const info = yearInfo(year, storm);
+  const info = yearInfo(year, storm, ALL, LISTED);
   const { rows } = info;
   if (!rows.length) return [];
   const cards = [];
@@ -1170,15 +1142,7 @@ function storyCards(year, storm) {
   // Longest run of days without any alarm (Großlagen always count here: a storm day is never quiet),
   // only up to the website's newest entry.
   const busy = new Set(ALL.filter((r) => !r.standby).map((r) => r.date));
-  const quietEnd = info.partial ? info.listed : `${year}-12-31`;
-  let quiet = null, from = null;
-  for (let d = parseDate(`${year}-01-01`); isoDate(d) <= quietEnd; d = addDays(d, 1)) {
-    const k = isoDate(d);
-    if (busy.has(k)) { from = null; continue; }
-    from ||= k;
-    const len = Math.round((d - parseDate(from)) / 864e5) + 1;
-    if (!quiet || len > quiet.len) quiet = { len, from, to: k };
-  }
+  const quiet = longestRun(busy, `${year}-01-01`, info.partial ? info.listed : `${year}-12-31`, false);
   if (quiet && quiet.len > 1) {
     add("amber", `<div class="st-kicker">Die längste Pause</div><div class="st-hero">${num(quiet.len)} <span class="st-unit">Tage</span></div>` +
       `<div class="st-text">ohne einen einzigen Einsatz, vom ${dm(quiet.from)} bis ${fmtDate(quiet.to)}.</div>`);
@@ -1189,7 +1153,7 @@ function storyCards(year, storm) {
     const period = info.partial ? ` (jeweils bis ${dm(info.cutDate)})` : "";
     const sign = (n) => `${n > 0 ? "+" : n < 0 ? "−" : "±"}${Math.abs(n)}`;
     const withBig = storm && [...info.cmpRows, ...info.prevSame].some((r) => r.bigDay);
-    const without = withBig ? yearInfo(year, false).delta : null;
+    const without = withBig ? yearInfo(year, false, ALL, LISTED).delta : null;
     add("navy", `<div class="st-kicker">Im Vergleich zu ${prevYear}</div>` +
       `<div class="st-hero" ${fit(`${sign(info.delta)} %`)}><span data-to="${info.delta}" data-sign="1">${sign(info.delta)}</span> %</div>` +
       `<div class="st-text">${einsaetze(info.cmpRows.length)} im Jahr ${year}, ${info.prevSame.length} im Jahr ${prevYear}${period}.</div>` +
@@ -1997,14 +1961,14 @@ function quizQuestions() {
   const calm = rows.filter((r) => !r.bigDay);
   const listed = isoDate(LISTED), first = rows.at(-1).date;
   const years = [...new Set(rows.map((r) => r.date.slice(0, 4)))].sort();
-  const full = years.filter((y) => !yearInfo(y, true).partial);
+  const full = years.filter((y) => !yearInfo(y, true, ALL, LISTED).partial);
   const E = ["Einsatz", "Einsätze"], T = ["Tag", "Tage"];
   const plainName = (r) => r.name.replace(/\s*\(.*\)$/, "");
   const top = (list) => (list.length > 1 && list[0][1] === list[1][1] ? null : list[0]); // only a clear winner
   const inYear = (y) => rows.filter((r) => r.date.startsWith(y));
   const bigIn = (list) => topCounts(list.filter((r) => r.bigDay), (r) => r.date, 1)[0]; // the largest Großlage in it
   const yearBars = (hi) => quizChart(barList, years.map((y) => {
-    const info = yearInfo(y, true);
+    const info = yearInfo(y, true, ALL, LISTED);
     return { label: info.partial ? `${y} (bis ${fmtDate(info.cutDate).slice(0, 6)})` : y, value: info.rows.length, hi: !hi || y === hi, tip: "" };
   }), { labelWidth: 150 });
   // Whole months the website has listed, oldest first.
@@ -2025,20 +1989,9 @@ function quizQuestions() {
   const hourBars = (hi) => quizChart(columnChart, hours.map((n, h) => ({ tick: h % 6 ? "" : `${h}`, value: n, hi: hi(h), tip: "" })), { height: 150 });
   const districts = counted(rows.filter((r) => r.district && r.district !== "unbekannt"), (r) => r.district);
   const streets = counted(rows.filter((r) => r.street), (r) => r.street);
-  // The longest run of days with (busy) or without an alarm. Großlage days count as busy, and the count
-  // stops at the website's newest alarm.
+  // Days with an alarm, for the longest runs of days with and without one. Großlage days count as busy,
+  // and the count stops at the website's newest alarm.
   const dates = new Set(rows.map((r) => r.date));
-  const longestRun = (busy) => {
-    let best = null, from = null;
-    for (let d = parseDate(first); isoDate(d) <= listed; d = addDays(d, 1)) {
-      const k = isoDate(d);
-      if (dates.has(k) !== busy) { from = null; continue; }
-      from ||= k;
-      const len = Math.round((d - parseDate(from)) / 864e5) + 1;
-      if (!best || len > best.len) best = { len, from, to: k };
-    }
-    return best;
-  };
   const reasons = [
     { label: "Rauchwarnmelder", is: isRWM, text: "Wie oft wurde die FF Linden bisher wegen eines Rauchwarnmelders alarmiert?" },
     { label: "Brandmeldeanlage", is: isBMA, text: "Wie oft hat bisher eine Brandmeldeanlage die FF Linden alarmiert?" },
@@ -2073,7 +2026,7 @@ function quizQuestions() {
       // a year against the one before, up to the same date while it isn't complete
       const ys = years.filter((y) => `${y - 1}-01-01` >= first);
       if (!ys.length) return null;
-      const y = pick(ys), info = yearInfo(y, true);
+      const y = pick(ys), info = yearInfo(y, true, ALL, LISTED);
       const now = info.cmpRows.length, before = info.prevSame.length;
       if ((info.partial && info.cut < "03-01") || !before || now === before) return null;
       const when = info.partial ? ` bis zum ${fmtDate(info.cutDate).slice(0, 6)}` : "";
@@ -2396,14 +2349,14 @@ function quizQuestions() {
       }), kinds.map((k) => k.label));
     }],
     ["", () => {
-      const best = longestRun(false);
+      const best = longestRun(dates, first, listed, false);
       if (!best || best.len < 3) return null;
       return numberQ("Die längste Pause bisher: Wie viele Tage hintereinander gab es keinen einzigen Einsatz?", best.len, T, {
         explain: `Die längste Pause ging vom ${fmtDate(best.from)} bis zum ${fmtDate(best.to)}.`,
       });
     }],
     ["", () => {
-      const best = longestRun(true);
+      const best = longestRun(dates, first, listed, true);
       if (!best || best.len < 3) return null;
       return numberQ("Die längste Serie bisher: An wie vielen Tagen hintereinander gab es jeden Tag mindestens einen Einsatz?", best.len, T, {
         explain: `Die Serie ging vom ${fmtDate(best.from)} bis zum ${fmtDate(best.to)}.`,
