@@ -1,4 +1,4 @@
-// Builds the site in web/ into dist/, which the "Website veröffentlichen" workflow publishes on GitHub Pages.
+// Builds the site in web/ into dist/, which the "Publish site" workflow publishes on GitHub Pages.
 // `npm run dev` serves web/ on your computer and reloads on every save. Files in web/public/ (the data, the
 // icons and the app manifest) are copied as they are; everything in web/src/ is bundled.
 import { defineConfig } from "vite";

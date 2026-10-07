@@ -7,12 +7,12 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   library only. For each fetched year the site's rows replace ours, so corrections on the site don't
   leave duplicates; if the site suddenly shows far fewer rows for a year, nothing is removed.
 - `.github/workflows/scrape.yml`: runs the scrapers twice a day and commits the data.
-  It can also be started by hand under Actions → "Einsätze aktualisieren" → Run workflow.
+  It can also be started by hand under Actions → "Update data" → Run workflow.
 - `scraper/weather.py`: daily weather for Hannover from Open-Meteo into `web/public/data/weather.json`, including the
   forecast for today and the next six days and a weather code per day for the outlook's symbols (if the codes
   can't be loaded, the rest is saved without them).
 - `scraper/geocode.py`: looks up each street once via OpenStreetMap Nominatim, cached in `web/public/data/geo.json`. Streets Nominatim can't match (typos, crossings like "NieschlagS/WittekindS", a different district) are retried with Photon, which tolerates typos; its answer only counts if the name is close and the place is in Hannover.
-- `web/`: the site. Vite builds it into `dist/`, which the "Website veröffentlichen" workflow publishes (see
+- `web/`: the site. Vite builds it into `dist/`, which the "Publish site" workflow publishes (see
   Publish below). Views: overview, dot wall (every alarm one dot, regrouped by month,
   type, district or hour with the dots moving to their new places), calendar, year spiral (one turn per year,
   one piece per day, the same date at the same angle every year), time of day, keywords, districts, repeat addresses
@@ -158,8 +158,8 @@ npx playwright test --ui                         # watch the browser tests run s
 
 ## Publish
 
-The "Website veröffentlichen" workflow (`.github/workflows/deploy.yml`) builds the site and publishes it on
-GitHub Pages after every change to `main` and after every data update. Actions → "Website veröffentlichen" →
+The "Publish site" workflow (`.github/workflows/deploy.yml`) builds the site and publishes it on
+GitHub Pages after every change to `main` and after every data update. Actions → "Publish site" →
 Run workflow publishes by hand. It needs Settings → Pages → Build and deployment → Source: "GitHub Actions".
 
 ## Data cleaning (done in the browser, see `web/src/lib/alarms.js` and `web/src/app.js`)
