@@ -134,3 +134,14 @@ export function mythVerdict(t, pick = "ähnliche Tage") {
   if (p < 0.1) return ["maybe", more ? "Vielleicht" : "Vielleicht weniger", `${tries}. Das ist ein Hinweis, aber noch kein Beleg.`];
   return ["none", "Kein Unterschied", `${tries}. Das ist also gut mit Zufall zu erklären.`];
 }
+
+// What a myth's days had compared with similar days, and the verdict's reason, as one or two sentences.
+export function mythSentence(m) {
+  const { t } = m;
+  const why = mythVerdict(t, m.pick)[2];
+  const r = t.base ? t.avg / t.base : t.avg ? Infinity : 1;
+  const [how, word] = r === Infinity ? ["mehr", "als"] : r >= 1.95 ? [`${r.toFixed(1).replace(".", ",")}-mal so viele`, "wie"]
+    : r >= 1.1 ? [`${Math.round(100 * (r - 1))} % mehr`, "als"]
+    : r > 0.9 ? ["etwa gleich viele", "wie"] : [`${Math.round(100 * (1 - r))} % weniger`, "als"];
+  return `${m.on} gab es ${how} Einsätze ${word} ${m.vs}. ${why}`;
+}

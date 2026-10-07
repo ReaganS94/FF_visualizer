@@ -1,62 +1,8 @@
-// The quiz draws 10 questions per round at random from a few dozen kinds, built from the current data. This
-// plays 300 rounds inside the page and checks every question: it shows and answers without "NaN" or page
-// markup in the text, a number's answer fits its slider, a choice offers the right answer once, and no
-// question gives away the answer to another one in the same round.
+// The quiz draws 10 questions per round at random from a few dozen kinds; tests/unit/quiz.test.js checks the
+// questions themselves. These play rounds through the page: one by tapping the buttons like a person, then
+// 100 more inside the page, reading every card before and after the answer for "NaN" or page markup.
 import { test, expect, openSite } from "./fixtures.js";
 
-test("300 rounds of questions show and answer cleanly", async ({ page }) => {
-  await openSite(page);
-  await page.click("nav button[data-view=quiz]");
-  const result = await page.evaluate(async () => {
-    const { quiz, quizQuestions, quizShow, quizAnswer } = await import("/app.js"); // the running page's own copy
-    // Questions that would give each other away; the quiz keeps them in separate rounds. If one of these
-    // questions is reworded, change its pattern here too.
-    const DAY = /stärkste Tag|am Neujahrstag/; // questions on single days
-    const DAY_NOTE = /allein am|Darin steckt die Großlage|Neujahrstag waren/; // answers that name a single day
-    const HEAT_MYTH = /^Stimmt das\?.*Hitze/, WEATHER = /Bei welchem Wetter/;
-    const WEEKEND_MYTH = /^Stimmt das\?.*Wochenende/, WEEKDAYS = /An welchem Wochentag|aufs Wochenende/;
-    const problems = [];
-    let dayQuestions = 0;
-    for (let round = 0; round < 300; round++) {
-      const qs = quizQuestions();
-      const texts = qs.map((q) => q.text);
-      const any = (re) => texts.some((t) => re.test(t));
-      if (qs.length !== 10) problems.push(`a round with ${qs.length} questions`);
-      if (new Set(texts).size !== texts.length) problems.push(`the same question twice: ${texts.join(" / ")}`);
-      const days = qs.filter((q) => DAY.test(q.text) || DAY_NOTE.test(q.explain));
-      dayQuestions += qs.filter((q) => DAY.test(q.text)).length;
-      if (days.length > 1) problems.push(`single days in two questions: ${days.map((q) => q.text).join(" / ")}`);
-      if (any(HEAT_MYTH) && any(WEATHER)) problems.push("the heat myth together with the weather question");
-      if (any(WEEKEND_MYTH) && any(WEEKDAYS)) problems.push("the weekend myth together with a weekday question");
-      for (const q of qs) {
-        if (q.kind === "number" && !(Number.isInteger(q.answer) && q.answer >= 0 && q.answer <= q.max))
-          problems.push(`answer ${q.answer} doesn't fit the slider (0 to ${q.max}): ${q.text}`);
-        if (q.kind === "choice" && (!q.options.includes(q.right) || new Set(q.options).size !== q.options.length || q.options.length < 2))
-          problems.push(`options [${q.options.join(" | ")}] for "${q.right}": ${q.text}`);
-        // show it on its own, answer it, and read the card before and after
-        Object.assign(quiz, { qs: [q], i: 0, got: [], guess: null, done: false });
-        quizShow();
-        const asked = document.querySelector("#quiz-card").innerText;
-        quizAnswer(q.kind === "choice" ? 0 : Math.round(q.max / 3));
-        const answered = document.querySelector("#quiz-card").innerText;
-        for (const text of [asked, answered]) {
-          const bad = text.match(/.{0,40}\b(NaN|undefined|Infinity|null|\[object)\b.{0,40}/);
-          if (bad) problems.push(`"${bad[0].replace(/\s+/g, " ")}" in: ${q.text}`);
-        }
-        if (/&lt;|&gt;|&amp;|<\/?[a-z]/.test(asked)) problems.push(`page markup in the text: ${q.text}`);
-      }
-    }
-    Object.assign(quiz, { qs: [], i: 0, got: [], guess: null, done: false });
-    quizShow();
-    return { problems: [...new Set(problems)].slice(0, 20), dayQuestions };
-  });
-  expect(result.problems).toEqual([]);
-  // the busiest day and Neujahr questions come up often; none at all means DAY above no longer finds them
-  expect(result.dayQuestions).toBeGreaterThan(0);
-  expect(page.errors).toEqual([]);
-});
-
-// One round by tapping the buttons like a person, the slider's − and + included.
 test("a round by tapping: answer, go on, see the points, play again", async ({ page }) => {
   await openSite(page);
   await page.click("nav button[data-view=quiz]");
@@ -79,5 +25,35 @@ test("a round by tapping: answer, go on, see the points, play again", async ({ p
   await expect(card.locator(".quiz-summary li")).toHaveCount(10);
   await card.locator("[data-quiz=start]").click(); // "Nochmal spielen"
   await expect(card.locator(".quiz-kicker")).toHaveText("Frage 1 von 10");
+  expect(page.errors).toEqual([]);
+});
+
+test("100 more rounds show and answer without NaN or page markup", async ({ page }) => {
+  await openSite(page);
+  await page.click("nav button[data-view=quiz]");
+  const problems = await page.evaluate(() => {
+    const card = document.querySelector("#quiz-card");
+    const tap = (selector) => card.querySelector(selector).click();
+    const problems = [];
+    const check = (text, where) => {
+      const bad = text.match(/.{0,40}\b(NaN|undefined|Infinity|null|\[object)\b.{0,40}/);
+      if (bad) problems.push(`"${bad[0].replace(/\s+/g, " ")}" in: ${where}`);
+      if (/&lt;|&gt;|&amp;|<\/?[a-z]/.test(text)) problems.push(`page markup in the text: ${where}`);
+    };
+    for (let round = 0; round < 100; round++) {
+      tap("[data-quiz=start]");
+      for (let k = 0; k < 10; k++) {
+        const question = card.querySelector(".quiz-q").innerText;
+        check(card.innerText, question);
+        tap(card.querySelector("[data-quiz=pick]") ? "[data-quiz=pick]" : "[data-quiz=answer]");
+        check(card.innerText, question);
+        tap("[data-quiz=next]");
+      }
+      if (!card.querySelector(".quiz-hero")) problems.push(`no result after round ${round + 1}`);
+      check(card.innerText, "the result");
+    }
+    return [...new Set(problems)].slice(0, 20);
+  });
+  expect(problems).toEqual([]);
   expect(page.errors).toEqual([]);
 });
