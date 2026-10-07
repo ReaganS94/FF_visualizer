@@ -19,8 +19,9 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   map (with a time-lapse that plays the alarms in date order), Einsatzradius (see below), weather, searchable list, annual report (with a
   year comparison and the year as a story, see below), and an "Einsatz heute?" estimate that is explicitly only a guess.
 - `docs/app.js`: the page and its views. `docs/lib/`: the rules and calculations it uses, without any page
-  code, so they can be tested on their own (`dates.js`, `text.js`, and `alarms.js` with the cleaning and
-  the matching of hand entries, which the admin page uses too).
+  code, so they can be tested on their own: `dates.js`, `text.js`, `alarms.js` (the cleaning and the
+  matching of hand entries, which the admin page uses too), `estimate.js` ("Einsatz heute?" and its
+  backtest) and `weather.js`.
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `docs/admin.html`: form for adding alarms before the website lists them (see below).
 - `docs/manifest.webmanifest` and `docs/icons/`: let phones add the site to the home screen as an app (icon source: `icons/icon.svg`).
@@ -163,6 +164,8 @@ Settings → Pages → Build and deployment → "Deploy from a branch" → `main
 
 ## How "Einsatz heute?" works
 
+The rules are in `docs/lib/estimate.js`, with unit tests in `tests/unit/estimate.test.js`.
+
 Day (06–22): the share of past days with the same weekday that had at least one alarm during the day,
 blended with the average of all days as if 10 average days were added. When 30 °C or more is forecast,
 that value is blended again with the share of past days that hot. Night (22–06): the share of all past
@@ -208,4 +211,4 @@ and the DWD is credited as its terms require. The warnings don't change the perc
 Silvester night (31.12., 22–06) is busy every year (20 alarms in 2024, 14 in 2025), so it gets no
 percentage. On 31.12. the page shows how many alarms the same night had in earlier years, and that
 night is left out when estimating ordinary nights and in the backtest. More such nights can be
-added to `SPECIAL_NIGHTS` in `docs/app.js`.
+added to `SPECIAL_NIGHTS` in `docs/lib/estimate.js`.
