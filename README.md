@@ -21,7 +21,7 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 - `docs/app.js`: the page and its views. `docs/lib/`: the rules and calculations it uses, without any page
   code, so they can be tested on their own: `dates.js`, `text.js`, `alarms.js` (the cleaning and the
   matching of hand entries, which the admin page uses too), `estimate.js` ("Einsatz heute?" and its
-  backtest) and `weather.js`.
+  backtest), `weather.js` and `year.js` (what the Jahresrückblick counts and compares).
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `docs/admin.html`: form for adding alarms before the website lists them (see below).
 - `docs/manifest.webmanifest` and `docs/icons/`: let phones add the site to the home screen as an app (icon source: `icons/icon.svg`).
@@ -59,6 +59,8 @@ aren't matched yet are called "vorläufig" (tag in the list and on the "Letzter 
   phone's back button closes it. The longest quiet spell always counts Großlage days as busy and stops at the
   website's newest alarm.
 - Both follow the "Großlagen mitzählen" checkbox of the Jahresrückblick.
+
+The rules are in `docs/lib/year.js`, with unit tests in `tests/unit/year.test.js`.
 
 ## Einsatzradius
 
