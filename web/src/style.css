@@ -254,14 +254,19 @@ td:nth-child(1), td:nth-child(2) { white-space: nowrap; font-variant-numeric: ta
 .tile.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .disclaimer { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 10px; padding: 12px 14px; margin-top: 16px; }
 
-/* Warnungen: the colours of the Deutscher Wetterdienst's four levels (yellow, orange, red, purple) */
+/* Warnungen: the colours of the Deutscher Wetterdienst's four levels (yellow, orange, red, purple).
+   On Übersicht, or at the very top of every tab once one needs attention. */
 .warnings { margin-top: 14px; }
-.warnings h2 { margin: 0 0 4px; }
-.warn { --lvl: var(--alert-1); border: 1px solid var(--lvl); border-left-width: 5px; border-radius: 10px; padding: 10px 14px; margin-top: 8px;
-  background: color-mix(in srgb, var(--lvl) 10%, var(--panel)); }
+.warn-top { margin: 0 0 18px; }
+.warnings > .warn:first-child { margin-top: 0; }
+.warn { --lvl: var(--alert-1); --glyph: #0b0b0b; display: flex; gap: 12px; align-items: flex-start; border: 2px solid var(--lvl);
+  border-radius: 12px; padding: 10px 14px 10px 10px; margin-top: 8px; background: color-mix(in srgb, var(--lvl) 12%, var(--panel)); }
 .warn.l2 { --lvl: var(--alert-2); }
-.warn.l3 { --lvl: var(--alert-3); }
-.warn.l4 { --lvl: var(--alert-4); }
+.warn.l3 { --lvl: var(--alert-3); --glyph: var(--panel); }
+.warn.l4 { --lvl: var(--alert-4); --glyph: var(--panel); }
+.warn-icon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--lvl); color: var(--glyph); }
+.warn-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.warn-body { flex: 1; min-width: 0; }
 .warn-meta { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: .82rem; color: var(--text-2); }
 .warn-tag { font-weight: 650; color: var(--text); }
 .warn-title { font-weight: 650; margin-top: 2px; overflow-wrap: anywhere; }
@@ -273,6 +278,18 @@ td:nth-child(1), td:nth-child(2) { white-space: nowrap; font-variant-numeric: ta
 .warn-ok { display: inline-block; width: 1.4em; height: 1.4em; line-height: 1.4em; margin-right: 8px; border-radius: 50%; text-align: center;
   font-size: .8em; color: var(--panel); background: var(--alert-ok); vertical-align: 1px; }
 .warnings > .note { margin-top: 6px; }
+/* The first warning moves: Stufe 2 shakes once when it appears; Stufe 3, 4 and the other warnings pulse.
+   Slow enough (once in 1.6 seconds) to be safe for people sensitive to flashing light, and still when
+   the device asks for less motion. */
+.warn.shake { animation: warn-in .5s ease-out both, warn-shake .45s ease-in-out .5s 2; }
+.warn.pulse { animation: warn-ring 1.6s ease-out infinite; }
+.warn.pulse .warn-icon { animation: warn-beat 1.6s ease-in-out infinite; }
+@keyframes warn-in { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+@keyframes warn-shake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes warn-ring { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--lvl) 65%, transparent); }
+  to { box-shadow: 0 0 0 14px color-mix(in srgb, var(--lvl) 0%, transparent); } }
+@keyframes warn-beat { 0%, 40%, 100% { transform: none; } 20% { transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .warn.shake, .warn.pulse, .warn.pulse .warn-icon { animation: none; } }
 
 /* "Die nächsten 7 Tage" */
 .wx-note { border: 1px solid; border-left-width: 4px; border-radius: 10px; padding: 10px 14px; margin-top: 10px; }
@@ -344,7 +361,7 @@ td:nth-child(1), td:nth-child(2) { white-space: nowrap; font-variant-numeric: ta
 .print-only { display: none; }
 body > footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--border); }
 @media print {
-  header nav, nav, #filters, .year-head, #tip, body > footer, .story { display: none !important; }
+  header nav, nav, #filters, .year-head, #tip, body > footer, .story, .warn-top { display: none !important; }
   .print-only { display: block; }
   body { max-width: none; background: #fff; }
 }

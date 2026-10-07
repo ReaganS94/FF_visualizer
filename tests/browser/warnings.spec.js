@@ -1,4 +1,5 @@
-// The "Warnungen für Hannover" box on "Einsatz heute?", with both warning services answered by the test.
+// The warnings for Hannover, with both warning services answered by the test: on Übersicht while they are
+// calm, at the very top of every tab as soon as one needs attention.
 import { test, expect, json, openSite, device } from "./fixtures.js";
 import { devices } from "@playwright/test";
 
@@ -37,81 +38,134 @@ const NINA = [
     sent: "2026-10-07T08:00:00+02:00" }),
 ];
 
-// Routes both services (null = the browser can't load it) and opens "Einsatz heute?".
+// Routes both services (null = the browser can't load it) and opens the site.
 async function openWarnings(page, { dwd = DWD, nina = NINA } = {}) {
   page.calls = { dwd: 0, nina: 0 };
   await page.clock.install({ time: NOW });
   await page.route("https://api.brightsky.dev/**", (r) => { page.calls.dwd++; return dwd === null ? r.abort() : r.fulfill(dwd.status ? dwd : json(dwd)); });
   await page.route("https://warnung.bund.de/**", (r) => { page.calls.nina++; return nina === null ? r.abort() : r.fulfill(json(nina)); });
   await openSite(page);
-  await page.click("nav button[data-view=chance]");
-  await expect(page.locator("#warnings")).toBeVisible();
 }
-const titles = (page) => page.locator("#warnings .warn-title").allTextContents();
-const source = (page) => page.locator("#warnings > .note").textContent();
+const top = (page) => page.locator("#warn-top"); // the very top of every tab
+const box = (page) => page.locator("#warnings"); // on Übersicht
+const titles = (el) => el.locator(".warn-title").allTextContents();
+const source = (el) => el.locator(":scope > .note").textContent();
+const moves = (el) => el.locator(".warn").evaluateAll((ws) => ws.map((w) => (/\b(shake|pulse)\b/.exec(w.className) || ["still"])[0]));
+const FROST = { alerts: [DWD.alerts[1]] };
+const GUSTS = { alerts: [DWD.alerts[3], DWD.alerts[1]] };
 
-test("shows current warnings, most severe first, and leaves out old, lifted, test and doubled ones", async ({ page }) => {
+test("puts all warnings at the very top of every tab once one needs attention, most urgent first", async ({ page }) => {
   await openWarnings(page);
-  expect(await titles(page)).toEqual([
+  await expect(top(page)).toBeVisible();
+  await expect(box(page)).toBeHidden();
+  // old, lifted, test and doubled ones are left out
+  expect(await titles(top(page))).toEqual([
     "Brand in Linden-Nord: Fenster und Türen geschlossen halten",
     "Amtliche UNWETTERWARNUNG vor HEFTIGEM STARKREGEN",
     "Amtliche WARNUNG vor STURMBÖEN",
     "Amtliche WARNUNG vor FROST",
   ]);
-  expect(await page.locator("#warnings .warn-meta").allInnerTexts()).toEqual([
+  expect(await top(page).locator(".warn-meta").allInnerTexts()).toEqual([
     "Bevölkerungsschutz\nseit heute 11:30 Uhr",
     "Wetter · Stufe 3 von 4\nheute 14:00 bis 20:00 Uhr",
     "Wetter · Stufe 2 von 4\nbis heute 19:00 Uhr",
     "Wetter · Stufe 1 von 4\nmorgen 02:00 bis 09:00 Uhr",
   ].map((t) => expect.stringMatching(t.replace(/\n/, "\\s+"))));
+  // only the first one moves, so several warnings don't turn into a light show
+  expect(await moves(top(page))).toEqual(["pulse", "still", "still", "still"]);
+  expect(await top(page).locator(".warn").first().evaluate((w) => getComputedStyle(w).animationName)).toBe("warn-ring");
   // text from the services shows as text, never as page markup
-  await expect(page.locator("#warnings")).toContainText('<Test> & "Quote"');
-  expect(await page.locator("#warnings test").count()).toBe(0);
-  expect(await source(page)).toBe("Wetterwarnungen für die Stadt Hannover: Deutscher Wetterdienst. Andere Warnungen für die Region Hannover: NINA, die Warn-App des Bundes. Stand: 12:00 Uhr.");
+  await expect(top(page)).toContainText('<Test> & "Quote"');
+  expect(await top(page).locator("test").count()).toBe(0);
+  expect(await source(top(page))).toBe("Quellen: Deutscher Wetterdienst (Stadt Hannover) und Warn-App NINA (Region Hannover). Stand: 12:00 Uhr.");
+  expect(await top(page).evaluate((el) => el === document.body.firstElementChild)).toBe(true);
+  for (const view of ["calendar", "chance", "overview"]) {
+    await page.click(`nav button[data-view=${view}]`);
+    await expect(top(page)).toBeVisible();
+    await expect(top(page).locator(".warn")).toHaveCount(4);
+  }
+  await expect(box(page)).toBeHidden();
   expect(page.errors).toEqual([]);
 });
 
-test("loads once when the tab opens and again every 5 minutes, keeping an opened \"Was tun?\" open", async ({ page }) => {
+test("loads when the page opens and again every 5 minutes, keeping an opened \"Was tun?\" open", async ({ page }) => {
   await openWarnings(page);
+  await expect(top(page)).toBeVisible();
   expect(page.calls).toEqual({ dwd: 1, nina: 1 });
-  await page.click("#warnings details summary");
-  await page.click("nav button[data-view=overview]");
+  await page.click("#warn-top details summary");
+  await page.click("nav button[data-view=calendar]");
   await page.click("nav button[data-view=chance]");
   expect(page.calls).toEqual({ dwd: 1, nina: 1 });
   await page.clock.runFor(5 * 60 * 1000 + 1000);
   await expect.poll(() => page.calls.dwd).toBe(2);
-  await expect(page.locator("#warnings > .note")).toContainText("Stand: 12:05 Uhr.");
-  expect(await page.locator("#warnings details").evaluate((d) => d.open)).toBe(true);
+  await expect(top(page).locator(":scope > .note")).toContainText("Stand: 12:05 Uhr.");
+  expect(await top(page).locator("details").evaluate((d) => d.open)).toBe(true);
 });
 
-test("says when there are no warnings", async ({ page }) => {
+test("a Stufe 2 warning goes to the top too, and only shakes once", async ({ page }) => {
+  await openWarnings(page, { dwd: GUSTS, nina: [] });
+  await expect(top(page)).toBeVisible();
+  expect(await titles(top(page))).toEqual(["Amtliche WARNUNG vor STURMBÖEN", "Amtliche WARNUNG vor FROST"]);
+  expect(await moves(top(page))).toEqual(["shake", "still"]);
+  expect(await top(page).locator(".warn").first().evaluate((w) => getComputedStyle(w).animationIterationCount)).toBe("1, 2");
+  await expect(box(page)).toBeHidden();
+});
+
+test("Stufe 1 warnings stay calm on Übersicht", async ({ page }) => {
+  await openWarnings(page, { dwd: FROST, nina: [] });
+  await expect(box(page)).toBeVisible();
+  expect(await titles(box(page))).toEqual(["Amtliche WARNUNG vor FROST"]);
+  expect(await moves(box(page))).toEqual(["still"]);
+  await expect(top(page)).toBeHidden();
+  await page.click("nav button[data-view=calendar]");
+  await expect(box(page)).toBeHidden();
+  await expect(top(page)).toBeHidden();
+});
+
+test("says on Übersicht when there are no warnings", async ({ page }) => {
   await openWarnings(page, { dwd: { alerts: [] }, nina: [] });
-  await expect(page.locator("#warnings .warn-none")).toHaveText(/Für Hannover gibt es gerade keine amtlichen Warnungen\./);
+  await expect(box(page).locator(".warn-none")).toHaveText(/Für Hannover gibt es gerade keine amtlichen Warnungen\./);
+  await expect(top(page)).toBeHidden();
 });
 
 test("points to the NINA app when the browser can't load NINA", async ({ page }) => {
   await openWarnings(page, { dwd: { alerts: [] }, nina: null });
-  await expect(page.locator("#warnings .warn-none")).toHaveText(/keine Wetterwarnungen\./);
-  expect(await source(page)).toContain("Andere Warnungen, etwa zu Bränden mit starkem Rauch oder zu Evakuierungen, stehen in der Warn-App NINA.");
+  await expect(box(page).locator(".warn-none")).toHaveText(/keine Wetterwarnungen\./);
+  expect(await source(box(page))).toBe("Quelle: Deutscher Wetterdienst (Stadt Hannover). Andere Warnungen, etwa zu Bränden mit starkem Rauch oder zu Evakuierungen, stehen in der Warn-App NINA. Stand: 12:00 Uhr.");
 });
 
 test("uses NINA's copy of the weather warnings when the DWD list can't be loaded", async ({ page }) => {
   await openWarnings(page, { dwd: { status: 503, body: "down" } });
-  expect(await titles(page)).toEqual(["Brand in Linden-Nord: Fenster und Türen geschlossen halten", "NINA-KOPIE: Amtliche WARNUNG vor STURMBÖEN"]);
-  await expect(page.locator("#warnings .warn-tag").nth(1)).toHaveText("Wetter · Stufe 2 von 4");
-  expect(await source(page)).toMatch(/^Warnungen für die Region Hannover: NINA, die Warn-App des Bundes, mit den Wetterwarnungen des Deutschen Wetterdienstes\. Stand/);
+  await expect(top(page)).toBeVisible();
+  expect(await titles(top(page))).toEqual(["Brand in Linden-Nord: Fenster und Türen geschlossen halten", "NINA-KOPIE: Amtliche WARNUNG vor STURMBÖEN"]);
+  await expect(top(page).locator(".warn-tag").nth(1)).toHaveText("Wetter · Stufe 2 von 4");
+  expect(await source(top(page))).toMatch(/^Quelle: Warn-App NINA \(Region Hannover\), mit den Wetterwarnungen des Deutschen Wetterdienstes\. Stand/);
 });
 
 test("says so when neither service can be loaded", async ({ page }) => {
   await openWarnings(page, { dwd: null, nina: null });
-  expect(await source(page)).toBe("Die Warnungen konnten gerade nicht geladen werden. Sie stehen beim Deutschen Wetterdienst und in der Warn-App NINA.");
-  expect(await page.locator("#warnings .warn").count()).toBe(0);
+  await expect(box(page)).toBeVisible();
+  expect(await source(box(page))).toBe("Die Warnungen konnten gerade nicht geladen werden. Sie stehen beim Deutschen Wetterdienst und in der Warn-App NINA.");
+  expect(await page.locator(".warn").count()).toBe(0);
+  await expect(top(page)).toBeHidden();
+});
+
+test.describe("when the device asks for less motion", () => {
+  test.use({ contextOptions: { reducedMotion: "reduce" } });
+  test("nothing moves", async ({ page }) => {
+    await openWarnings(page);
+    await expect(top(page)).toBeVisible();
+    const first = top(page).locator(".warn").first();
+    expect(await first.evaluate((w) => getComputedStyle(w).animationName)).toBe("none");
+    expect(await first.locator(".warn-icon").evaluate((w) => getComputedStyle(w).animationName)).toBe("none");
+  });
 });
 
 test.describe("on a phone", () => {
   test.use(device(devices["iPhone 13"]));
   test("fits the screen", async ({ page }) => {
     await openWarnings(page);
+    await expect(top(page)).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
   });
 });

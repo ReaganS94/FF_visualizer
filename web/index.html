@@ -15,6 +15,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
+<div class="warnings warn-top" id="warn-top" role="region" aria-label="Warnungen für Hannover" hidden></div>
 <header>
   <h1>FF Linden Einsatzstatistik</h1>
   <p class="sub">Daten aus der <a target="_blank" rel="noopener noreferrer" href="https://www.ff-linden.de/veranstaltungsliste/">Aktivitätenliste</a> · Stand <span id="updated">…</span><span id="listed"></span></p>
@@ -47,6 +48,7 @@
 
 <main>
   <section data-view="overview" class="active">
+    <div class="warnings" id="warnings" role="region" aria-label="Warnungen für Hannover" hidden></div>
     <div class="app-offer" id="app-offer" hidden>
       <div class="app-offer-row">
         <button type="button" class="app-offer-btn" id="app-offer-btn">
@@ -217,7 +219,6 @@
 
   <section data-view="chance">
     <div class="disclaimer"><strong>Nur eine Schätzung.</strong> Diese Zahlen werden aus vergangenen Einsätzen berechnet und sagen nichts darüber, was heute wirklich passiert. Bitte nicht danach planen und die Einsatzbereitschaft nicht davon abhängig machen.</div>
-    <div class="warnings" id="warnings" hidden></div>
     <div class="chance-grid">
       <div>
         <div id="chance-ring"></div>
