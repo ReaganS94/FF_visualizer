@@ -21,6 +21,11 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `docs/admin.html`: form for adding alarms before the website lists them (see below).
 - `docs/manifest.webmanifest` and `docs/icons/`: let phones add the site to the home screen as an app (icon source: `icons/icon.svg`).
+  On phones and tablets, Übersicht shows an "Als App speichern" button while the site isn't saved yet. On Android
+  (Chrome, Edge, Samsung Internet) it opens the browser's own install window, which the browser only offers while
+  the app isn't installed. iPhones and iPads have no such window and can't tell whether the icon exists, so there
+  the button opens a three-step guide; "Erledigt" or × hide it on that device. It never shows on computers, in
+  Firefox, or when the site already runs from the home screen.
 
 ## Admin page
 

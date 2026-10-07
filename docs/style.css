@@ -103,6 +103,23 @@ section.active { display: block; }
 .tile .l { color: var(--text-2); font-size: .85rem; }
 .tile .d { color: var(--muted); font-size: .8rem; margin-top: 4px; }
 
+/* "Als App speichern" on Übersicht (phones and tablets only, see app.js) */
+.app-offer { margin-top: 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
+.app-offer-row { display: flex; align-items: center; }
+.app-offer-btn { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 10px 6px 10px 12px; font: inherit; text-align: left;
+  color: var(--text); background: none; border: 0; border-radius: 10px; cursor: pointer; }
+.app-offer-btn img { flex: none; border-radius: 9px; }
+.app-offer-btn b { display: block; font-weight: 650; }
+.app-offer-btn small { display: block; color: var(--text-2); font-size: .85rem; }
+.app-offer-close { flex: none; width: 36px; height: 36px; margin-right: 6px; padding: 0; font: inherit; font-size: 1.35rem; line-height: 1;
+  color: var(--text-2); background: none; border: 0; border-radius: 50%; cursor: pointer; }
+.app-offer-guide { border-top: 1px solid var(--border); padding: 10px 14px 12px; font-size: .92rem; }
+.app-offer-guide ol { margin: 0 0 10px; padding-left: 1.3em; }
+.app-offer-guide li + li { margin-top: 4px; }
+.app-offer-guide svg { width: 1.15em; height: 1.15em; vertical-align: -3px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.app-offer-done { font: inherit; font-weight: 650; padding: .4em 1.3em; border-radius: 999px; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--surface); cursor: pointer; }
+
 #c-calendar, #c-heat { overflow-x: auto; }
 .chart svg, #c-calendar svg { width: 100%; height: auto; display: block; overflow: visible; }
 #c-heat svg { min-width: 720px; }
