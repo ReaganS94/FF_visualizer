@@ -134,7 +134,8 @@ npx playwright test --ui                         # watch the browser tests run s
   errors, no "NaN" or "undefined" in the text, no empty tab, nothing that makes the page scroll sideways.
   Also the year as a story, and the message when the alarms can't be loaded.
 - `warnings.spec.js`: the "Warnungen für Hannover" box with made-up warnings, and when a service is down.
-- `quiz.spec.js`: 300 rounds of the quiz; a reworded question may need its pattern updated there.
+- `quiz.spec.js`: 300 rounds of the quiz, and one round played by tapping; a reworded question may need its
+  pattern updated there.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
 - `admin.spec.js`: the admin page with a made-up website list and hand entries.
 - `fixtures.js`: the setup every browser test shares.

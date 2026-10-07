@@ -55,3 +55,29 @@ test("300 rounds of questions show and answer cleanly", async ({ page }) => {
   expect(result.dayQuestions).toBeGreaterThan(0);
   expect(page.errors).toEqual([]);
 });
+
+// One round by tapping the buttons like a person, the slider's − and + included.
+test("a round by tapping: answer, go on, see the points, play again", async ({ page }) => {
+  await openSite(page);
+  await page.click("nav button[data-view=quiz]");
+  const card = page.locator("#quiz-card");
+  await card.locator("[data-quiz=start]").click();
+  for (let k = 1; k <= 10; k++) {
+    await expect(card.locator(".quiz-kicker")).toHaveText(`Frage ${k} von 10`);
+    const pick = card.locator("[data-quiz=pick]");
+    if (await pick.count()) await pick.first().click();
+    else {
+      const guess = await card.locator("#quiz-val").innerText();
+      await card.locator("[data-quiz=step]").last().click(); // one step up from the middle
+      await expect(card.locator("#quiz-val")).not.toHaveText(guess);
+      await card.locator("[data-quiz=answer]").click();
+    }
+    await expect(card.locator(".quiz-result")).toBeVisible();
+    await card.locator("[data-quiz=next]").click();
+  }
+  await expect(card.locator(".quiz-hero")).toContainText("von 20 Punkten");
+  await expect(card.locator(".quiz-summary li")).toHaveCount(10);
+  await card.locator("[data-quiz=start]").click(); // "Nochmal spielen"
+  await expect(card.locator(".quiz-kicker")).toHaveText("Frage 1 von 10");
+  expect(page.errors).toEqual([]);
+});
