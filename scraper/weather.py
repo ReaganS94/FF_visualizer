@@ -1,4 +1,4 @@
-"""Download daily weather for Hannover from Open-Meteo into docs/data/weather.json.
+"""Download daily weather for Hannover from Open-Meteo into web/public/data/weather.json.
 
 Past days come from the archive API (it lags a few days behind), today and the next six
 days from the forecast API (for the 7-day outlook). Free, no API key. Standard library only.
@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parent.parent / "docs" / "data" / "weather.json"
+OUT = Path(__file__).resolve().parent.parent / "web" / "public" / "data" / "weather.json"
 START = "2024-01-01"
 PARAMS = {
     "latitude": 52.3705,   # Hannover-Linden

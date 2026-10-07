@@ -26,15 +26,18 @@ const HAND = [
   alarm("2026-09-20", "10:00", "th1", "Türöffnung", "Limmerstraße"),
 ];
 
-// Plays GitHub's file API for docs/data/manual.json and records each commit's message. Set github.fail to
-// "offline", 401 or 409 to make the next requests fail (409 only once, like a change from elsewhere).
+// Plays GitHub's file API for web/public/data/manual.json (any other file is "Not Found") and records each
+// commit's message. Set github.fail to "offline", 401 or 409 to make the next requests fail (409 only once,
+// like a change from elsewhere).
 async function fakeGitHub(page, rows = HAND) {
   const github = { rows: structuredClone(rows), sha: 1, commits: [], fail: null };
   await page.route("https://api.github.com/**", (r) => {
     const req = r.request();
     if (github.fail === "offline") return r.abort();
     if (github.fail === 401) return r.fulfill(json({ message: "Bad credentials" }, 401));
-    if (new URL(req.url()).pathname === "/repos/ReaganS94/FF_visualizer") return r.fulfill(json({ permissions: { push: github.push ?? true } }));
+    const path = new URL(req.url()).pathname;
+    if (path === "/repos/ReaganS94/FF_visualizer") return r.fulfill(json({ permissions: { push: github.push ?? true } }));
+    if (path !== "/repos/ReaganS94/FF_visualizer/contents/web/public/data/manual.json") return r.fulfill(json({ message: "Not Found" }, 404));
     if (req.method() === "PUT") {
       if (github.fail === 409) { github.fail = null; github.sha++; return r.fulfill(json({ message: "does not match" }, 409)); }
       const body = JSON.parse(req.postData());

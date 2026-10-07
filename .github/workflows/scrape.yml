@@ -34,7 +34,7 @@ jobs:
         continue-on-error: true
       - name: Commit changes
         run: |
-          git add docs/data
+          git add web/public/data
           # Commit even if only the timestamp changed: the site shows it as "Stand" and uses it
           # to know which days are fully covered.
           if git diff --cached --quiet; then

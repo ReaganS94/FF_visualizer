@@ -1,0 +1,49 @@
+name: Website veröffentlichen
+
+# Builds the site in web/ with Vite and publishes dist/ on GitHub Pages (Settings → Pages → Source:
+# "GitHub Actions"). It runs after every change to main and after every data update: the data job pushes
+# with GitHub's own token, and such pushes start no other workflow, so this one waits for that job to end.
+# "Run workflow" on the Actions tab publishes by hand.
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Einsätze aktualisieren"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One at a time; a run that is already publishing is never stopped halfway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # After a data update this checks out the newest main, which has the new data.
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

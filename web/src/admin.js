@@ -1,11 +1,11 @@
-// Saves manual alarms into docs/data/manual.json through the GitHub API. The token only lives in
+// Saves manual alarms into web/public/data/manual.json through the GitHub API. The token only lives in
 // this browser's localStorage; the site itself has no server.
 import { fmtDate } from "./lib/dates.js";
 import { esc } from "./lib/text.js";
 import { tidyStreet, stamp, sameAlarm, matchedManual } from "./lib/alarms.js";
 
 const REPO = "ReaganS94/FF_visualizer";
-const FILE = "docs/data/manual.json";
+const FILE = "web/public/data/manual.json";
 const API = `https://api.github.com/repos/${REPO}`;
 
 const $ = (s) => document.querySelector(s);

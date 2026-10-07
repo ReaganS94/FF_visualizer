@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { tidyStreet, sameAlarm, matchedManual, mergeManual, clean } from "../../docs/lib/alarms.js";
+import { tidyStreet, sameAlarm, matchedManual, mergeManual, clean } from "../../web/src/lib/alarms.js";
 
 const alarm = (date, time, keyword, more = {}) =>
   ({ date, time, category: "Einsatz", keyword, event: "Test", street: "Teststraße", district: "Linden-Mitte", remarks: "", ...more });

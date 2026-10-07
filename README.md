@@ -3,42 +3,46 @@
 Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, taken from the public
 [Aktivitätenliste](https://www.ff-linden.de/veranstaltungsliste/).
 
-- `scraper/scrape.py`: reads the activity table and syncs it into `docs/data/alarms.json`. Standard
+- `scraper/scrape.py`: reads the activity table and syncs it into `web/public/data/alarms.json`. Standard
   library only. For each fetched year the site's rows replace ours, so corrections on the site don't
   leave duplicates; if the site suddenly shows far fewer rows for a year, nothing is removed.
 - `.github/workflows/scrape.yml`: runs the scrapers twice a day and commits the data.
   It can also be started by hand under Actions → "Einsätze aktualisieren" → Run workflow.
-- `scraper/weather.py`: daily weather for Hannover from Open-Meteo into `docs/data/weather.json`, including the
+- `scraper/weather.py`: daily weather for Hannover from Open-Meteo into `web/public/data/weather.json`, including the
   forecast for today and the next six days and a weather code per day for the outlook's symbols (if the codes
   can't be loaded, the rest is saved without them).
-- `scraper/geocode.py`: looks up each street once via OpenStreetMap Nominatim, cached in `docs/data/geo.json`. Streets Nominatim can't match (typos, crossings like "NieschlagS/WittekindS", a different district) are retried with Photon, which tolerates typos; its answer only counts if the name is close and the place is in Hannover.
-- `docs/`: the static site (no build step). Views: overview, dot wall (every alarm one dot, regrouped by month,
+- `scraper/geocode.py`: looks up each street once via OpenStreetMap Nominatim, cached in `web/public/data/geo.json`. Streets Nominatim can't match (typos, crossings like "NieschlagS/WittekindS", a different district) are retried with Photon, which tolerates typos; its answer only counts if the name is close and the place is in Hannover.
+- `web/`: the site. Vite builds it into `dist/`, which the "Website veröffentlichen" workflow publishes (see
+  Publish below). Views: overview, dot wall (every alarm one dot, regrouped by month,
   type, district or hour with the dots moving to their new places), calendar, year spiral (one turn per year,
   one piece per day, the same date at the same angle every year), time of day, keywords, districts, repeat addresses
   (streets with three or more alarms, and fire alarm systems that go off more than once),
   map (with a time-lapse that plays the alarms in date order), Einsatzradius (see below), weather, searchable list, annual report (with a
   year comparison and the year as a story, see below), and an "Einsatz heute?" estimate that is explicitly only a guess.
-- `docs/app.js`: the page and its views. `docs/lib/`: the rules and calculations it uses, without any page
-  code, so they can be tested on their own: `dates.js`, `text.js`, `alarms.js` (the cleaning and the
-  matching of hand entries, which the admin page uses too), `estimate.js` ("Einsatz heute?" and its
-  backtest), `weather.js`, `year.js` (what the Jahresrückblick counts and compares), `myths.js`
-  (the Mythen-Check), `places.js` (Stammadressen, the dot wall's groups and colours, distances for the
-  Einsatzradius), `count.js` (counting alarms by street, keyword and so on) and `quiz.js` (the quiz
-  questions).
-- `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
-- `docs/admin.html`: form for adding alarms before the website lists them (see below).
-- `docs/manifest.webmanifest` and `docs/icons/`: let phones add the site to the home screen as an app (icon source: `icons/icon.svg`).
-  On phones and tablets, Übersicht shows an "Als App speichern" button while the site isn't saved yet. On Android
-  (Chrome, Edge, Samsung Internet) it opens the browser's own install window, which the browser only offers while
-  the app isn't installed. iPhones and iPads have no such window and can't tell whether the icon exists, so there
-  the button opens a four-step guide; "Erledigt" or × hide it on that device. The guide starts with opening the
-  page in Safari, because a page opened from a link in another app (a chat, say) has no "Zum Home-Bildschirm" in
-  its list, only "In Safari öffnen". It names the buttons as the phone shows them (German, otherwise English).
-  It never shows on computers, in Firefox, or when the site already runs from the home screen.
+- `web/index.html` and `web/src/app.js`: the page and its views, with `web/src/style.css` for the look.
+  `web/src/lib/`: the rules and calculations it uses, without any page code, so they can be tested on their
+  own: `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin
+  page uses too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the
+  Jahresrückblick counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot
+  wall's groups and colours, distances for the Einsatzradius), `count.js` (counting alarms by street,
+  keyword and so on) and `quiz.js` (the quiz questions).
+- `web/public/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
+- `web/admin.html` and `web/src/admin.js`: form for adding alarms before the website lists them (see below).
+- `web/public/`: files published as they are: the data in `web/public/data/` (written by the jobs above and the
+  admin page), the icons and the app manifest.
+- `web/public/manifest.webmanifest` and `web/public/icons/`: let phones add the site to the home screen as an app
+  (icon source: `icons/icon.svg`). On phones and tablets, Übersicht shows an "Als App speichern" button while the
+  site isn't saved yet. On Android (Chrome, Edge, Samsung Internet) it opens the browser's own install window,
+  which the browser only offers while the app isn't installed. iPhones and iPads have no such window and can't
+  tell whether the icon exists, so there the button opens a four-step guide; "Erledigt" or × hide it on that
+  device. The guide starts with opening the page in Safari, because a page opened from a link in another app (a
+  chat, say) has no "Zum Home-Bildschirm" in its list, only "In Safari öffnen". It names the buttons as the phone
+  shows them (German, otherwise English). It never shows on computers, in Firefox, or when the site already runs
+  from the home screen.
 
 ## Admin page
 
-`/admin.html` saves alarms into `docs/data/manual.json` via the GitHub API. It needs a fine-grained personal
+`/admin.html` saves alarms into `web/public/data/manual.json` via the GitHub API. It needs a fine-grained personal
 access token limited to this repository with "Contents: Read and write"; the token is stored only in that
 browser. A manual entry is ignored once the website lists an alarm with the same keyword within an hour of
 it, so nothing is counted twice. Each website alarm stands in for at most one hand entry (closest in time
@@ -63,15 +67,15 @@ aren't matched yet are called "vorläufig" (tag in the list and on the "Letzter 
   website's newest alarm.
 - Both follow the "Großlagen mitzählen" checkbox of the Jahresrückblick.
 
-The rules are in `docs/lib/year.js`, with unit tests in `tests/unit/year.test.js`.
+The rules are in `web/src/lib/year.js`, with unit tests in `tests/unit/year.test.js`.
 
 ## Einsatzradius
 
 A line from the Wache (Teichstraße 8) to every alarm with a known address, over a grey OpenStreetMap map
 (dark in dark mode), with rings every 1, 2, 5 or 10 km depending on the zoom. "Abspielen" sends the lines out
 in date order, and the tiles and the "Wie weit weg?" bars count along. Distances are straight lines, not
-driving routes. The Wache's position (`WACHE` in `docs/lib/places.js`) is the middle of two map services' positions for
-the address, which are 25 m apart. The view follows the filters above it.
+driving routes. The Wache's position (`WACHE` in `web/src/lib/places.js`) is the middle of two map services'
+positions for the address, which are 25 m apart. The view follows the filters above it.
 
 ## Mythen-Check
 
@@ -84,11 +88,11 @@ chance alone (the grey bar holds the middle 95 %). The card says "Stimmt" when c
 average in fewer than 2.5 % of the draws, "Vielleicht" below 10 %, and "Zu wenige Tage" under 10 days.
 Großlage days and "vs" are always left out, and 01.01 only counts for Silvester.
 
-- The myths, their tests and the verdicts are in `docs/lib/myths.js`, with unit tests in
+- The myths, their tests and the verdicts are in `web/src/lib/myths.js`, with unit tests in
   `tests/unit/myths.test.js`. Full moons and public holidays in Lower Saxony are computed there, in the browser.
-- `docs/data/ferien.json`: school holidays in Lower Saxony (first and last day). Add the next school year once
+- `web/public/data/ferien.json`: school holidays in Lower Saxony (first and last day). Add the next school year once
   a year from the Kultusministerium's list.
-- `docs/data/heimspiele.json`: dates of Hannover 96 home games in the league. `scraper/football.py` refreshes
+- `web/public/data/heimspiele.json`: dates of Hannover 96 home games in the league. `scraper/football.py` refreshes
   the current and the previous season from OpenLigaDB in the daily job; a season it can't load stays as it is.
 
 ## Quiz "Schätz mal"
@@ -107,7 +111,7 @@ After each answer the page shows the real number with a small chart. Nothing is 
 goes on, and the "Vollbild" button shows the quiz full screen on a TV or projector (not offered where the
 browser can't, e.g. on iPhones). "vs" is always left out.
 
-The questions are built in `docs/lib/quiz.js`. `tests/unit/quiz.test.js` plays 500 rounds of them on the
+The questions are built in `web/src/lib/quiz.js`. `tests/unit/quiz.test.js` plays 500 rounds of them on the
 site's data; a reworded question may need its pattern updated there.
 
 ## Run locally
@@ -116,7 +120,9 @@ site's data; a reworded question may need its pattern updated there.
 python scraper/scrape.py              # fetch the current year
 python scraper/scrape.py --all        # fetch the full history
 python scraper/scrape.py --file x.html  # import a page saved from the browser
-cd docs && python -m http.server      # then open http://localhost:8000
+npm install                           # once (needs Node.js 22.12 or newer)
+npm run dev                           # the site at http://localhost:5173, reloads on every save
+npm run build                         # what gets published, into dist/; npm run preview shows it
 ```
 
 ## Tests
@@ -125,16 +131,16 @@ Two kinds of tests, both run by `npm test` (needs Node.js 22.12 or newer). They 
 and every change to `main` (Actions → "Tests"), and the pull request shows a red check with the failing
 test when something broke.
 
-- `tests/unit/`: the rules and calculations in `docs/lib/`, run in Node with [Vitest](https://vitest.dev),
+- `tests/unit/`: the rules and calculations in `web/src/lib/`, run in Node with [Vitest](https://vitest.dev),
   in a second or so.
-- `tests/browser/`: the site itself, opened in Chromium with [Playwright](https://playwright.dev) and clicked
-  through like a visitor. Nothing leaves the machine: Leaflet, map tiles, the warning services and GitHub
-  are answered by the tests, so nothing is saved anywhere.
+- `tests/browser/`: the site itself, built as for publishing, opened in Chromium with
+  [Playwright](https://playwright.dev) and clicked through like a visitor. Nothing leaves the machine:
+  Leaflet, map tiles, the warning services and GitHub are answered by the tests, so nothing is saved anywhere.
 
 ```sh
-npm install                                      # once: Vitest, Playwright and the map library the tests serve
+npm install                                      # once: Vite, Vitest, Playwright and the map library the tests serve
 npx playwright install chromium                  # once: the browser
-npm test                                         # all tests, about a minute
+npm test                                         # all tests, about two minutes
 npx vitest                                       # unit tests, again after every save
 npx playwright test tests/browser/admin.spec.js  # one browser test file
 npx playwright test --ui                         # watch the browser tests run step by step
@@ -152,9 +158,11 @@ npx playwright test --ui                         # watch the browser tests run s
 
 ## Publish
 
-Settings → Pages → Build and deployment → "Deploy from a branch" → `main` / `/docs`.
+The "Website veröffentlichen" workflow (`.github/workflows/deploy.yml`) builds the site and publishes it on
+GitHub Pages after every change to `main` and after every data update. Actions → "Website veröffentlichen" →
+Run workflow publishes by hand. It needs Settings → Pages → Build and deployment → Source: "GitHub Actions".
 
-## Data cleaning (done in the browser, see `docs/lib/alarms.js` and `docs/app.js`)
+## Data cleaning (done in the browser, see `web/src/lib/alarms.js` and `web/src/app.js`)
 
 - Only rows with category "Einsatz" are shown.
 - An alarm listed twice (same date, time, keyword and street) is counted once.
@@ -174,7 +182,7 @@ Settings → Pages → Build and deployment → "Deploy from a branch" → `main
 
 ## How "Einsatz heute?" works
 
-The rules are in `docs/lib/estimate.js`, with unit tests in `tests/unit/estimate.test.js`.
+The rules are in `web/src/lib/estimate.js`, with unit tests in `tests/unit/estimate.test.js`.
 
 Day (06–22): the share of past days with the same weekday that had at least one alarm during the day,
 blended with the average of all days as if 10 average days were added. When 30 °C or more is forecast,
@@ -221,4 +229,4 @@ and the DWD is credited as its terms require. The warnings don't change the perc
 Silvester night (31.12., 22–06) is busy every year (20 alarms in 2024, 14 in 2025), so it gets no
 percentage. On 31.12. the page shows how many alarms the same night had in earlier years, and that
 night is left out when estimating ordinary nights and in the backtest. More such nights can be
-added to `SPECIAL_NIGHTS` in `docs/lib/estimate.js`.
+added to `SPECIAL_NIGHTS` in `web/src/lib/estimate.js`.

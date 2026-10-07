@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
-import { parseDate, isoDate, addDays, weekday } from "../../docs/lib/dates.js";
-import { fullMoons, holidays, rng, testMyth, mythResults, mythVerdict, mythSentence } from "../../docs/lib/myths.js";
+import { parseDate, isoDate, addDays, weekday } from "../../web/src/lib/dates.js";
+import { fullMoons, holidays, rng, testMyth, mythResults, mythVerdict, mythSentence } from "../../web/src/lib/myths.js";
 
 test("full moons as Hannover dates", () => {
   // 13 in 2026 (two in May); the one on 29.06. at 23:57 UTC is the 30th in Hannover

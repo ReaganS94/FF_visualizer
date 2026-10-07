@@ -1,5 +1,5 @@
-// Browser tests for the site in docs/. Playwright starts a small web server for docs/ (the same one as
-// "Run locally" in the README) and runs every *.spec.js file in tests/browser/ in Chromium.
+// Browser tests for the site in web/. Playwright builds the site the way the publishing workflow does,
+// serves the result (dist/) and runs every *.spec.js file in tests/browser/ in Chromium.
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
@@ -16,9 +16,8 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],
   webServer: {
-    command: "python3 -m http.server 8870 --bind 127.0.0.1 --directory docs",
+    command: "npm run build && npx vite preview --host 127.0.0.1 --port 8870 --strictPort",
     url: "http://127.0.0.1:8870/index.html",
     reuseExistingServer: !process.env.CI,
-    stderr: "ignore", // the server's line for every file it sends
   },
 });

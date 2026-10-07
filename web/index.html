@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FF Linden Einsatzstatistik</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/src/style.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#c8102e">
 <meta name="apple-mobile-web-app-title" content="FF Linden">
 <meta name="mobile-web-app-capable" content="yes">
@@ -50,7 +50,7 @@
     <div class="app-offer" id="app-offer" hidden>
       <div class="app-offer-row">
         <button type="button" class="app-offer-btn" id="app-offer-btn">
-          <img src="icons/icon.svg" alt="" width="36" height="36">
+          <img src="/icons/icon.svg" alt="" width="36" height="36">
           <span><b>Als App speichern</b><small id="app-offer-sub">Mit eigenem Symbol auf dem Startbildschirm.</small></span>
         </button>
         <button type="button" class="app-offer-close" id="app-offer-close" aria-label="Ausblenden" title="Ausblenden">×</button>
@@ -272,6 +272,6 @@
 </div>
 
 <div id="tip" role="tooltip" hidden></div>
-<script type="module" src="app.js"></script>
+<script type="module" src="/src/app.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
 import {
   isBMA, isRWM, addressGroups, dotKind, dotGroups, WACHE, KM_X, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
-} from "../../docs/lib/places.js";
+} from "../../web/src/lib/places.js";
 
 const alarm = (more = {}) => ({ date: "2026-10-07", hour: 12, timeUnknown: false, base: "th", event: "", group: "Brand", street: "", district: "", ...more });
 

@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { esc, einsaetze, weitere, fmtKm, dec, andList } from "../../docs/lib/text.js";
+import { esc, einsaetze, weitere, fmtKm, dec, andList } from "../../web/src/lib/text.js";
 
 test("esc makes text from the data safe for the page", () => {
   expect(esc('<b>"Brand" & Rauch</b>')).toBe("&lt;b&gt;&quot;Brand&quot; &amp; Rauch&lt;/b&gt;");
