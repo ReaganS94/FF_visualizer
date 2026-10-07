@@ -1,4 +1,4 @@
-"""Fetch the FF Linden activity list and merge new rows into docs/data/alarms.json.
+"""Fetch the FF Linden activity list and merge new rows into web/public/data/alarms.json.
 
 Usage:
     python scraper/scrape.py                 # fetch current year from the website
@@ -22,7 +22,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 URL = "https://www.ff-linden.de/veranstaltungsliste/"
-DATA = Path(__file__).resolve().parent.parent / "docs" / "data" / "alarms.json"
+DATA = Path(__file__).resolve().parent.parent / "web" / "public" / "data" / "alarms.json"
 
 # data-label on the site -> field name in our JSON
 FIELDS = {

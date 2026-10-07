@@ -4,13 +4,13 @@
 // away the answer to another one in the same round. The random numbers are seeded, so a failure repeats.
 import { test, expect } from "vitest";
 import fs from "node:fs";
-import { parseDate, addDays, minDate } from "../../docs/lib/dates.js";
-import { mergeManual, clean } from "../../docs/lib/alarms.js";
-import { mythResults, rng } from "../../docs/lib/myths.js";
-import { QUIZ_LEN, quizRound, unitText } from "../../docs/lib/quiz.js";
+import { parseDate, addDays, minDate } from "../../web/src/lib/dates.js";
+import { mergeManual, clean } from "../../web/src/lib/alarms.js";
+import { mythResults, rng } from "../../web/src/lib/myths.js";
+import { QUIZ_LEN, quizRound, unitText } from "../../web/src/lib/quiz.js";
 
 // The data as the page loads and cleans it.
-const read = (f) => JSON.parse(fs.readFileSync(new URL(`../../docs/data/${f}`, import.meta.url), "utf8"));
+const read = (f) => JSON.parse(fs.readFileSync(new URL(`../../web/public/data/${f}`, import.meta.url), "utf8"));
 const data = read("alarms.json"), keywords = read("keywords.json"), weather = read("weather.json").days;
 const alarms = clean(mergeManual(data.rows, read("manual.json").rows), keywords);
 const newest = data.rows.reduce((m, r) => (r.category === "Einsatz" && r.date > m ? r.date : m), "");

@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { WEEKDAYS_LONG, parseDate, isoDate, addDays, weekday, fmtDate } from "../../docs/lib/dates.js";
+import { WEEKDAYS_LONG, parseDate, isoDate, addDays, weekday, fmtDate } from "../../web/src/lib/dates.js";
 
 test("reads and writes dates as local midnight", () => {
   const d = parseDate("2026-10-07");

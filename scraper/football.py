@@ -1,4 +1,4 @@
-"""Download the dates of Hannover 96 home games into docs/data/heimspiele.json (for the Mythen-Check).
+"""Download the dates of Hannover 96 home games into web/public/data/heimspiele.json (for the Mythen-Check).
 
 League games from OpenLigaDB (free, no API key), for the current and the previous season. A season is
 only replaced when the answer has home games in it, so a failed or empty answer keeps what is already
@@ -10,7 +10,7 @@ import json
 import urllib.request
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parent.parent / "docs" / "data" / "heimspiele.json"
+OUT = Path(__file__).resolve().parent.parent / "web" / "public" / "data" / "heimspiele.json"
 TEAM = "Hannover 96"
 LEAGUES = ("bl1", "bl2", "bl3")
 

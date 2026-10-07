@@ -1,6 +1,6 @@
-"""Look up coordinates for every street in docs/data/alarms.json (and manual.json).
+"""Look up coordinates for every street in web/public/data/alarms.json (and manual.json).
 
-Results are cached in docs/data/geo.json, so each street is only looked up once. First asks the
+Results are cached in web/public/data/geo.json, so each street is only looked up once. First asks the
 OpenStreetMap Nominatim service for "street, district, Hannover". The alarm list often has typos
 ("Königsstraße"), a district that OSM files differently, crossings ("NieschlagS/WittekindS") or
 notes ("Moltkeplatz (Bus)"), which Nominatim can't match. Those go to Photon, a search on the same
@@ -18,7 +18,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-DATA = Path(__file__).resolve().parent.parent / "docs" / "data"
+DATA = Path(__file__).resolve().parent.parent / "web" / "public" / "data"
 GEO = DATA / "geo.json"
 # Rough box around Hannover so a street name can't match another town.
 WEST, NORTH, EAST, SOUTH = 9.60, 52.47, 9.93, 52.30

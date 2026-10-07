@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
-import { parseDate, longestRun } from "../../docs/lib/dates.js";
-import { NOTABLE, yearInfo, DAY_SLOTS, runningTotal } from "../../docs/lib/year.js";
+import { parseDate, longestRun } from "../../web/src/lib/dates.js";
+import { NOTABLE, yearInfo, DAY_SLOTS, runningTotal } from "../../web/src/lib/year.js";
 
 // Cleaned alarms as yearInfo gets them: newest first.
 const alarm = (date, more = {}) => ({ date, standby: false, bigDay: false, ...more });

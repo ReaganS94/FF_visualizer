@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
-import { parseDate } from "../../docs/lib/dates.js";
-import { isHot, isStorm, isThunder, wxKind, weatherFacts } from "../../docs/lib/weather.js";
+import { parseDate } from "../../web/src/lib/dates.js";
+import { isHot, isStorm, isThunder, wxKind, weatherFacts } from "../../web/src/lib/weather.js";
 
 test("hot from 30 °C, storm from 60 km/h, thunder from code 95", () => {
   expect([isHot({ tmax: 30 }), isHot({ tmax: 29.9 })]).toEqual([true, false]);

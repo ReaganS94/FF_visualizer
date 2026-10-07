@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
-import { parseDate, isoDate, addDays } from "../../docs/lib/dates.js";
-import { alarmWindows, lastCovered, estimate, backtest, backtestFit, backtestGroups, alarmsIn } from "../../docs/lib/estimate.js";
+import { parseDate, isoDate, addDays } from "../../web/src/lib/dates.js";
+import { alarmWindows, lastCovered, estimate, backtest, backtestFit, backtestGroups, alarmsIn } from "../../web/src/lib/estimate.js";
 
 // Every date from `from` to `to` ("YYYY-MM-DD"), for which keep(date, index) is true.
 function dates(from, to, keep = () => true) {

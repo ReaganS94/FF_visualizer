@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { topCounts, counted, pct, niceMax } from "../../docs/lib/count.js";
+import { topCounts, counted, pct, niceMax } from "../../web/src/lib/count.js";
 
 const rows = ["Brand", "Hilfe", "Brand", "", "Hilfe", "Brand", "Unwetter"].map((group, i) => ({ i, group }));
 

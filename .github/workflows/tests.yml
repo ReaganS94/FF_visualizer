@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - "docs/data/**"
+      - "web/public/data/**"
   workflow_dispatch:
 
 permissions:
