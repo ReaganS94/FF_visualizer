@@ -21,7 +21,8 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 - `docs/app.js`: the page and its views. `docs/lib/`: the rules and calculations it uses, without any page
   code, so they can be tested on their own: `dates.js`, `text.js`, `alarms.js` (the cleaning and the
   matching of hand entries, which the admin page uses too), `estimate.js` ("Einsatz heute?" and its
-  backtest), `weather.js` and `year.js` (what the Jahresrückblick counts and compares).
+  backtest), `weather.js`, `year.js` (what the Jahresrückblick counts and compares) and `myths.js`
+  (the Mythen-Check).
 - `docs/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `docs/admin.html`: form for adding alarms before the website lists them (see below).
 - `docs/manifest.webmanifest` and `docs/icons/`: let phones add the site to the home screen as an app (icon source: `icons/icon.svg`).
@@ -81,7 +82,8 @@ chance alone (the grey bar holds the middle 95 %). The card says "Stimmt" when c
 average in fewer than 2.5 % of the draws, "Vielleicht" below 10 %, and "Zu wenige Tage" under 10 days.
 Großlage days and "vs" are always left out, and 01.01 only counts for Silvester.
 
-- Full moons and public holidays in Lower Saxony are computed in the browser.
+- The myths, their tests and the verdicts are in `docs/lib/myths.js`, with unit tests in
+  `tests/unit/myths.test.js`. Full moons and public holidays in Lower Saxony are computed there, in the browser.
 - `docs/data/ferien.json`: school holidays in Lower Saxony (first and last day). Add the next school year once
   a year from the Kultusministerium's list.
 - `docs/data/heimspiele.json`: dates of Hannover 96 home games in the league. `scraper/football.py` refreshes
