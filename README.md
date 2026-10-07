@@ -76,14 +76,19 @@ Großlage days and "vs" are always left out, and 01.01 only counts for Silvester
 
 ## Quiz "Schätz mal"
 
-Ten questions per round, drawn at random from 15 kinds that are built from the data, so the answers stay
-current: year totals, the busiest month, day, hour and weekday, Silvester, the night share, the most common
-keyword, district, street and fire alarm system, the longest pause, days with an alarm, the share of fires,
-and one myth from the Mythen-Check. Numbers are guessed with a slider: 2 points within 10 % (or ±5 points
-for percentages), 1 point within 25 % (±10). Every other correct answer gives 2 points. After each answer the
-page shows the real number with a small chart. Nothing is saved. Keys 1–4 answer, Enter goes on, and the
-"Vollbild" button shows the quiz full screen on a TV or projector (not offered where the browser can't,
-e.g. on iPhones). "vs" is always left out.
+Ten questions per round, drawn at random from 38 kinds that are built from the data, so the answers stay
+current: totals per year, per month and so far, this year against the last, the busiest and quietest month,
+the busiest day, hour and weekday, the month of the 100th alarm, Silvester (alarms on Neujahr and the minutes
+until the first one), the night and weekend shares, fires by time of day, keywords, districts (and the share
+in Linden itself), streets and fire alarm systems, the reasons for alarms, distances from the Wache, the
+weather with the most alarms, the longest pause and streak, days with an alarm, the average gap between
+alarms, and one myth from the Mythen-Check. A round asks at most one question per topic, so a chart can't give
+away a later answer, and the kinds from the round before come last, so playing again brings new questions.
+Numbers are guessed with a slider: 2 points within 10 % (±5 points for percentages, ±2 minutes for the
+Silvester minutes), 1 point within 25 % (±10 points, ±5 minutes). Every other correct answer gives 2 points.
+After each answer the page shows the real number with a small chart. Nothing is saved. Keys 1–4 answer, Enter
+goes on, and the "Vollbild" button shows the quiz full screen on a TV or projector (not offered where the
+browser can't, e.g. on iPhones). "vs" is always left out.
 
 ## Run locally
 
