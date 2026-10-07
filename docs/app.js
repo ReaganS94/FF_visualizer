@@ -2853,6 +2853,8 @@ $("#app-offer-close").addEventListener("click", dismissAppOffer);
 $("#app-offer-done").addEventListener("click", dismissAppOffer);
 if (appOffer.ios) {
   $("#app-offer-sub").textContent = "Mit eigenem Symbol auf dem Home-Bildschirm.";
+  // The guide names the buttons as the phone shows them, so a phone set to another language gets the English names.
+  if (!/^de\b/i.test(navigator.language || "")) document.querySelectorAll("#app-offer-guide [data-en]").forEach((b) => (b.textContent = b.dataset.en));
   $("#app-offer-btn").setAttribute("aria-expanded", "false");
   $("#app-offer-btn").setAttribute("aria-controls", "app-offer-guide");
 }

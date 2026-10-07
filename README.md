@@ -24,8 +24,10 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   On phones and tablets, Übersicht shows an "Als App speichern" button while the site isn't saved yet. On Android
   (Chrome, Edge, Samsung Internet) it opens the browser's own install window, which the browser only offers while
   the app isn't installed. iPhones and iPads have no such window and can't tell whether the icon exists, so there
-  the button opens a three-step guide; "Erledigt" or × hide it on that device. It never shows on computers, in
-  Firefox, or when the site already runs from the home screen.
+  the button opens a three-step guide; "Erledigt" or × hide it on that device. The guide names the buttons as the
+  phone shows them (German, otherwise English) and says what to do when the page is open inside another app,
+  such as after tapping a link in a chat: that app's list offers "In Safari öffnen" but no "Zum Home-Bildschirm".
+  It never shows on computers, in Firefox, or when the site already runs from the home screen.
 
 ## Admin page
 
