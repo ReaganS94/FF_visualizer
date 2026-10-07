@@ -1,14 +1,18 @@
 {
   "name": "ff-visualizer",
   "private": true,
-  "description": "Browser tests for the FF Linden Einsatzstatistik site in docs/",
+  "description": "Tests for the FF Linden Einsatzstatistik site in docs/",
   "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
-    "test": "playwright test"
+    "test": "vitest run && playwright test"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
     "leaflet": "1.9.4",
-    "leaflet.heat": "0.2.0"
+    "leaflet.heat": "0.2.0",
+    "vitest": "5.0.3"
   }
 }

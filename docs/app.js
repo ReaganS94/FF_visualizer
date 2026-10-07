@@ -1,10 +1,7 @@
-"use strict";
+import { WEEKDAYS, WEEKDAYS_LONG, MONTHS, MONTHS_LONG, parseDate, isoDate, addDays, weekday, fmtDate, minDate, maxDate } from "./lib/dates.js";
+import { esc, einsaetze, weitere } from "./lib/text.js";
+import { BIG_DAY, stamp, mergeManual, clean } from "./lib/alarms.js";
 
-const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-const WEEKDAYS_LONG = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
-const MONTHS_LONG = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
-const BIG_DAY = 10;       // a day with this many alarms or more counts as a Großlage (e.g. storm), except 01.01
 const DAY_START = 6;      // "tagsüber" = 06:00–21:59, "nachts" = 22:00–05:59
 const NIGHT_START = 22;
 
@@ -17,94 +14,9 @@ let UPDATED = new Date(); // when the data was last scraped
 // after its newest entry would look alarm-free, so counts of empty days end the day before it.
 let LISTED = new Date();  // newest date on the website's list
 const $ = (s) => document.querySelector(s);
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-
-// ---------- dates (all local time, data is Hannover time) ----------
-const parseDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); };
-const isoDate = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
-const addDays = (dt, n) => new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() + n);
-const weekday = (dt) => (dt.getDay() + 6) % 7; // Monday = 0
-const fmtDate = (iso) => iso.split("-").reverse().join(".");
-const minDate = (a, b) => (a < b ? a : b);
-const maxDate = (a, b) => (a > b ? a : b);
-// "1 Einsatz", "2 Einsätze" (German numbers with a thousands dot)
-const einsaetze = (n, dative = false) => `${n.toLocaleString("de-DE")} ${n === 1 ? "Einsatz" : dative ? "Einsätzen" : "Einsätze"}`;
-const weitere = (n) => `${n} ${n === 1 ? "weiterer" : "weitere"}`;
 const listBehind = () => addDays(LISTED, 2) < UPDATED; // the website hasn't listed anything for days
 
-// ---------- load & clean ----------
-// The website writes "Straße"; entries typed by hand may say "Strasse" or "Str.". One spelling keeps
-// the street lists and the search together.
-const tidyStreet = (s) => (s || "")
-  .replace(/strasse/g, "straße").replace(/Strasse/g, "Straße")
-  .replace(/(^|[\s-])Str\.?(?=$|[\s/])/g, "$1Straße")
-  .replace(/([a-zäöüß])str\.?(?=$|[\s/])/g, "$1straße");
-
-// A manual entry (admin page) is dropped once the website lists the same alarm: same keyword,
-// time within an hour. Until then it fills the gap.
-// Full timestamps, so 23:50 and 00:10 the next day still match.
-const stamp = (r) => new Date(`${r.date}T${r.time}`).getTime();
-function sameAlarm(a, b) {
-  const base = (k) => k.split("/")[0].trim().toLowerCase();
-  return base(a.keyword) === base(b.keyword) && Math.abs(stamp(a) - stamp(b)) <= 60 * 60 * 1000;
-}
-
-// Each website alarm stands in for at most one hand entry (closest in time first): two "th" alarms
-// 40 minutes apart both stay until the website lists both. Same copy in admin.js.
-function matchedManual(scraped, manual) {
-  const seen = new Set();
-  const web = scraped.filter((r) => {
-    const k = [r.date, r.time, r.keyword, tidyStreet(r.street)].join("|");
-    if (r.category !== "Einsatz" || seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
-  const pairs = [];
-  web.forEach((r, i) => manual.forEach((m, j) => { if (sameAlarm(r, m)) pairs.push([Math.abs(stamp(r) - stamp(m)), i, j]); }));
-  pairs.sort((a, b) => a[0] - b[0]);
-  const usedWeb = new Set(), matched = new Set();
-  for (const [, i, j] of pairs) {
-    if (usedWeb.has(i) || matched.has(manual[j])) continue;
-    usedWeb.add(i);
-    matched.add(manual[j]);
-  }
-  return matched;
-}
-
-function mergeManual(scraped, manual) {
-  const matched = matchedManual(scraped, manual);
-  const pending = manual.filter((m) => !matched.has(m));
-  return [...scraped, ...pending.map((m) => ({ ...m, manual: true }))]
-    .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
-}
-
-function clean(rows) {
-  const seen = new Set();
-  const out = [];
-  for (const r of rows) {
-    if (r.category !== "Einsatz") continue;
-    // The site sometimes lists one alarm twice with slightly different remarks.
-    const street = tidyStreet(r.street);
-    const k = [r.date, r.time, r.keyword, street].join("|");
-    if (seen.has(k)) continue;
-    seen.add(k);
-    const base = r.keyword.split("/")[0].trim().toLowerCase() || "?";
-    const info = KW.codes[base] || {};
-    out.push({
-      ...r, street, geoKey: `${r.street}|${r.district}`, base, standby: base === "vs", hour: Number(r.time.slice(0, 2)),
-      name: info.name || base, group: KW.groups[info.group] || "Unbekannt",
-    });
-  }
-  const perDay = {};
-  for (const r of out) if (!r.standby) perDay[r.date] = (perDay[r.date] || 0) + 1;
-  for (const r of out) {
-    // Silvester fills 01.01 every year; that's part of a normal year, not an outlier like a storm.
-    r.bigDay = perDay[r.date] >= BIG_DAY && r.date.slice(5) !== "01-01";
-    r.timeUnknown = r.bigDay && r.time === "00:00"; // bulk-entered with a placeholder time
-  }
-  return out;
-}
-
+// ---------- filters ----------
 function selection() {
   const year = $("#f-year").value;
   const standby = $("#f-standby").checked;
@@ -2774,6 +2686,9 @@ document.addEventListener("fullscreenchange", () => {
   $("#quiz-full").textContent = document.fullscreenElement ? "Vollbild beenden" : "Vollbild";
 });
 
+// The quiz test (tests/browser/quiz.spec.js) plays hundreds of rounds inside the page with these.
+export { quiz, quizQuestions, quizShow, quizAnswer };
+
 // ---------- wiring ----------
 function render() {
   const rows = selection();
@@ -2879,7 +2794,7 @@ Promise.all([
     WEATHER = weather.days;
     FERIEN = ferien.ranges || [];
     HEIMSPIELE = Object.values(heimspiele.seasons || {}).flat();
-    ALL = clean(mergeManual(data.rows, manual.rows));
+    ALL = clean(mergeManual(data.rows, manual.rows), KW);
     UPDATED = new Date(data.updated);
     // Only alarms: events (Veranstaltung) can be listed ahead of time.
     const newest = data.rows.reduce((m, r) => (r.category === "Einsatz" && r.date > m ? r.date : m), "");

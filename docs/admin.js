@@ -1,19 +1,14 @@
-"use strict";
-
 // Saves manual alarms into docs/data/manual.json through the GitHub API. The token only lives in
 // this browser's localStorage; the site itself has no server.
+import { fmtDate } from "./lib/dates.js";
+import { esc } from "./lib/text.js";
+import { tidyStreet, stamp, sameAlarm, matchedManual } from "./lib/alarms.js";
+
 const REPO = "ReaganS94/FF_visualizer";
 const FILE = "docs/data/manual.json";
 const API = `https://api.github.com/repos/${REPO}`;
 
 const $ = (s) => document.querySelector(s);
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const fmtDate = (iso) => iso.split("-").reverse().join(".");
-// Same as the statistics page: "Strasse" and "Str." become "Straße", the website's spelling.
-const tidyStreet = (s) => (s || "")
-  .replace(/strasse/g, "straße").replace(/Strasse/g, "Straße")
-  .replace(/(^|[\s-])Str\.?(?=$|[\s/])/g, "$1Straße")
-  .replace(/([a-zäöüß])str\.?(?=$|[\s/])/g, "$1straße");
 
 let token = "";
 try { token = localStorage.getItem("gh-token") || ""; } catch {}
@@ -146,35 +141,6 @@ async function loadEditor() {
   }
 }
 
-// Same rule as the statistics page: the website's entry replaces ours once it appears. It also
-// flags a probable double entry before saving.
-const at = (r) => new Date(`${r.date}T${r.time}`).getTime();
-function sameAlarm(a, b) {
-  const base = (k) => k.split("/")[0].trim().toLowerCase();
-  return base(a.keyword) === base(b.keyword) && Math.abs(at(a) - at(b)) <= 60 * 60 * 1000;
-}
-
-// Each website alarm stands in for at most one hand entry (closest in time first). Same copy in app.js.
-function matchedManual(scraped, manual) {
-  const seen = new Set();
-  const web = scraped.filter((r) => {
-    const k = [r.date, r.time, r.keyword, tidyStreet(r.street)].join("|");
-    if (r.category !== "Einsatz" || seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
-  const pairs = [];
-  web.forEach((r, i) => manual.forEach((m, j) => { if (sameAlarm(r, m)) pairs.push([Math.abs(at(r) - at(m)), i, j]); }));
-  pairs.sort((a, b) => a[0] - b[0]);
-  const usedWeb = new Set(), matched = new Set();
-  for (const [, i, j] of pairs) {
-    if (usedWeb.has(i) || matched.has(manual[j])) continue;
-    usedWeb.add(i);
-    matched.add(manual[j]);
-  }
-  return matched;
-}
-
 // One hand entry, all fields equal (two identical entries are still two, and each button acts on one)
 const FIELDS = ["date", "time", "keyword", "event", "street", "district", "remarks"];
 const sameEntry = (a, b) => FIELDS.every((k) => (a[k] || "") === (b[k] || ""));
@@ -202,8 +168,8 @@ function renderManual(rows) {
   const matched = matchedManual(scraped, rows);
   // The website lists alarms in order, so once it shows a later one, this one should be there too.
   // If it isn't, the website probably wrote it with another keyword or time and it would count twice.
-  const newest = Math.max(0, ...scraped.filter((r) => r.category === "Einsatz").map(at).filter(Number.isFinite));
-  const toCheck = (m) => !matched.has(m) && at(m) < newest;
+  const newest = Math.max(0, ...scraped.filter((r) => r.category === "Einsatz").map(stamp).filter(Number.isFinite));
+  const toCheck = (m) => !matched.has(m) && stamp(m) < newest;
   $("#t-manual tbody").innerHTML = rows.map((r, i) => `<tr>
     <td>${esc(fmtDate(r.date))}</td><td>${esc(r.time)}</td><td>${esc(r.keyword)}</td><td>${esc(r.event)}</td>
     <td>${esc(r.street)}, ${esc(r.district)}</td>
@@ -257,7 +223,7 @@ $("#f-alarm").addEventListener("submit", async (e) => {
     keyword: f.keyword.value.trim(), event: f.event.value.trim(),
     street: tidyStreet(f.street.value.trim()), district: f.district.value.trim(), remarks: f.remarks.value.trim(),
   };
-  const future = at(row) > Date.now() + 10 * 60 * 1000;
+  const future = stamp(row) > Date.now() + 10 * 60 * 1000;
   if ((future && !confirm(`${fmtDate(row.date)} ${row.time} liegt in der Zukunft. Trotzdem speichern?`)) || !confirmNoDouble(row)) {
     $("#save-msg").textContent = "Nicht gespeichert.";
     return;

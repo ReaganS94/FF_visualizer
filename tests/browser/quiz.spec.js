@@ -7,7 +7,8 @@ import { test, expect, openSite } from "./fixtures.js";
 test("300 rounds of questions show and answer cleanly", async ({ page }) => {
   await openSite(page);
   await page.click("nav button[data-view=quiz]");
-  const result = await page.evaluate(() => {
+  const result = await page.evaluate(async () => {
+    const { quiz, quizQuestions, quizShow, quizAnswer } = await import("/app.js"); // the running page's own copy
     // Questions that would give each other away; the quiz keeps them in separate rounds. If one of these
     // questions is reworded, change its pattern here too.
     const DAY = /stärkste Tag|am Neujahrstag/; // questions on single days

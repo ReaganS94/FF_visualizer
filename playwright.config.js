@@ -1,9 +1,9 @@
-// Browser tests for the site in docs/. `npm test` starts a small web server for docs/ (the same one as
-// "Run locally" in the README) and runs every *.spec.js file in tests/ in Chromium.
+// Browser tests for the site in docs/. Playwright starts a small web server for docs/ (the same one as
+// "Run locally" in the README) and runs every *.spec.js file in tests/browser/ in Chromium.
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "tests",
+  testDir: "tests/browser",
   timeout: 5 * 60 * 1000, // the full tour of every tab and year takes a few minutes
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
