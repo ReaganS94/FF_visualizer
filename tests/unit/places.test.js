@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import {
-  isBMA, isRWM, addressGroups, dotKind, dotGroups, WACHE, KM_X, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
+  isBMA, isRWM, addressGroups, dotKind, dotGroups, DOT_KINDS, DOT_ORDER, WACHE, KM_X, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
 } from "../../web/src/lib/places.js";
 
 const alarm = (more = {}) => ({ date: "2026-10-07", hour: 12, timeUnknown: false, base: "th", event: "", group: "Brand", street: "", district: "", ...more });
@@ -23,6 +23,10 @@ test("addressGroups: streets with enough alarms, most first, then by name", () =
 test("dot colours: Brand, Technische Hilfe, Unwetter, the rest grey", () => {
   expect(["Brand", "Technische Hilfe", "Unwetter", "Gas & Gefahrstoffe"].map((group) => dotKind(alarm({ group }))))
     .toEqual(["brand", "hilfe", "unwetter", "other"]);
+});
+
+test("the dot wall's order holds every colour once, grey last", () => {
+  expect(DOT_ORDER).toEqual([...DOT_KINDS.map(([kind]) => kind), "other"]);
 });
 
 describe("dotGroups", () => {

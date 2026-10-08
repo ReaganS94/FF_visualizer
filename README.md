@@ -21,16 +21,7 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   year comparison and the year as a story, see below), and an "Einsatz heute?" estimate that is explicitly only a guess.
   Current official warnings for Hannover show on Übersicht, or at the very top of every tab when one needs
   attention (see Warnungen below).
-- `web/index.html` and `web/src/app.js`: the page and its views, with `web/src/style.css` for the look.
-  The views are moving to [React](https://react.dev) one at a time: `web/src/views/` has the ones that
-  moved so far (`AlarmList.jsx`, the list), and its `show.js` lets `app.js` hand them their alarms.
-  React is bundled into a file of its own, so browsers keep it when the site's own code changes.
-  `web/src/lib/`: the rules and calculations it uses, without any page code, so they can be tested on their
-  own: `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin
-  page uses too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the
-  Jahresrückblick counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot
-  wall's groups and colours, distances for the Einsatzradius), `count.js` (counting alarms by street,
-  keyword and so on) and `quiz.js` (the quiz questions).
+- `web/index.html` and `web/src/`: the page and its code, see "Where is what" below.
 - `web/public/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
 - `web/admin.html` and `web/src/admin.js`: form for adding alarms before the website lists them (see below).
 - `web/public/`: files published as they are: the data in `web/public/data/` (written by the jobs above and the
@@ -44,6 +35,35 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   chat, say) has no "Zum Home-Bildschirm" in its list, only "In Safari öffnen". It names the buttons as the phone
   shows them (German, otherwise English). It never shows on computers, in Firefox, or when the site already runs
   from the home screen.
+
+## Where is what
+
+The site's code is in `web/src/`. It is being split up so that every tab gets a folder of its own in `views/`,
+with its code and its styles; after that the tabs move to [React](https://react.dev) one at a time. The tabs
+that haven't moved yet are still in `app.js`.
+
+- `app.js`: starts the page (the tab bar, the filters, loading the data) and draws the tabs that haven't
+  moved to `views/` yet.
+- `data.js`: the data every tab draws from (alarms, keyword names, map positions, weather, school holidays,
+  home games), loaded once when the page opens, and the filters above the tabs.
+- `dom.js`: two small helpers: `$` finds an element on the page, `calm()` says whether the device asks for
+  less motion.
+- `components/`: pieces several tabs use, with their styles next to them: `charts.js` (bar charts, the blue
+  heat colours and their legend), `tooltip.js` (the box that follows the pointer), `warnings.js` (the
+  warnings box, see Warnungen below), `myths.js` (the myth results and pictures, on the Mythen-Check and in
+  the quiz) and `leaflet.js` (loads the map library for the Karte and the Einsatzradius).
+- `views/`: the tabs with files of their own. So far that's the list, `AlarmList.jsx`, a React component;
+  `show.js` lets `app.js` hand it its alarms. React is bundled into a file of its own, so browsers keep it
+  when the site's own code changes.
+- `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
+  `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin
+  page uses too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the
+  Jahresrückblick counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot
+  wall's groups and colours, distances for the Einsatzradius), `count.js` (counting alarms by street,
+  keyword and so on) and `quiz.js` (the quiz questions).
+- `style.css`: the colours, the layout, and the styles of the tabs that haven't moved yet. The admin page
+  uses it too.
+- `admin.js`: the admin page (`web/admin.html`).
 
 ## Admin page
 
@@ -150,8 +170,8 @@ browsers throw the list away when the site asks NINA directly. `relay/nina.js` i
 fetches NINA's list for the Region Hannover and passes it on with that header. It forwards nothing else, keeps
 the list for a minute so NINA gets at most one request a minute, and answers 502 when NINA fails. Any website
 may read it, like Bright Sky: the list is public anyway, and the site keeps working if it moves to another
-address. The site asks it at the address in `NINA_RELAY` in `web/src/app.js`; `tests/unit/relay.test.js`
-tests it.
+address. The site asks it at the address in `NINA_RELAY` in `web/src/components/warnings.js`;
+`tests/unit/relay.test.js` tests it.
 
 To put it online, or to update it after `relay/nina.js` changed:
 
@@ -213,7 +233,7 @@ The "Publish site" workflow (`.github/workflows/deploy.yml`) builds the site and
 GitHub Pages after every change to `main` and after every data update. Actions → "Publish site" →
 Run workflow publishes by hand. It needs Settings → Pages → Build and deployment → Source: "GitHub Actions".
 
-## Data cleaning (done in the browser, see `web/src/lib/alarms.js` and `web/src/app.js`)
+## Data cleaning (done in the browser, see `web/src/lib/alarms.js` and `web/src/data.js`)
 
 - Only rows with category "Einsatz" are shown.
 - An alarm listed twice (same date, time, keyword and street) is counted once.
