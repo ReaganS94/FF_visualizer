@@ -199,6 +199,8 @@ npx playwright test --ui                         # watch the browser tests run s
   Also the year as a story, and the message when the alarms can't be loaded.
 - `warnings.spec.js`: the warnings with made-up ones: where they show, which one moves, and when a service is down.
 - `list.spec.js`: the list: the search, the filters, and a made-up hand entry marked "vorläufig".
+- `scrollbar.spec.js`: switching tabs on a computer screen, with the scrollbar showing: the page doesn't jump
+  sideways between tabs that scroll and tabs that fit the window.
 - `quiz.spec.js`: a round of the quiz played by tapping, and 100 more rounds checked for "NaN" or page
   markup in the questions and answers.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
