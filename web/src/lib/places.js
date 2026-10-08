@@ -21,6 +21,8 @@ export function addressGroups(rows, min) {
 // for everyone; the rarer types share grey ("other").
 export const DOT_KINDS = [["brand", "Brand"], ["hilfe", "Technische Hilfe"], ["unwetter", "Unwetter"]];
 export const dotKind = (r) => (DOT_KINDS.find(([, g]) => g === r.group) || ["other"])[0];
+// Every kind, in the order the dot wall stacks them.
+export const DOT_ORDER = ["brand", "hilfe", "unwetter", "other"];
 
 // The dot wall's groups for "month", "hour", "type" or "district": [{label, rows}], the twelve busiest
 // districts and the rest together.

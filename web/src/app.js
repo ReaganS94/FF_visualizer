@@ -2,129 +2,26 @@ import {
   WEEKDAYS, WEEKDAYS_LONG, MONTHS, parseDate, isoDate, addDays, weekday, fmtDate, minDate, maxDate, longestRun,
 } from "./lib/dates.js";
 import { esc, einsaetze, weitere, fmtKm } from "./lib/text.js";
-import { BIG_DAY, mergeManual, clean } from "./lib/alarms.js";
+import { BIG_DAY } from "./lib/alarms.js";
 import { HOT, GUST, isHot, isStorm, isThunder, wxKind, weatherFacts } from "./lib/weather.js";
 import {
   DAY_START, NIGHT_START, PRIOR, specialNight, alarmWindows, lastCovered, estimate, backtest, backtestFit, backtestGroups, alarmsIn,
 } from "./lib/estimate.js";
 import { NOTABLE, yearInfo, DAY_SLOTS, runningTotal } from "./lib/year.js";
-import { mythResults, mythVerdict, mythSentence } from "./lib/myths.js";
 import { topCounts, pct, niceMax } from "./lib/count.js";
 import {
-  isBMA, isRWM, addressGroups, dotKind, dotGroups, WACHE, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
+  isBMA, isRWM, addressGroups, dotKind, dotGroups, DOT_ORDER, WACHE, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
 } from "./lib/places.js";
 import { QUIZ_LEN, quizRound, unitText } from "./lib/quiz.js";
+import { $, calm } from "./dom.js";
+import { ALL, KW, GEO, WEATHER, UPDATED, LISTED, listBehind, selection, loadData } from "./data.js";
+import { tip, placeTip } from "./components/tooltip.js";
+import { columnChart, barList, rampColors, legend } from "./components/charts.js";
+import { myths, mythParts } from "./components/myths.js";
+import { loadScript, LEAFLET } from "./components/leaflet.js";
+import "./components/warnings.js"; // the warnings box loads and refreshes itself
 import { show } from "./views/show.js";
 import AlarmList from "./views/AlarmList.jsx";
-
-let ALL = [];             // cleaned alarms
-let KW = { groups: {}, codes: {} }; // keyword names, from data/keywords.json
-let GEO = {};             // "street|district" -> [lat, lon], from data/geo.json
-let WEATHER = {};         // "YYYY-MM-DD" -> {tmax, tmin, rain, gust}, from data/weather.json
-let UPDATED = new Date(); // when the data was last scraped
-// The website's list isn't always current (in September 2026 it stopped at 13.09. for weeks). Days
-// after its newest entry would look alarm-free, so counts of empty days end the day before it.
-let LISTED = new Date();  // newest date on the website's list
-let FERIEN = [];         // school holidays in Lower Saxony, [[first, last], ...] from data/ferien.json
-let HEIMSPIELE = [];     // Hannover 96 home games, from data/heimspiele.json
-const $ = (s) => document.querySelector(s);
-const listBehind = () => addDays(LISTED, 2) < UPDATED; // the website hasn't listed anything for days
-
-// ---------- filters ----------
-function selection() {
-  const year = $("#f-year").value;
-  const standby = $("#f-standby").checked;
-  const storm = $("#f-storm").checked;
-  return ALL.filter((r) =>
-    (!year || r.date.startsWith(year)) && (standby || !r.standby) && (storm || !r.bigDay));
-}
-
-// ---------- tooltip ----------
-const tip = $("#tip");
-function placeTip(html, cx, cy) {
-  tip.innerHTML = html;
-  tip.hidden = false;
-  const x = Math.min(cx + 14, window.innerWidth - tip.offsetWidth - 8);
-  const y = cy + 14 + tip.offsetHeight > window.innerHeight ? cy - tip.offsetHeight - 10 : cy + 14;
-  tip.style.left = x + "px";
-  tip.style.top = y + "px";
-}
-document.addEventListener("mousemove", (e) => {
-  const t = e.target.closest("[data-tip]");
-  if (!t) { tip.hidden = true; return; }
-  placeTip(t.dataset.tip, e.clientX, e.clientY);
-});
-
-// ---------- chart helpers ----------
-// Vertical bars. items: [{label, value, tip, tick, hi}]; hi: false greys a bar out next to the highlighted ones.
-function columnChart(el, items, { height = 220 } = {}) {
-  const W = el.clientWidth || 1000, H = height, L = 34, B = 24, T = 8;
-  const max = niceMax(Math.max(1, ...items.map((d) => d.value)));
-  const bw = (W - L) / items.length;
-  const gap = Math.min(2, bw * 0.2);
-  const y = (v) => T + (H - T - B) * (1 - v / max);
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
-  const steps = max % 4 === 0 ? 4 : 5; // keep tick labels whole numbers
-  for (let i = 0; i <= steps; i++) {
-    const v = (max / steps) * i;
-    s += `<line class="grid" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${Math.round(v)}</text>`;
-  }
-  items.forEach((d, i) => {
-    const x = L + i * bw;
-    const top = y(d.value), h = H - B - top;
-    if (d.value > 0) s += `<path class="bar${d.hi === false ? " lo" : ""}" d="${roundTop(x + gap / 2, top, bw - gap, h, Math.min(4, (bw - gap) / 2))}"/>`;
-    s += `<rect class="hit" x="${x}" y="${T}" width="${bw}" height="${H - T - B}" data-tip="${esc(d.tip)}"/>`;
-    if (d.tick) s += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${esc(d.tick)}</text>`;
-  });
-  el.innerHTML = s + "</svg>";
-}
-
-// Horizontal ranked bars with the value at the end (hi: false greys a bar out, as above).
-// scaleTo keeps the scale fixed while the values grow (the Einsatzradius playback).
-function barList(el, items, { labelWidth = 170, scaleTo = 1 } = {}) {
-  const W = el.clientWidth || 1000, R = 40;
-  const max = Math.max(scaleTo, ...items.map((d) => d.value));
-  // Labels left of the bars; if one doesn't fit (long keyword names on a phone), each label goes above its bar.
-  const draw = (stacked) => {
-    const row = stacked ? 38 : 26, L = stacked ? 0 : Math.min(labelWidth, W * 0.5), top = stacked ? 18 : 3;
-    const H = items.length * row + 4;
-    let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
-    items.forEach((d, i) => {
-      const y = i * row + 4, w = ((W - L - R) * d.value) / max;
-      s += stacked ? `<text class="lbl" x="0" y="${y + 12}">${esc(d.label)}</text>`
-        : `<text class="lbl" x="${L - 8}" y="${y + 15}" text-anchor="end">${esc(d.label)}</text>`;
-      s += `<path class="bar${d.hi === false ? " lo" : ""}" d="${roundRight(L, y + top, w, stacked ? 14 : row - 8, 4)}"/>`;
-      s += `<text x="${L + w + 6}" y="${y + top + (stacked ? 11 : 12)}">${d.display ?? d.value}</text>`;
-      s += `<rect class="hit" x="0" y="${y}" width="${W}" height="${row}" data-tip="${esc(d.tip)}"/>`;
-    });
-    el.innerHTML = s + "</svg>";
-    return L;
-  };
-  const L = draw(false);
-  const scale = el.querySelector("svg").getBoundingClientRect().width / W || 1;
-  if ([...el.querySelectorAll(".lbl")].some((t) => t.getBoundingClientRect().width / scale > L - 10)) draw(true);
-}
-
-function roundTop(x, y, w, h, r) {
-  r = Math.min(r, h);
-  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
-}
-function roundRight(x, y, w, h, r) {
-  r = Math.min(r, w);
-  return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
-}
-
-// Sequential blue ramp, light to dark (dark mode flips so "more" stays more visible).
-// Darker = more in both modes, like the ring on "Einsatz heute?" (Reagan's choice).
-function rampColors() {
-  const dark = getComputedStyle(document.documentElement).colorScheme === "dark";
-  return dark
-    ? ["var(--empty)", "#cde2fb", "#86b6ef", "#3987e5", "#256abf", "#184f95"]
-    : ["var(--empty)", "#b7d3f6", "#6da7ec", "#2a78d6", "#1c5cab", "#0d366b"];
-}
-function legend(labels, colors) {
-  return `<div class="legend">${labels.map((l, i) => `<i style="background:${colors[i]}"></i>${esc(l)}`).join(" ")}</div>`;
-}
 
 // ---------- views ----------
 function renderOverview(rows) {
@@ -275,7 +172,6 @@ function renderAddresses(rows) {
 // ---------- Punktewand ----------
 // Every alarm is one dot, coloured by its type. Switching the grouping moves each dot to its new place.
 // Which colour and which group a dot gets: dotKind and dotGroups in lib/places.js.
-const DOT_ORDER = ["brand", "hilfe", "unwetter", "other"];
 let dotsBy = "month";
 let dotsRows = [];     // the alarms currently drawn, in dot order
 let dotsPicked = null; // the tapped alarm
@@ -803,119 +699,6 @@ function hundredDots(k) {
   return s + "</svg>";
 }
 
-// ---------- Warnungen ----------
-// Current official warnings, loaded in the browser when the page opens and every 5 minutes while it shows.
-// Weather warnings of the Deutscher Wetterdienst for the city come through Bright Sky, which lets any
-// website load them. NINA adds the other warnings for the Region Hannover (civil protection, floods,
-// police). NINA doesn't let other websites load its list, so it comes through a small relay
-// (relay/nina.js, a Cloudflare Worker). NINA's weather warnings are the same as the DWD's, so they are
-// left out. Nothing is stored.
-// As soon as one warning needs attention (weather from Stufe 2, or any other warning), all of them move to
-// the very top of every tab. Otherwise they stay on Übersicht, with one quiet line when there are none.
-const WARN_EVERY = 5 * 60 * 1000;
-const warn = { at: 0, busy: false, drawn: {} };
-const NINA_RELAY = "https://ff-linden-nina.ff-statistik.workers.dev/"; // NINA's list for the Region Hannover
-const WARN_LEVEL = { minor: 1, moderate: 2, severe: 3, extreme: 4 };
-const NINA_KIND = { MOWAS: "Bevölkerungsschutz", LHP: "Hochwasser", POLICE: "Polizei", KATWARN: "Katwarn", BIWAPP: "Biwapp" };
-// How much a warning moves: 0 not at all, 1 shakes once, 2 pulses. Weather warnings: Stufe 1 not at all,
-// Stufe 2 shakes, Stufe 3 and 4 pulse. The other warnings (a big fire, an evacuation, a flood) always pulse.
-const warnMove = (level, weather) => (weather && level < 3 ? level - 1 : 2);
-const WARN_MOVE = ["", " shake", " pulse"];
-const WARN_ICON = '<svg viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5M12 17.6v.1"/></svg>';
-
-function fetchJSON(url) {
-  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 10000);
-  return fetch(url, { signal: ctl.signal }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status)))).finally(() => clearTimeout(t));
-}
-
-async function loadWarnings() {
-  if (warn.busy) return;
-  warn.busy = true;
-  const [dwd, nina] = await Promise.all([
-    fetchJSON(`https://api.brightsky.dev/alerts?lat=${WACHE[0]}&lon=${WACHE[1]}&tz=Europe/Berlin`).catch(() => null),
-    fetchJSON(NINA_RELAY).catch(() => null),
-  ]);
-  Object.assign(warn, { busy: false, at: Date.now() });
-  renderWarnings(dwd && Array.isArray(dwd.alerts) ? dwd.alerts : null, Array.isArray(nina) ? nina : null);
-}
-
-// "heute 14:00 bis 20:00 Uhr", "bis morgen 06:00 Uhr", "ab Fr 09.10. 18:00 Uhr"
-function warnSpan(onset, expires, now) {
-  const at = (d) => {
-    const days = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 864e5);
-    const day = days === 0 ? "heute" : days === 1 ? "morgen" : days === -1 ? "gestern" : `${WEEKDAYS[weekday(d)]} ${fmtDate(isoDate(d)).slice(0, 6)}`;
-    return { day, hm: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` };
-  };
-  const a = onset && at(onset), b = expires && at(expires);
-  if (!a) return b ? `bis ${b.day} ${b.hm} Uhr` : "";
-  if (onset <= now) return b ? `bis ${b.day} ${b.hm} Uhr` : `seit ${a.day} ${a.hm} Uhr`;
-  if (!b) return `ab ${a.day} ${a.hm} Uhr`;
-  return a.day === b.day ? `${a.day} ${a.hm} bis ${b.hm} Uhr` : `${a.day} ${a.hm} bis ${b.day} ${b.hm} Uhr`;
-}
-
-// dwd, nina: the loaded lists, or null when they couldn't be loaded.
-function renderWarnings(dwd, nina) {
-  const now = new Date(), when = (s) => { const d = s ? new Date(s) : null; return d && !isNaN(d) ? d : null; };
-  const items = [];
-  for (const a of dwd || []) {
-    const expires = when(a.expires);
-    if (a.status !== "actual" || a.response_type === "allclear" || (expires && expires <= now)) continue;
-    const level = WARN_LEVEL[a.severity] || 1;
-    items.push({ level, move: warnMove(level, true), tag: `${a.category === "health" ? "Hitze" : "Wetter"} · Stufe ${level} von 4`,
-      title: a.headline_de || a.event_de || "", onset: when(a.onset), expires, text: a.description_de, todo: a.instruction_de });
-  }
-  for (const w of nina || []) {
-    // NINA's weather warnings only stand in when the DWD's own list couldn't be loaded.
-    const d = (w.payload && w.payload.data) || {}, expires = when(w.expires);
-    if ((dwd && d.provider === "DWD") || d.msgType === "Cancel" || (expires && expires <= now)) continue;
-    const level = WARN_LEVEL[String(d.severity).toLowerCase()] || 1;
-    const weather = d.provider === "DWD";
-    items.push({ level, move: warnMove(level, weather), tag: weather ? `Wetter · Stufe ${level} von 4` : NINA_KIND[d.provider] || "Warnung",
-      title: (w.i18nTitle && w.i18nTitle.de) || d.headline || "", onset: when(w.onset || w.effective || w.sent), expires, nina: true });
-  }
-  items.sort((a, b) => b.move - a.move || b.level - a.level || (a.onset || 0) - (b.onset || 0));
-
-  const link = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
-  const dwdLink = (text) => link("https://www.dwd.de/DE/wetter/warnungen/warnWetter_node.html", text);
-  const ninaLink = link("https://warnung.bund.de/meldungen", "NINA");
-  const hm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  const sources = (dwd && nina ? `Quellen: ${dwdLink("Deutscher Wetterdienst")} (Stadt Hannover) und Warn-App ${ninaLink} (Region Hannover).`
-    : dwd ? `Quelle: ${dwdLink("Deutscher Wetterdienst")} (Stadt Hannover). Andere Warnungen, etwa zu Bränden mit starkem Rauch oder zu Evakuierungen, stehen in der Warn-App ${ninaLink}.`
-    : nina ? `Quelle: Warn-App ${ninaLink} (Region Hannover), mit den Wetterwarnungen des ${dwdLink("Deutschen Wetterdienstes")}.`
-    : `Die Warnungen konnten gerade nicht geladen werden. Sie stehen beim ${dwdLink("Deutschen Wetterdienst")} und in der Warn-App ${ninaLink}.`) +
-    (dwd || nina ? ` Stand: ${hm} Uhr.` : "");
-  // Only the first (loudest) warning moves, so several warnings don't turn into a light show.
-  const cards = items.map((w, i) =>
-    `<div class="warn l${w.level}${i ? "" : WARN_MOVE[w.move]}"><span class="warn-icon" aria-hidden="true">${WARN_ICON}</span><div class="warn-body">` +
-    `<div class="warn-meta"><span class="warn-tag">${esc(w.tag)}</span><span>${warnSpan(w.onset, w.expires, now)}</span></div>` +
-    `<div class="warn-title">${esc(w.title)}</div>` +
-    (w.text ? `<p class="warn-text">${esc(w.text)}</p>` : "") +
-    (w.todo ? `<details class="warn-todo"><summary>Was tun?</summary><p>${esc(w.todo)}</p></details>` : "") +
-    (w.nina ? `<p class="warn-text">Mehr dazu in ${ninaLink}.</p>` : "") + `</div></div>`).join("");
-  const calm = dwd || nina ? `<p class="warn-none"><span class="warn-ok" aria-hidden="true">✓</span>Für Hannover gibt es gerade keine ${nina ? "amtlichen Warnungen" : "Wetterwarnungen"}.</p>` : "";
-  const top = items.some((w) => w.move);
-  warnBox("warn-top", top ? cards : null, sources);
-  warnBox("warnings", top ? null : cards || calm, sources);
-}
-
-// Fills a box, or hides it when body is null. Only redraws when the list changed, so an opened "Was tun?"
-// stays open over the refresh and the first warning only moves again when something changed.
-function warnBox(id, body, sources) {
-  const el = $(`#${id}`);
-  el.hidden = body === null;
-  if (body !== warn.drawn[id]) {
-    warn.drawn[id] = body;
-    el.innerHTML = body === null ? "" : `${body}<p class="note"></p>`;
-  }
-  if (body !== null) el.lastElementChild.innerHTML = sources;
-}
-
-// When the page opens, every 5 minutes while it shows, and when it comes back after a while in the background.
-const warnStale = () => Date.now() - warn.at > WARN_EVERY;
-setInterval(() => { if (!document.hidden) loadWarnings(); }, WARN_EVERY);
-document.addEventListener("visibilitychange", () => { if (!document.hidden && warnStale()) loadWarnings(); });
-loadWarnings();
-
 // ---------- Jahresrückblick ----------
 // What a year counts and compares with is worked out in lib/year.js; this draws the view.
 
@@ -1158,7 +941,6 @@ function storyCards(year, storm) {
 }
 
 const story = { cards: [], i: 0 };
-const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Numbers count up from 0 when their card appears.
 function countUp(el) {
@@ -1236,18 +1018,6 @@ document.addEventListener("keydown", (e) => {
 
 // ---------- Karte ----------
 let map, heat;
-
-// Each script loads once, however many views ask for it (the Karte and the Einsatzradius both use Leaflet).
-const scripts = {};
-function loadScript(src) {
-  return (scripts[src] ||= new Promise((ok, fail) => {
-    const s = document.createElement("script");
-    s.src = src; s.onload = ok;
-    s.onerror = (e) => { delete scripts[src]; fail(e); };
-    document.head.appendChild(s);
-  }));
-}
-const LEAFLET = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
 
 async function renderMap(rows) {
   const el = $("#c-map");
@@ -1683,32 +1453,8 @@ function renderWeather(rows, year, dropped) {
 }
 
 // ---------- Mythen-Check ----------
-// The myths and their tests are in lib/myths.js; this draws the view. Each test draws 2000 times, so the
-// results are kept until new data comes in.
-let mythCache = null;
-function myths() {
-  const last = minDate(addDays(UPDATED, -1), addDays(LISTED, -1));
-  const key = `${ALL.length}|${isoDate(last)}|${HEIMSPIELE.length}|${FERIEN.length}`;
-  if (mythCache?.key !== key) mythCache = { key, ...mythResults(ALL, last, { ferien: FERIEN, heimspiele: HEIMSPIELE, weather: WEATHER }) };
-  return mythCache;
-}
-
-// One myth's verdict, picture (dot, chance bar, legend) and sentence; the quiz shows the picture too.
-function mythParts(m) {
-  const { t } = m;
-  const dec = (x) => x.toFixed(2).replace(".", ",");
-  const [cls, verdict] = mythVerdict(t, m.pick);
-  const max = [0.5, 1, 2, 5, 10, 20, 50].find((v) => v >= 1.1 * Math.max(t.avg, t.hi)) || 100;
-  const x = (v) => `${((100 * v) / max).toFixed(2)}%`;
-  const picture = `<div class="myth-strip" role="img" aria-label="${esc(m.label)}: ${dec(t.avg)} pro Tag. ${esc(m.cmp)}: zufällig ${dec(t.lo)} bis ${dec(t.hi)}.">` +
-    `<span class="myth-band" style="left:${x(t.lo)};width:calc(${x(t.hi - t.lo)} + 2px)"></span>` +
-    `<span class="myth-base" style="left:${x(t.base)}"></span><span class="myth-dot" style="left:${x(t.avg)}"></span></div>` +
-    `<div class="myth-axis">${[0, max / 2, max].map((v) => `<span style="left:${x(v)}">${String(v).replace(".", ",")}</span>`).join("")}</div>` +
-    `<ul class="myth-legend"><li><i class="k-dot"></i>${esc(m.label)}: <b>${dec(t.avg)}</b> Einsätze pro Tag</li>` +
-    `<li><i class="k-band"></i>${esc(m.cmp)}: <b>${dec(t.base)}</b>, durch Zufall zwischen ${dec(t.lo)} und ${dec(t.hi)}</li></ul>`;
-  return { cls, verdict, picture, sentence: mythSentence(m) };
-}
-
+// The myths and their tests are in lib/myths.js, the results and pictures in components/myths.js; this
+// draws the view.
 function renderMyths() {
   const { results, first, last, days } = myths();
   $("#myths-note").textContent = `Gezählt werden ${days.toLocaleString("de-DE")} Tage vom ${fmtDate(isoDate(first))} bis ${fmtDate(isoDate(last))}, ` +
@@ -1945,34 +1691,17 @@ if (appOffer.ios) {
 }
 showAppOffer();
 
-// GitHub Pages lets browsers cache files for 10 minutes; "no-cache" revalidates so new alarms show promptly.
-const getJSON = (u, fallback) => fetch(u, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : fallback)).catch(() => fallback);
-
-Promise.all([
-  getJSON("data/alarms.json", null), getJSON("data/keywords.json", KW), getJSON("data/manual.json", { rows: [] }),
-  getJSON("data/geo.json", {}), getJSON("data/weather.json", { days: {} }),
-  getJSON("data/ferien.json", { ranges: [] }), getJSON("data/heimspiele.json", { seasons: {} }),
-])
-  .then(([data, kw, manual, geo, weather, ferien, heimspiele]) => {
-    if (!data) {
+loadData()
+  .then((loaded) => {
+    if (!loaded) {
       $("#updated").textContent = "–";
       $("#listed").textContent = " · Die Einsätze konnten nicht geladen werden. Bitte die Seite neu laden.";
       return;
     }
-    KW = kw;
-    GEO = geo;
-    WEATHER = weather.days;
-    FERIEN = ferien.ranges || [];
-    HEIMSPIELE = Object.values(heimspiele.seasons || {}).flat();
-    ALL = clean(mergeManual(data.rows, manual.rows), KW);
-    UPDATED = new Date(data.updated);
-    // Only alarms: events (Veranstaltung) can be listed ahead of time.
-    const newest = data.rows.reduce((m, r) => (r.category === "Einsatz" && r.date > m ? r.date : m), "");
-    LISTED = newest ? parseDate(newest) : UPDATED;
-    $("#updated").textContent = new Date(data.updated).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+    $("#updated").textContent = new Date(loaded.updated).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
     if (listBehind()) {
       const byHand = ALL.some((r) => r.manual && parseDate(r.date) > LISTED);
-      $("#listed").textContent = ` · Die Website listet Einsätze bis ${fmtDate(newest)}${byHand ? ", neuere sind vorläufig eingetragen" : ""}.`;
+      $("#listed").textContent = ` · Die Website listet Einsätze bis ${fmtDate(loaded.newest)}${byHand ? ", neuere sind vorläufig eingetragen" : ""}.`;
     }
     const years = [...new Set(ALL.map((r) => r.date.slice(0, 4)))].sort().reverse();
     $("#f-year").innerHTML += years.map((y) => `<option>${y}</option>`).join("");
