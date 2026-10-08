@@ -814,7 +814,7 @@ function hundredDots(k) {
 // the very top of every tab. Otherwise they stay on Übersicht, with one quiet line when there are none.
 const WARN_EVERY = 5 * 60 * 1000;
 const warn = { at: 0, busy: false, drawn: {} };
-const NINA_RELAY = "https://ff-linden-nina.SUBDOMAIN.workers.dev/"; // NINA's list for the Region Hannover
+const NINA_RELAY = "https://ff-linden-nina.reagansasan.workers.dev/"; // NINA's list for the Region Hannover
 const WARN_LEVEL = { minor: 1, moderate: 2, severe: 3, extreme: 4 };
 const NINA_KIND = { MOWAS: "Bevölkerungsschutz", LHP: "Hochwasser", POLICE: "Polizei", KATWARN: "Katwarn", BIWAPP: "Biwapp" };
 // How much a warning moves: 0 not at all, 1 shakes once, 2 pulses. Weather warnings: Stufe 1 not at all,
