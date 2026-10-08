@@ -4,6 +4,7 @@ import { addDays, isoDate, minDate } from "../lib/dates.js";
 import { esc } from "../lib/text.js";
 import { mythResults, mythVerdict, mythSentence } from "../lib/myths.js";
 import { ALL, UPDATED, LISTED, FERIEN, HEIMSPIELE, WEATHER } from "../data.js";
+import "./myths.css";
 
 let mythCache = null;
 export function myths() {

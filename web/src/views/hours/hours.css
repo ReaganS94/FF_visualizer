@@ -1,0 +1,3 @@
+/* Tageszeit: the weekday × hour grid scrolls sideways on narrow screens (hours.js). */
+#c-heat { overflow-x: auto; }
+#c-heat svg { min-width: 720px; }
