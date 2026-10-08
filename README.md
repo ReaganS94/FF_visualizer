@@ -126,10 +126,11 @@ Current official warnings for Hannover. Each visitor's browser loads them when t
 for the city (warn cell "Stadt Hannover", 803241001) come from Bright Sky (`api.brightsky.dev/alerts` at the
 Wache's position), which lets any website load them. Other warnings for the Region Hannover (civil protection,
 floods, police, Katwarn, Biwapp) come from the NINA dashboard
-(`warnung.bund.de/api31/dashboard/032410000000.json`); NINA's copies of the weather warnings are skipped unless
-Bright Sky couldn't be loaded. NINA publishes no terms for this and may refuse to be loaded by other websites;
-the page then says where to find those warnings instead. Expired and lifted warnings are left out, and the DWD
-is credited as its terms require. The warnings don't change the "Einsatz heute?" percentage.
+(`warnung.bund.de/api31/dashboard/032410000000.json`) through a small relay, because NINA doesn't let other
+websites load it (see "The NINA relay" below). NINA's copies of the weather warnings are skipped unless Bright
+Sky couldn't be loaded. NINA publishes no terms for this. When the relay or NINA can't be reached, the page says
+where to find those warnings instead. Expired and lifted warnings are left out, and the DWD is credited as its
+terms require. The warnings don't change the "Einsatz heute?" percentage.
 
 - Weather warnings come in four levels, Stufe 1–4 in yellow, orange, red and violet, as on the DWD's map.
 - While there are only Stufe 1 warnings (frost, say), they stay on Übersicht and don't move. With no warnings
@@ -140,6 +141,26 @@ is credited as its terms require. The warnings don't change the "Einsatz heute?"
   with a ring about every 1.6 seconds and a beating warning sign. Only the first one moves, so several
   warnings don't turn into a light show. The pulse is slow enough to be safe for people sensitive to flashing
   light, nothing moves when the device asks for less motion, and the warnings are left out when printing.
+
+### The NINA relay
+
+NINA's answer lacks the header that lets another website read it (`Access-Control-Allow-Origin`), so
+browsers throw the list away when the site asks NINA directly. `relay/nina.js` is a
+[Cloudflare Worker](https://developers.cloudflare.com/workers/) on the free plan (100,000 requests a day): it
+fetches NINA's list for the Region Hannover and passes it on with that header. It forwards nothing else, keeps
+the list for a minute so NINA gets at most one request a minute, and answers 502 when NINA fails. Any website
+may read it, like Bright Sky: the list is public anyway, and the site keeps working if it moves to another
+address. The site asks it at the address in `NINA_RELAY` in `web/src/app.js`; `tests/unit/relay.test.js`
+tests it.
+
+To put it online, or to update it after `relay/nina.js` changed:
+
+1. Sign in at [dash.cloudflare.com](https://dash.cloudflare.com) (a free account is enough).
+2. Workers & Pages → Create application → start from the "Hello World" Worker, name it `ff-linden-nina`,
+   and deploy it.
+3. "Edit code", replace everything with the content of `relay/nina.js`, and deploy again.
+4. Open the Worker's address, `https://ff-linden-nina.<your subdomain>.workers.dev`: it shows NINA's list,
+   `[]` when there are no warnings. That address goes into `NINA_RELAY`.
 
 ## Run locally
 
@@ -158,8 +179,8 @@ Two kinds of tests, both run by `npm test` (needs Node.js 22.12 or newer). They 
 and every change to `main` (Actions → "Tests"), and the pull request shows a red check with the failing
 test when something broke.
 
-- `tests/unit/`: the rules and calculations in `web/src/lib/`, run in Node with [Vitest](https://vitest.dev),
-  in a second or so.
+- `tests/unit/`: the rules and calculations in `web/src/lib/`, and the NINA relay in `relay/`, run in Node
+  with [Vitest](https://vitest.dev), in a second or so.
 - `tests/browser/`: the site itself, built as for publishing, opened in Chromium with
   [Playwright](https://playwright.dev) and clicked through like a visitor. Nothing leaves the machine:
   Leaflet, map tiles, the warning services and GitHub are answered by the tests, so nothing is saved anywhere.

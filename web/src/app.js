@@ -807,13 +807,14 @@ function hundredDots(k) {
 // Current official warnings, loaded in the browser when the page opens and every 5 minutes while it shows.
 // Weather warnings of the Deutscher Wetterdienst for the city come through Bright Sky, which lets any
 // website load them. NINA adds the other warnings for the Region Hannover (civil protection, floods,
-// police) where the browser may load them; its weather warnings are the same as the DWD's, so they are
+// police). NINA doesn't let other websites load its list, so it comes through a small relay
+// (relay/nina.js, a Cloudflare Worker). NINA's weather warnings are the same as the DWD's, so they are
 // left out. Nothing is stored.
 // As soon as one warning needs attention (weather from Stufe 2, or any other warning), all of them move to
 // the very top of every tab. Otherwise they stay on Übersicht, with one quiet line when there are none.
 const WARN_EVERY = 5 * 60 * 1000;
 const warn = { at: 0, busy: false, drawn: {} };
-const NINA_ARS = "032410000000"; // Region Hannover: NINA lists warnings per district, the last 7 digits are 0
+const NINA_RELAY = "https://ff-linden-nina.reagansasan.workers.dev/"; // NINA's list for the Region Hannover
 const WARN_LEVEL = { minor: 1, moderate: 2, severe: 3, extreme: 4 };
 const NINA_KIND = { MOWAS: "Bevölkerungsschutz", LHP: "Hochwasser", POLICE: "Polizei", KATWARN: "Katwarn", BIWAPP: "Biwapp" };
 // How much a warning moves: 0 not at all, 1 shakes once, 2 pulses. Weather warnings: Stufe 1 not at all,
@@ -832,7 +833,7 @@ async function loadWarnings() {
   warn.busy = true;
   const [dwd, nina] = await Promise.all([
     fetchJSON(`https://api.brightsky.dev/alerts?lat=${WACHE[0]}&lon=${WACHE[1]}&tz=Europe/Berlin`).catch(() => null),
-    fetchJSON(`https://warnung.bund.de/api31/dashboard/${NINA_ARS}.json`).catch(() => null),
+    fetchJSON(NINA_RELAY).catch(() => null),
   ]);
   Object.assign(warn, { busy: false, at: Date.now() });
   renderWarnings(dwd && Array.isArray(dwd.alerts) ? dwd.alerts : null, Array.isArray(nina) ? nina : null);

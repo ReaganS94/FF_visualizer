@@ -29,7 +29,7 @@ export const test = base.extend({
     });
     await page.route("https://tile.openstreetmap.org/**", (r) => r.fulfill({ contentType: "image/png", body: TILE }));
     await page.route("https://api.brightsky.dev/**", (r) => r.fulfill(json({ alerts: [], location: {} })));
-    await page.route("https://warnung.bund.de/**", (r) => r.fulfill(json([])));
+    await page.route("https://*.workers.dev/**", (r) => r.fulfill(json([]))); // NINA, through relay/nina.js
     await use(page);
   },
 });
