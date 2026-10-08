@@ -19,6 +19,8 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   (streets with three or more alarms, and fire alarm systems that go off more than once),
   map (with a time-lapse that plays the alarms in date order), Einsatzradius (see below), weather, searchable list, annual report (with a
   year comparison and the year as a story, see below), and an "Einsatz heute?" estimate that is explicitly only a guess.
+  Current official warnings for Hannover show on Übersicht, or at the very top of every tab when one needs
+  attention (see Warnungen below).
 - `web/index.html` and `web/src/app.js`: the page and its views, with `web/src/style.css` for the look.
   `web/src/lib/`: the rules and calculations it uses, without any page code, so they can be tested on their
   own: `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin
@@ -114,6 +116,28 @@ browser can't, e.g. on iPhones). "vs" is always left out.
 The questions are built in `web/src/lib/quiz.js`. `tests/unit/quiz.test.js` plays 500 rounds of them on the
 site's data; a reworded question may need its pattern updated there.
 
+## Warnungen
+
+Current official warnings for Hannover. Each visitor's browser loads them when the page opens and again every
+5 minutes while it shows; nothing is stored in the repository. Weather warnings of the Deutscher Wetterdienst
+for the city (warn cell "Stadt Hannover", 803241001) come from Bright Sky (`api.brightsky.dev/alerts` at the
+Wache's position), which lets any website load them. Other warnings for the Region Hannover (civil protection,
+floods, police, Katwarn, Biwapp) come from the NINA dashboard
+(`warnung.bund.de/api31/dashboard/032410000000.json`); NINA's copies of the weather warnings are skipped unless
+Bright Sky couldn't be loaded. NINA publishes no terms for this and may refuse to be loaded by other websites;
+the page then says where to find those warnings instead. Expired and lifted warnings are left out, and the DWD
+is credited as its terms require. The warnings don't change the "Einsatz heute?" percentage.
+
+- Weather warnings come in four levels, Stufe 1–4 in yellow, orange, red and violet, as on the DWD's map.
+- While there are only Stufe 1 warnings (frost, say), they stay on Übersicht and don't move. With no warnings
+  at all, Übersicht says so in one line.
+- As soon as a weather warning reaches Stufe 2 or any other warning comes in, all warnings move to the very
+  top of every tab, the most urgent first, because the site reopens the tab a visitor used last.
+- The first warning moves: Stufe 2 slides in and shakes once; Stufe 3, Stufe 4 and the other warnings pulse
+  with a ring about every 1.6 seconds and a beating warning sign. Only the first one moves, so several
+  warnings don't turn into a light show. The pulse is slow enough to be safe for people sensitive to flashing
+  light, nothing moves when the device asks for less motion, and the warnings are left out when printing.
+
 ## Run locally
 
 ```sh
@@ -149,7 +173,7 @@ npx playwright test --ui                         # watch the browser tests run s
 - `site.spec.js`: every tab with every year and both filters, on a computer and two phone sizes: no
   errors, no "NaN" or "undefined" in the text, no empty tab, nothing that makes the page scroll sideways.
   Also the year as a story, and the message when the alarms can't be loaded.
-- `warnings.spec.js`: the "Warnungen für Hannover" box with made-up warnings, and when a service is down.
+- `warnings.spec.js`: the warnings with made-up ones: where they show, which one moves, and when a service is down.
 - `quiz.spec.js`: a round of the quiz played by tapping, and 100 more rounds checked for "NaN" or page
   markup in the questions and answers.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
@@ -214,17 +238,6 @@ days with gusts of 60 km/h or more or a thunderstorm are tinted violet, with a l
 when the device asks for less motion). Days further ahead fade, because the forecast gets less sure. Notes
 above it name the hot and stormy days and say how often past days with that weather had an alarm, against
 the other days; only the temperature changes the estimate. A thunderstorm after tomorrow says "möglich".
-
-"Warnungen für Hannover", above the ring, lists the current official warnings. Each visitor's browser loads
-them when the page opens and again every 5 minutes while it stays open; nothing is stored in the repository.
-Weather warnings of the Deutscher Wetterdienst for the city (warn cell "Stadt Hannover", 803241001) come from
-Bright Sky (`api.brightsky.dev/alerts` at the Wache's position), which lets any website load them. Other
-warnings for the Region Hannover (civil protection, floods, police, Katwarn, Biwapp) come from the NINA
-dashboard (`warnung.bund.de/api31/dashboard/032410000000.json`); NINA's copies of the weather warnings are
-skipped unless Bright Sky couldn't be loaded. NINA publishes no terms for this and may refuse to be loaded
-by other websites; the box then says where to find those warnings instead. Warnings are sorted by level
-(Stufe 1–4 in yellow, orange, red and violet, as on the DWD's map), expired and lifted ones are left out,
-and the DWD is credited as its terms require. The warnings don't change the percentage.
 
 Silvester night (31.12., 22–06) is busy every year (20 alarms in 2024, 14 in 2025), so it gets no
 percentage. On 31.12. the page shows how many alarms the same night had in earlier years, and that

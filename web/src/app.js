@@ -816,16 +816,23 @@ function hundredDots(k) {
 }
 
 // ---------- Warnungen ----------
-// Current official warnings, loaded in the browser when "Einsatz heute?" opens and every 5 minutes while it
-// stays open. Weather warnings of the Deutscher Wetterdienst for the city come through Bright Sky, which
-// lets any website load them. NINA adds the other warnings for the Region Hannover (civil protection,
-// floods, police) where the browser may load them; its weather warnings are the same as the DWD's, so they
-// are left out. Nothing is stored.
+// Current official warnings, loaded in the browser when the page opens and every 5 minutes while it shows.
+// Weather warnings of the Deutscher Wetterdienst for the city come through Bright Sky, which lets any
+// website load them. NINA adds the other warnings for the Region Hannover (civil protection, floods,
+// police) where the browser may load them; its weather warnings are the same as the DWD's, so they are
+// left out. Nothing is stored.
+// As soon as one warning needs attention (weather from Stufe 2, or any other warning), all of them move to
+// the very top of every tab. Otherwise they stay on Übersicht, with one quiet line when there are none.
 const WARN_EVERY = 5 * 60 * 1000;
-const warn = { at: 0, busy: false, body: null };
+const warn = { at: 0, busy: false, drawn: {} };
 const NINA_ARS = "032410000000"; // Region Hannover: NINA lists warnings per district, the last 7 digits are 0
 const WARN_LEVEL = { minor: 1, moderate: 2, severe: 3, extreme: 4 };
 const NINA_KIND = { MOWAS: "Bevölkerungsschutz", LHP: "Hochwasser", POLICE: "Polizei", KATWARN: "Katwarn", BIWAPP: "Biwapp" };
+// How much a warning moves: 0 not at all, 1 shakes once, 2 pulses. Weather warnings: Stufe 1 not at all,
+// Stufe 2 shakes, Stufe 3 and 4 pulse. The other warnings (a big fire, an evacuation, a flood) always pulse.
+const warnMove = (level, weather) => (weather && level < 3 ? level - 1 : 2);
+const WARN_MOVE = ["", " shake", " pulse"];
+const WARN_ICON = '<svg viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5M12 17.6v.1"/></svg>';
 
 function fetchJSON(url) {
   const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 10000);
@@ -865,51 +872,60 @@ function renderWarnings(dwd, nina) {
     const expires = when(a.expires);
     if (a.status !== "actual" || a.response_type === "allclear" || (expires && expires <= now)) continue;
     const level = WARN_LEVEL[a.severity] || 1;
-    items.push({ level, tag: `${a.category === "health" ? "Hitze" : "Wetter"} · Stufe ${level} von 4`, title: a.headline_de || a.event_de || "",
-      onset: when(a.onset), expires, text: a.description_de, todo: a.instruction_de });
+    items.push({ level, move: warnMove(level, true), tag: `${a.category === "health" ? "Hitze" : "Wetter"} · Stufe ${level} von 4`,
+      title: a.headline_de || a.event_de || "", onset: when(a.onset), expires, text: a.description_de, todo: a.instruction_de });
   }
   for (const w of nina || []) {
     // NINA's weather warnings only stand in when the DWD's own list couldn't be loaded.
     const d = (w.payload && w.payload.data) || {}, expires = when(w.expires);
     if ((dwd && d.provider === "DWD") || d.msgType === "Cancel" || (expires && expires <= now)) continue;
     const level = WARN_LEVEL[String(d.severity).toLowerCase()] || 1;
-    items.push({ level, tag: d.provider === "DWD" ? `Wetter · Stufe ${level} von 4` : NINA_KIND[d.provider] || "Warnung",
+    const weather = d.provider === "DWD";
+    items.push({ level, move: warnMove(level, weather), tag: weather ? `Wetter · Stufe ${level} von 4` : NINA_KIND[d.provider] || "Warnung",
       title: (w.i18nTitle && w.i18nTitle.de) || d.headline || "", onset: when(w.onset || w.effective || w.sent), expires, nina: true });
   }
-  items.sort((a, b) => b.level - a.level || (a.onset || 0) - (b.onset || 0));
+  items.sort((a, b) => b.move - a.move || b.level - a.level || (a.onset || 0) - (b.onset || 0));
 
   const link = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
   const dwdLink = (text) => link("https://www.dwd.de/DE/wetter/warnungen/warnWetter_node.html", text);
   const ninaLink = link("https://warnung.bund.de/meldungen", "NINA");
   const hm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  const sources = (dwd && nina ? `Wetterwarnungen für die Stadt Hannover: ${dwdLink("Deutscher Wetterdienst")}. Andere Warnungen für die Region Hannover: ${ninaLink}, die Warn-App des Bundes.`
-    : dwd ? `Wetterwarnungen für die Stadt Hannover: ${dwdLink("Deutscher Wetterdienst")}. Andere Warnungen, etwa zu Bränden mit starkem Rauch oder zu Evakuierungen, stehen in der Warn-App ${ninaLink}.`
-    : nina ? `Warnungen für die Region Hannover: ${ninaLink}, die Warn-App des Bundes, mit den Wetterwarnungen des ${dwdLink("Deutschen Wetterdienstes")}.`
+  const sources = (dwd && nina ? `Quellen: ${dwdLink("Deutscher Wetterdienst")} (Stadt Hannover) und Warn-App ${ninaLink} (Region Hannover).`
+    : dwd ? `Quelle: ${dwdLink("Deutscher Wetterdienst")} (Stadt Hannover). Andere Warnungen, etwa zu Bränden mit starkem Rauch oder zu Evakuierungen, stehen in der Warn-App ${ninaLink}.`
+    : nina ? `Quelle: Warn-App ${ninaLink} (Region Hannover), mit den Wetterwarnungen des ${dwdLink("Deutschen Wetterdienstes")}.`
     : `Die Warnungen konnten gerade nicht geladen werden. Sie stehen beim ${dwdLink("Deutschen Wetterdienst")} und in der Warn-App ${ninaLink}.`) +
     (dwd || nina ? ` Stand: ${hm} Uhr.` : "");
-  const body = items.length
-    ? `<h2>${items.length === 1 ? "Warnung" : "Warnungen"} für Hannover</h2>` + items.map((w) =>
-      `<div class="warn l${w.level}"><div class="warn-meta"><span class="warn-tag">${esc(w.tag)}</span><span>${warnSpan(w.onset, w.expires, now)}</span></div>` +
-      `<div class="warn-title">${esc(w.title)}</div>` +
-      (w.text ? `<p class="warn-text">${esc(w.text)}</p>` : "") +
-      (w.todo ? `<details class="warn-todo"><summary>Was tun?</summary><p>${esc(w.todo)}</p></details>` : "") +
-      (w.nina ? `<p class="warn-text">Mehr dazu in ${ninaLink}.</p>` : "") + `</div>`).join("")
-    : dwd || nina ? `<p class="warn-none"><span class="warn-ok" aria-hidden="true">✓</span>Für Hannover gibt es gerade keine ${nina ? "amtlichen Warnungen" : "Wetterwarnungen"}.</p>` : "";
-  const el = $("#warnings");
-  el.hidden = false;
-  // Only redraw the list when it changed, so an opened "Was tun?" stays open over the refresh.
-  if (body !== warn.body) {
-    warn.body = body;
-    el.innerHTML = `${body}<p class="note"></p>`;
-  }
-  el.lastElementChild.innerHTML = sources;
+  // Only the first (loudest) warning moves, so several warnings don't turn into a light show.
+  const cards = items.map((w, i) =>
+    `<div class="warn l${w.level}${i ? "" : WARN_MOVE[w.move]}"><span class="warn-icon" aria-hidden="true">${WARN_ICON}</span><div class="warn-body">` +
+    `<div class="warn-meta"><span class="warn-tag">${esc(w.tag)}</span><span>${warnSpan(w.onset, w.expires, now)}</span></div>` +
+    `<div class="warn-title">${esc(w.title)}</div>` +
+    (w.text ? `<p class="warn-text">${esc(w.text)}</p>` : "") +
+    (w.todo ? `<details class="warn-todo"><summary>Was tun?</summary><p>${esc(w.todo)}</p></details>` : "") +
+    (w.nina ? `<p class="warn-text">Mehr dazu in ${ninaLink}.</p>` : "") + `</div></div>`).join("");
+  const calm = dwd || nina ? `<p class="warn-none"><span class="warn-ok" aria-hidden="true">✓</span>Für Hannover gibt es gerade keine ${nina ? "amtlichen Warnungen" : "Wetterwarnungen"}.</p>` : "";
+  const top = items.some((w) => w.move);
+  warnBox("warn-top", top ? cards : null, sources);
+  warnBox("warnings", top ? null : cards || calm, sources);
 }
 
-// While the view stays open, and when the page comes back after a while in the background.
+// Fills a box, or hides it when body is null. Only redraws when the list changed, so an opened "Was tun?"
+// stays open over the refresh and the first warning only moves again when something changed.
+function warnBox(id, body, sources) {
+  const el = $(`#${id}`);
+  el.hidden = body === null;
+  if (body !== warn.drawn[id]) {
+    warn.drawn[id] = body;
+    el.innerHTML = body === null ? "" : `${body}<p class="note"></p>`;
+  }
+  if (body !== null) el.lastElementChild.innerHTML = sources;
+}
+
+// When the page opens, every 5 minutes while it shows, and when it comes back after a while in the background.
 const warnStale = () => Date.now() - warn.at > WARN_EVERY;
-const warnShown = () => !document.hidden && $("section[data-view=chance]").classList.contains("active");
-setInterval(() => { if (warnShown()) loadWarnings(); }, WARN_EVERY);
-document.addEventListener("visibilitychange", () => { if (warnShown() && warnStale()) loadWarnings(); });
+setInterval(() => { if (!document.hidden) loadWarnings(); }, WARN_EVERY);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && warnStale()) loadWarnings(); });
+loadWarnings();
 
 // ---------- Jahresrückblick ----------
 // What a year counts and compares with is worked out in lib/year.js; this draws the view.
@@ -1881,7 +1897,6 @@ function showView(v) {
   document.querySelectorAll("[data-view]").forEach((el) => el.classList.toggle("active", el.dataset.view === v));
   $("#filters").style.display = ["chance", "year", "myths", "quiz"].includes(v) ? "none" : "";
   try { localStorage.setItem("view", v); } catch {}
-  if (v === "chance" && warnStale()) loadWarnings();
   if (ALL.length) render(); // hidden sections have no width, so draw charts once visible
 }
 
