@@ -43,7 +43,7 @@ async function openWarnings(page, { dwd = DWD, nina = NINA } = {}) {
   page.calls = { dwd: 0, nina: 0 };
   await page.clock.install({ time: NOW });
   await page.route("https://api.brightsky.dev/**", (r) => { page.calls.dwd++; return dwd === null ? r.abort() : r.fulfill(dwd.status ? dwd : json(dwd)); });
-  await page.route("https://warnung.bund.de/**", (r) => { page.calls.nina++; return nina === null ? r.abort() : r.fulfill(json(nina)); });
+  await page.route("https://*.workers.dev/**", (r) => { page.calls.nina++; return nina === null ? r.abort() : r.fulfill(json(nina)); });
   await openSite(page);
 }
 const top = (page) => page.locator("#warn-top"); // the very top of every tab
