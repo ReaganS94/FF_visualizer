@@ -65,6 +65,9 @@
 }
 
 * { box-sizing: border-box; }
+/* The scrollbar's room stays free on short tabs too, so the page doesn't jump sideways when switching between
+   tabs that scroll and tabs that fit the window (on computers; phones draw the scrollbar over the page). */
+html { scrollbar-gutter: stable; }
 body {
   margin: 0 auto;
   max-width: 1040px;
