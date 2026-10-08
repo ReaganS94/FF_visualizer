@@ -49,6 +49,9 @@ export function mergeManual(scraped, manual) {
     .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
 }
 
+// What makes an alarm itself: clean() keeps one alarm per date, time, keyword and street.
+export const alarmKey = (r) => [r.date, r.time, r.keyword, r.street].join("|");
+
 // Keeps the alarms (category "Einsatz") once each and adds what the views need: the keyword's base code,
 // name and group from keywords.json (kw), the hour, whether it was a standby ("vs"), and whether its day
 // was a Großlage.
@@ -59,7 +62,7 @@ export function clean(rows, kw) {
     if (r.category !== "Einsatz") continue;
     // The site sometimes lists one alarm twice with slightly different remarks.
     const street = tidyStreet(r.street);
-    const k = [r.date, r.time, r.keyword, street].join("|");
+    const k = alarmKey({ ...r, street });
     if (seen.has(k)) continue;
     seen.add(k);
     const base = r.keyword.split("/")[0].trim().toLowerCase() || "?";
@@ -77,4 +80,11 @@ export function clean(rows, kw) {
     r.timeUnknown = r.bigDay && r.time === "00:00"; // bulk-entered with a placeholder time
   }
   return out;
+}
+
+// The alarms whose keyword, event, street, district or remarks contain the search text, in any case;
+// all of them when the text is empty.
+export function searchAlarms(rows, text) {
+  const q = text.trim().toLowerCase();
+  return q ? rows.filter((r) => [r.keyword, r.event, r.street, r.district, r.remarks].join(" ").toLowerCase().includes(q)) : rows;
 }

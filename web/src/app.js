@@ -14,6 +14,8 @@ import {
   isBMA, isRWM, addressGroups, dotKind, dotGroups, WACHE, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
 } from "./lib/places.js";
 import { QUIZ_LEN, quizRound, unitText } from "./lib/quiz.js";
+import { show } from "./views/show.js";
+import AlarmList from "./views/AlarmList.jsx";
 
 let ALL = [];             // cleaned alarms
 let KW = { groups: {}, codes: {} }; // keyword names, from data/keywords.json
@@ -235,20 +237,6 @@ function renderDistricts(rows) {
     const streets = topCounts(list, (r) => r.street, 3).map(([e, l]) => `${esc(e)} (${l.length})`).join("<br>");
     return { label: k, value: list.length, tip: `<b>${esc(k)}</b> · ${einsaetze(list.length)}<br>${streets}` };
   }));
-}
-
-function renderList(rows) {
-  const q = $("#q").value.trim().toLowerCase();
-  const hits = q ? rows.filter((r) => [r.keyword, r.event, r.street, r.district, r.remarks].join(" ").toLowerCase().includes(q)) : rows;
-  // Hand entries fill the gap until the website lists the same alarm, which then replaces them.
-  const pending = hits.some((r) => r.manual);
-  $("#list-count").textContent = `${einsaetze(hits.length)}.` + (pending
-    ? " Einträge mit „vorläufig“ stehen noch nicht auf der Website der Feuerwehr. Sobald sie dort stehen, ersetzt der offizielle Eintrag sie."
-    : "");
-  // in the date column, which stays on screen when the table scrolls sideways on a phone
-  const tag = '<span class="tag" data-tip="Noch nicht auf der Website der Feuerwehr. Wird durch den offiziellen Eintrag ersetzt, sobald er dort steht.">vorläufig</span>';
-  $("#t-list tbody").innerHTML = hits.map((r) =>
-    `<tr><td>${fmtDate(r.date)}${r.manual ? `<br>${tag}` : ""}</td><td>${r.timeUnknown ? "?" : esc(r.time)}</td><td title="${esc(r.name)}">${esc(r.keyword)}</td><td>${esc(r.event)}</td><td>${esc(r.street)}</td><td>${esc(r.district)}</td></tr>`).join("");
 }
 
 // ---------- Stammadressen ----------
@@ -1882,7 +1870,7 @@ function render() {
   renderKeywords(rows);
   renderDistricts(rows);
   renderAddresses(rows);
-  renderList(rows);
+  show($("section[data-view=list]"), AlarmList, { rows }); // in React: views/AlarmList.jsx
   renderYear();
   renderMap(rows);
   renderRadius(rows);
@@ -1992,7 +1980,6 @@ Promise.all([
     $("#y-storm").addEventListener("change", renderYear);
     $("#y-print").addEventListener("click", () => window.print());
     document.querySelectorAll("#filters input, #filters select").forEach((el) => el.addEventListener("change", render));
-    $("#q").addEventListener("input", () => renderList(selection()));
     document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => showView(b.dataset.view)));
     let v = "overview";
     try { v = localStorage.getItem("view") || v; } catch {}
