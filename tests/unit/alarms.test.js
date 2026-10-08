@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { tidyStreet, sameAlarm, matchedManual, mergeManual, clean } from "../../web/src/lib/alarms.js";
+import { tidyStreet, sameAlarm, matchedManual, mergeManual, clean, alarmKey, searchAlarms } from "../../web/src/lib/alarms.js";
 
 const alarm = (date, time, keyword, more = {}) =>
   ({ date, time, category: "Einsatz", keyword, event: "Test", street: "Teststraße", district: "Linden-Mitte", remarks: "", ...more });
@@ -102,5 +102,43 @@ describe("clean", () => {
     expect(big("2026-07-15")).toEqual([false]);
     expect(rows.filter((r) => r.timeUnknown)).toHaveLength(10);
     expect(rows.filter((r) => r.standby)).toHaveLength(3);
+  });
+});
+
+describe("alarmKey", () => {
+  test("is different for every alarm clean() keeps", () => {
+    const rows = clean([
+      alarm("2026-09-20", "10:05", "b2", { street: "Limmerstrasse" }),
+      alarm("2026-09-20", "10:05", "b2", { street: "Limmerstraße" }), // the same alarm, dropped
+      alarm("2026-09-20", "10:05", "b2", { street: "Fössestraße" }),
+      alarm("2026-09-20", "10:05", "th1", { street: "Fössestraße" }),
+      alarm("2026-09-20", "10:06", "th1", { street: "Fössestraße" }),
+    ], { groups: {}, codes: {} });
+    expect(rows).toHaveLength(4);
+    expect(new Set(rows.map(alarmKey)).size).toBe(4);
+  });
+});
+
+describe("searchAlarms", () => {
+  const rows = [
+    alarm("2026-09-20", "10:05", "b2", { event: "Brand Keller", street: "Limmerstraße" }),
+    alarm("2026-09-21", "11:00", "th1", { event: "Türöffnung", district: "Linden-Nord" }),
+    alarm("2026-09-22", "12:00", "bma", { event: "Brandmeldeanlage", remarks: "Fehlalarm" }),
+  ];
+  const events = (text) => searchAlarms(rows, text).map((r) => r.event);
+
+  test("finds the text in keyword, event, street, district and remarks, in any case", () => {
+    expect(events("brand")).toEqual(["Brand Keller", "Brandmeldeanlage"]);
+    expect(events("TH1")).toEqual(["Türöffnung"]);
+    expect(events("limmer")).toEqual(["Brand Keller"]);
+    expect(events("nord")).toEqual(["Türöffnung"]);
+    expect(events("fehlalarm")).toEqual(["Brandmeldeanlage"]);
+    expect(events("  keller ")).toEqual(["Brand Keller"]);
+    expect(events("nichts")).toEqual([]);
+  });
+
+  test("an empty search keeps every alarm", () => {
+    expect(searchAlarms(rows, "")).toBe(rows);
+    expect(searchAlarms(rows, "   ")).toBe(rows);
   });
 });

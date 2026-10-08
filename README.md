@@ -22,6 +22,9 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   Current official warnings for Hannover show on Übersicht, or at the very top of every tab when one needs
   attention (see Warnungen below).
 - `web/index.html` and `web/src/app.js`: the page and its views, with `web/src/style.css` for the look.
+  The views are moving to [React](https://react.dev) one at a time: `web/src/views/` has the ones that
+  moved so far (`AlarmList.jsx`, the list), and its `show.js` lets `app.js` hand them their alarms.
+  React is bundled into a file of its own, so browsers keep it when the site's own code changes.
   `web/src/lib/`: the rules and calculations it uses, without any page code, so they can be tested on their
   own: `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin
   page uses too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the
@@ -174,6 +177,7 @@ npx playwright test --ui                         # watch the browser tests run s
   errors, no "NaN" or "undefined" in the text, no empty tab, nothing that makes the page scroll sideways.
   Also the year as a story, and the message when the alarms can't be loaded.
 - `warnings.spec.js`: the warnings with made-up ones: where they show, which one moves, and when a service is down.
+- `list.spec.js`: the list: the search, the filters, and a made-up hand entry marked "vorläufig".
 - `quiz.spec.js`: a round of the quiz played by tapping, and 100 more rounds checked for "NaN" or page
   markup in the questions and answers.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
