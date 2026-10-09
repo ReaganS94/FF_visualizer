@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { topCounts, counted, pct, niceMax, weekHours, heatLevel, bigDayCounts, dayLevel } from "../../web/src/lib/count.js";
+import { topCounts, counted, pct, niceMax, weekHours, heatLevel, bigDayCounts, dayLevel, perWeek, nightShare, perMonth } from "../../web/src/lib/count.js";
 import { BIG_DAY } from "../../web/src/lib/alarms.js";
 
 const rows = ["Brand", "Hilfe", "Brand", "", "Hilfe", "Brand", "Unwetter"].map((group, i) => ({ i, group }));
@@ -58,4 +58,34 @@ test("bigDayCounts counts the alarms of each Großlage day, without standbys", (
 
 test("dayLevel shades a day by its alarms: 0, 1, 2, 3–4, up to a Großlage, and a Großlage's", () => {
   expect([0, 1, 2, 3, 4, 5, BIG_DAY - 1, BIG_DAY, BIG_DAY + 15].map(dayLevel)).toEqual([0, 1, 2, 3, 3, 4, 4, 5, 5]);
+});
+
+test("perWeek counts the alarms per week up to the website's newest day, and says which day that is", () => {
+  const days = (...ds) => ds.map((date) => ({ date })); // newest first
+  // all years: from the first alarm to the website's newest alarm, two weeks
+  expect(perWeek(days("2026-01-14", "2026-01-08", "2026-01-01"), "", "2026-01-14")).toEqual({ value: 1.5, to: "2026-01-14" });
+  // a hand entry after the website's newest day doesn't count yet, and the result says where counting stopped
+  expect(perWeek(days("2026-01-20", "2026-01-14", "2026-01-08", "2026-01-01"), "", "2026-01-14")).toEqual({ value: 1.5, to: "2026-01-14" });
+  // a chosen year that the website has passed: 01.01. to 31.12.
+  expect(perWeek(days("2025-12-30", "2025-06-01"), "2025", "2026-10-02")).toEqual({ value: 2 / (365 / 7), to: "2025-12-31" });
+  // a chosen year the website hasn't reached yet, and no alarms at all
+  expect(perWeek(days("2026-10-05"), "2026", "2025-12-31")).toBe(null);
+  expect(perWeek([], "", "2026-01-14")).toBe(null);
+});
+
+test("nightShare gives the share of alarms between 22 and 6 Uhr, of those with a real time", () => {
+  const at = (...hours) => hours.map((hour) => ({ hour }));
+  expect(nightShare(at(22, 5, 6, 21))).toBe(50); // 22 and 5 are night, 6 and 21 day
+  expect(nightShare([...at(23, 2, 12), { hour: 0, timeUnknown: true }])).toBe(67);
+  expect(nightShare([{ hour: 0, timeUnknown: true }])).toBe(null);
+  expect(nightShare([])).toBe(null);
+});
+
+test("perMonth counts the alarms of every month from the first to the last, empty months included", () => {
+  const days = (...ds) => ds.map((date) => ({ date })); // newest first
+  expect(perMonth(days("2026-03-05", "2026-03-01", "2026-01-31"))).toEqual([
+    { year: 2026, month: 0, n: 1 }, { year: 2026, month: 1, n: 0 }, { year: 2026, month: 2, n: 2 }]);
+  expect(perMonth(days("2026-01-02", "2025-11-30"))).toEqual([
+    { year: 2025, month: 10, n: 1 }, { year: 2025, month: 11, n: 0 }, { year: 2026, month: 0, n: 1 }]);
+  expect(perMonth([])).toEqual([]);
 });

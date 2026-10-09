@@ -8,7 +8,7 @@ import { ALL, LISTED, listBehind, selection, loadData } from "./data.js";
 import "./components/tooltip.js"; // the box that follows the pointer over charts and maps sets itself up
 import "./components/warnings.js"; // the warnings box loads and refreshes itself
 import { show } from "./show.js"; // before the tabs, so React's file stays the same as more tabs use React (browsers keep it)
-import { renderOverview } from "./views/overview/overview.js";
+import Overview from "./views/overview/Overview.jsx";
 import { renderDots } from "./views/dots/dots.js";
 import Calendar from "./views/calendar/Calendar.jsx";
 import { renderSpiral } from "./views/spiral/spiral.js";
@@ -27,7 +27,7 @@ import AlarmList from "./views/list/AlarmList.jsx";
 
 function render() {
   const rows = selection();
-  renderOverview(rows);
+  show($("#overview-body"), Overview, { rows, year: $("#f-year").value }); // in React: views/overview/Overview.jsx
   show($("section[data-view=calendar]"), Calendar, { rows, storm: $("#f-storm").checked }); // in React: views/calendar/Calendar.jsx
   renderSpiral(rows);
   renderDots(rows);
