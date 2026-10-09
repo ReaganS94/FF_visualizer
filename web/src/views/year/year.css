@@ -1,0 +1,7 @@
+/* Jahresrückblick (year.js): the row with the year, "Großlagen mitzählen", the story and the print button. */
+.year-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 16px; color: var(--text-2); }
+.year-head button {
+  font: inherit; padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+.year-head button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }

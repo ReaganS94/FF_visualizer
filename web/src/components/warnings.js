@@ -6,7 +6,7 @@
 // left out. Nothing is stored.
 // As soon as one warning needs attention (weather from Stufe 2, or any other warning), all of them move to
 // the very top of every tab. Otherwise they stay on Übersicht, with one quiet line when there are none.
-// The box starts itself: app.js only has to load this file.
+// The box starts itself: main.js only has to load this file.
 import "./warnings.css";
 import { WEEKDAYS, isoDate, weekday, fmtDate } from "../lib/dates.js";
 import { esc } from "../lib/text.js";

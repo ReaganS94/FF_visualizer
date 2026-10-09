@@ -1,8 +1,8 @@
 // Liste: every alarm of the selection, newest first, with a search box.
 import { useState } from "react";
-import { fmtDate } from "../lib/dates.js";
-import { einsaetze } from "../lib/text.js";
-import { alarmKey, searchAlarms } from "../lib/alarms.js";
+import { fmtDate } from "../../lib/dates.js";
+import { einsaetze } from "../../lib/text.js";
+import { alarmKey, searchAlarms } from "../../lib/alarms.js";
 
 const PENDING_TIP = "Noch nicht auf der Website der Feuerwehr. Wird durch den offiziellen Eintrag ersetzt, sobald er dort steht.";
 
