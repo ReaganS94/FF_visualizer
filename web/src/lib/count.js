@@ -1,5 +1,6 @@
 // Counting alarms by a key, and the numbers around counts.
 import { parseDate, weekday } from "./dates.js";
+import { BIG_DAY } from "./alarms.js";
 
 // The `n` most common values of key(r), most first: [[value, rows], ...]. Rows without a value count as "unbekannt".
 export function topCounts(rows, key, n = 15) {
@@ -36,3 +37,14 @@ export function weekHours(rows) {
 
 // A count's shade on a heat chart, 0 to 5: 0 for none, else 1 to 5 by fifths of the largest count, max.
 export const heatLevel = (n, max) => (n === 0 ? 0 : 1 + Math.min(4, Math.floor((n / max) * 5 - 1e-9)));
+
+// The alarms of each Großlage day, without standbys: { date: count }. With "Großlagen mitzählen" off, the Kalender
+// says on those days how many alarms it leaves out.
+export function bigDayCounts(alarms) {
+  const n = {};
+  for (const r of alarms) if (r.bigDay && !r.standby) n[r.date] = (n[r.date] || 0) + 1;
+  return n;
+}
+
+// A day's shade on the Kalender, 0 to 5: 0, 1, 2, 3–4 and 5 to BIG_DAY − 1 alarms, and a Großlage's BIG_DAY or more.
+export const dayLevel = (n) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : n < BIG_DAY ? 4 : 5);

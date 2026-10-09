@@ -1,5 +1,6 @@
 import { test, expect } from "vitest";
-import { topCounts, counted, pct, niceMax, weekHours, heatLevel } from "../../web/src/lib/count.js";
+import { topCounts, counted, pct, niceMax, weekHours, heatLevel, bigDayCounts, dayLevel } from "../../web/src/lib/count.js";
+import { BIG_DAY } from "../../web/src/lib/alarms.js";
 
 const rows = ["Brand", "Hilfe", "Brand", "", "Hilfe", "Brand", "Unwetter"].map((group, i) => ({ i, group }));
 
@@ -41,4 +42,20 @@ test("weekHours counts the alarms by weekday and hour, without those entered wit
 test("heatLevel shades a count by fifths of the largest, with 0 for none", () => {
   expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => heatLevel(n, 10))).toEqual([0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]);
   expect([heatLevel(1, 1), heatLevel(1, 100), heatLevel(21, 100), heatLevel(80, 100), heatLevel(81, 100)]).toEqual([5, 1, 2, 4, 5]);
+});
+
+test("bigDayCounts counts the alarms of each Großlage day, without standbys", () => {
+  const alarms = [
+    { date: "2026-02-17", bigDay: true },
+    { date: "2026-02-17", bigDay: true },
+    { date: "2026-02-17", bigDay: true, standby: true },
+    { date: "2026-02-18" },
+    { date: "2026-06-30", bigDay: true },
+  ];
+  expect(bigDayCounts(alarms)).toEqual({ "2026-02-17": 2, "2026-06-30": 1 });
+  expect(bigDayCounts([])).toEqual({});
+});
+
+test("dayLevel shades a day by its alarms: 0, 1, 2, 3–4, up to a Großlage, and a Großlage's", () => {
+  expect([0, 1, 2, 3, 4, 5, BIG_DAY - 1, BIG_DAY, BIG_DAY + 15].map(dayLevel)).toEqual([0, 1, 2, 3, 3, 4, 4, 5, 5]);
 });

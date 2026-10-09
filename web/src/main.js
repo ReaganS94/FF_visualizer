@@ -10,7 +10,7 @@ import "./components/warnings.js"; // the warnings box loads and refreshes itsel
 import { show } from "./show.js"; // before the tabs, so React's file stays the same as more tabs use React (browsers keep it)
 import { renderOverview } from "./views/overview/overview.js";
 import { renderDots } from "./views/dots/dots.js";
-import { renderCalendar } from "./views/calendar/calendar.js";
+import Calendar from "./views/calendar/Calendar.jsx";
 import { renderSpiral } from "./views/spiral/spiral.js";
 import Hours from "./views/hours/Hours.jsx";
 import Keywords from "./views/keywords/Keywords.jsx";
@@ -28,7 +28,7 @@ import AlarmList from "./views/list/AlarmList.jsx";
 function render() {
   const rows = selection();
   renderOverview(rows);
-  renderCalendar(rows);
+  show($("section[data-view=calendar]"), Calendar, { rows, storm: $("#f-storm").checked }); // in React: views/calendar/Calendar.jsx
   renderSpiral(rows);
   renderDots(rows);
   show($("section[data-view=hours]"), Hours, { rows }); // in React: views/hours/Hours.jsx
