@@ -1,0 +1,5 @@
+/* Kalender: one block of squares per year (calendar.js). */
+#c-calendar { overflow-x: auto; }
+#c-calendar svg { width: 100%; height: auto; display: block; overflow: visible; min-width: 900px; }
+#c-calendar .cell.unlisted { opacity: .45; }
+.year-label { font-weight: 600; margin: 16px 0 4px; }

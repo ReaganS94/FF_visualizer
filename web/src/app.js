@@ -1,324 +1,34 @@
 import {
-  WEEKDAYS, WEEKDAYS_LONG, MONTHS, parseDate, isoDate, addDays, weekday, fmtDate, minDate, maxDate, longestRun,
+  WEEKDAYS, WEEKDAYS_LONG, MONTHS, parseDate, isoDate, addDays, weekday, fmtDate, longestRun,
 } from "./lib/dates.js";
-import { esc, einsaetze, weitere, fmtKm } from "./lib/text.js";
-import { BIG_DAY } from "./lib/alarms.js";
+import { esc, einsaetze, fmtKm } from "./lib/text.js";
 import { HOT, GUST, isHot, isStorm, isThunder, wxKind, weatherFacts } from "./lib/weather.js";
 import {
   DAY_START, NIGHT_START, PRIOR, specialNight, alarmWindows, lastCovered, estimate, backtest, backtestFit, backtestGroups, alarmsIn,
 } from "./lib/estimate.js";
 import { NOTABLE, yearInfo, DAY_SLOTS, runningTotal } from "./lib/year.js";
 import { topCounts, pct, niceMax } from "./lib/count.js";
-import {
-  isBMA, isRWM, addressGroups, dotKind, dotGroups, DOT_ORDER, WACHE, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
-} from "./lib/places.js";
+import { DOT_ORDER, WACHE, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary } from "./lib/places.js";
 import { QUIZ_LEN, quizRound, unitText } from "./lib/quiz.js";
 import { $, calm } from "./dom.js";
 import { ALL, KW, GEO, WEATHER, UPDATED, LISTED, listBehind, selection, loadData } from "./data.js";
 import { tip, placeTip } from "./components/tooltip.js";
-import { columnChart, barList, rampColors, legend } from "./components/charts.js";
+import { columnChart, barList } from "./components/charts.js";
 import { myths, mythParts } from "./components/myths.js";
 import { loadScript, LEAFLET } from "./components/leaflet.js";
 import "./components/warnings.js"; // the warnings box loads and refreshes itself
+import { renderOverview } from "./views/overview/overview.js";
+import { renderDots } from "./views/dots/dots.js";
+import { renderCalendar } from "./views/calendar/calendar.js";
+import { renderSpiral } from "./views/spiral/spiral.js";
+import { renderHours } from "./views/hours/hours.js";
+import { renderKeywords } from "./views/keywords/keywords.js";
+import { renderDistricts } from "./views/districts/districts.js";
+import { renderAddresses } from "./views/addresses/addresses.js";
+import { renderWeather } from "./views/weather/weather.js";
+import { renderMyths } from "./views/myths/myths.js";
 import { show } from "./views/show.js";
 import AlarmList from "./views/AlarmList.jsx";
-
-// ---------- views ----------
-function renderOverview(rows) {
-  const tiles = [];
-  // Weekly average only over days the website covers (from 01.01. or the first alarm to its newest alarm),
-  // the same rule as the story; days after that hold only hand entries so far.
-  const year = $("#f-year").value, listed = isoDate(LISTED);
-  const from = year ? `${year}-01-01` : rows.at(-1)?.date;
-  const to = !rows.length ? "" : year && listed > `${year}-12-31` ? `${year}-12-31` : minDate(rows[0].date, listed);
-  const covered = rows.filter((r) => r.date <= to).length;
-  const days = rows.length && to >= from ? (parseDate(to) - parseDate(from)) / 864e5 + 1 : 0;
-  const night = rows.filter((r) => !r.timeUnknown && (r.hour >= NIGHT_START || r.hour < DAY_START)).length;
-  const known = rows.filter((r) => !r.timeUnknown).length;
-  tiles.push(["Einsätze", rows.length, "in der Auswahl"]);
-  tiles.push(["Ø pro Woche", days ? (covered / (days / 7)).toFixed(1).replace(".", ",") : "–", days && to < rows[0].date ? `bis ${fmtDate(to)}` : "über den gewählten Zeitraum"]);
-  tiles.push(["Nachts", known ? Math.round((100 * night) / known) + " %" : "–", "zwischen 22 und 6 Uhr"]);
-  tiles.push(["Letzter Einsatz", rows.length ? fmtDate(rows[0].date) : "–",
-    rows.length ? esc(rows[0].event) + (rows[0].manual ? ' <span class="tag">vorläufig</span>' : "") : ""]);
-  $("#tiles").innerHTML = tiles.map(([l, v, d]) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
-
-  if (!rows.length) { $("#c-months").innerHTML = ""; return; }
-  const counts = {};
-  for (const r of rows) counts[r.date.slice(0, 7)] = (counts[r.date.slice(0, 7)] || 0) + 1;
-  const first = parseDate(rows[rows.length - 1].date), last = parseDate(rows[0].date);
-  const items = [];
-  const narrow = $("#c-months").clientWidth < 600;
-  for (let d = new Date(first.getFullYear(), first.getMonth(), 1); d <= last; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
-    const k = isoDate(d).slice(0, 7), m = d.getMonth();
-    const n = counts[k] || 0;
-    const tick = narrow ? (m === 0 ? String(d.getFullYear()) : "")
-      : m === 0 || items.length === 0 ? `${MONTHS[m]} ${d.getFullYear()}` : m % 3 === 0 ? MONTHS[m] : "";
-    items.push({ value: n, tip: `${MONTHS[m]} ${d.getFullYear()}: <b>${einsaetze(n)}</b>`, tick });
-  }
-  columnChart($("#c-months"), items);
-}
-
-function renderCalendar(rows) {
-  const colors = rampColors();
-  const bin = (n) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : n < BIG_DAY ? 4 : 5);
-  const perDay = {};
-  for (const r of rows) (perDay[r.date] ||= []).push(r);
-  const years = [...new Set(rows.map((r) => r.date.slice(0, 4)))].sort().reverse();
-  const C = 18, G = 3, L = 26, T = 16;
-  const today = isoDate(new Date()), listed = isoDate(LISTED);
-  // Like the spiral: say so on hidden Großlage days and on days the website hasn't reached, instead of just "0".
-  const hiddenBig = {};
-  if (!$("#f-storm").checked) for (const r of ALL) if (r.bigDay && !r.standby) hiddenBig[r.date] = (hiddenBig[r.date] || 0) + 1;
-  let html = "";
-  for (const y of years) {
-    const jan1 = new Date(Number(y), 0, 1);
-    const off = weekday(jan1);
-    let s = `<svg viewBox="0 0 ${L + 54 * (C + G)} ${T + 7 * (C + G)}" role="img">`;
-    WEEKDAYS.forEach((w, i) => { if (i % 2 === 0) s += `<text x="0" y="${T + i * (C + G) + 13}">${w}</text>`; });
-    for (let d = jan1; d.getFullYear() === Number(y); d = addDays(d, 1)) {
-      const doy = Math.round((d - jan1) / 864e5);
-      const col = Math.floor((doy + off) / 7), row = weekday(d);
-      if (d.getDate() === 1) s += `<text x="${L + col * (C + G)}" y="11">${MONTHS[d.getMonth()]}</text>`;
-      const date = isoDate(d);
-      if (date > today) continue;
-      const list = perDay[date] || [];
-      const tipText = `<b>${fmtDate(date)}</b> · ${einsaetze(list.length)}` +
-        list.slice(0, 6).map((r) => `<br>${r.timeUnknown ? "" : `${esc(r.time)} `}${esc(r.keyword)} – ${esc(r.event)}`).join("") +
-        (list.length > 6 ? `<br>… und ${weitere(list.length - 6)}` : "") +
-        (hiddenBig[date] ? `<br>Großlage mit ${einsaetze(hiddenBig[date], true)}, nicht mitgezählt` : "") +
-        (date > listed ? "<br>Noch nicht auf der Website" : "");
-      s += `<rect class="cell${date > listed ? " unlisted" : ""}" x="${L + col * (C + G)}" y="${T + row * (C + G)}" width="${C}" height="${C}" rx="3" fill="${colors[bin(list.length)]}" data-tip="${esc(tipText)}"/>`;
-    }
-    html += `<div class="year-label">${y}</div>${s}</svg>`;
-  }
-  html += legend(["0", "1", "2", "3–4", `5–${BIG_DAY - 1}`, `${BIG_DAY}+`], colors);
-  $("#c-calendar").innerHTML = html;
-}
-
-function renderHours(rows) {
-  const known = rows.filter((r) => !r.timeUnknown);
-  const grid = Array.from({ length: 7 }, () => Array(24).fill(0));
-  for (const r of known) grid[weekday(parseDate(r.date))][r.hour]++;
-  const max = Math.max(1, ...grid.flat());
-  const colors = rampColors();
-  const level = (n) => (n === 0 ? 0 : 1 + Math.min(4, Math.floor((n / max) * 5 - 1e-9)));
-  const C = 36, G = 3, L = 30, T = 18;
-  let s = `<svg viewBox="0 0 ${L + 24 * (C + G)} ${T + 7 * (C + G)}" role="img">`;
-  for (let h = 0; h < 24; h += 3) s += `<text x="${L + h * (C + G) + C / 2}" y="12" text-anchor="middle">${h} Uhr</text>`;
-  grid.forEach((line, w) => {
-    s += `<text x="0" y="${T + w * (C + G) + C / 2 + 4}">${WEEKDAYS[w]}</text>`;
-    line.forEach((n, h) => {
-      s += `<rect class="cell" x="${L + h * (C + G)}" y="${T + w * (C + G)}" width="${C}" height="${C}" rx="3" fill="${colors[level(n)]}" data-tip="${WEEKDAYS_LONG[w]}, ${h}–${h + 1} Uhr: <b>${einsaetze(n)}</b>"/>`;
-    });
-  });
-  $("#c-heat").innerHTML = s + "</svg>" + legend(["0", "", "", "", "", `${max} (Maximum)`], colors);
-
-  const hours = Array(24).fill(0);
-  for (const r of known) hours[r.hour]++;
-  columnChart($("#c-hours"), hours.map((n, h) => ({ value: n, tip: `${h}–${h + 1} Uhr: <b>${einsaetze(n)}</b>`, tick: h % 3 === 0 ? `${h}` : "" })), { height: 180 });
-}
-
-function renderKeywords(rows) {
-  barList($("#c-groups"), topCounts(rows, (r) => r.group).map(([g, list]) => {
-    const codes = topCounts(list, (r) => r.base, 4).map(([c, l]) => `${esc(c)} ${esc(l[0].name)} (${l.length})`).join("<br>");
-    return { label: g, value: list.length, tip: `<b>${esc(g)}</b> · ${einsaetze(list.length)}<br>${codes}` };
-  }));
-  barList($("#c-keywords"), topCounts(rows, (r) => r.base).map(([k, list]) => {
-    const events = topCounts(list, (r) => r.event, 3).map(([e, l]) => `${esc(e)} (${l.length})`).join("<br>");
-    return { label: `${k} · ${list[0].name}`, value: list.length, tip: `<b>${esc(k)}</b> ${esc(list[0].name)} · ${einsaetze(list.length)}<br>${events}` };
-  }), { labelWidth: 330 });
-}
-
-function renderDistricts(rows) {
-  barList($("#c-districts"), topCounts(rows, (r) => r.district, 20).map(([k, list]) => {
-    const streets = topCounts(list, (r) => r.street, 3).map(([e, l]) => `${esc(e)} (${l.length})`).join("<br>");
-    return { label: k, value: list.length, tip: `<b>${esc(k)}</b> · ${einsaetze(list.length)}<br>${streets}` };
-  }));
-}
-
-// ---------- Stammadressen ----------
-// Streets and places with repeated alarms (which ones: addressGroups in lib/places.js).
-
-function addressList(el, groups, empty) {
-  if (!groups.length) { el.innerHTML = `<p class="note">${empty}</p>`; return; }
-  const open = new Set([...el.querySelectorAll("details[open]")].map((d) => d.dataset.k)); // stays open across redraws
-  const max = groups[0][1].length;
-  el.innerHTML = groups.map(([street, list]) => {
-    const districts = [...new Set(list.map((r) => r.district).filter(Boolean))].map((d) => `<span>${esc(d)}</span>`).join(", ");
-    // What usually happens there: alarm systems and smoke alarms by the event text, the rest by keyword.
-    const kind = (r) => (isBMA(r) ? "Brandmeldeanlage" : isRWM(r) ? "Rauchwarnmelder" : r.name.replace(/\s*\(.*\)$/, ""));
-    // Types with at least two alarms by name (at most three), the rest summed up, so the line adds up to the total.
-    const kinds = topCounts(list, kind, 99);
-    const named = kinds.filter(([, l]) => l.length >= 2).slice(0, 3), rest = kinds.slice(named.length);
-    const restN = rest.reduce((a, [, l]) => a + l.length, 0);
-    const what = [...named, ...(rest.length === 1 ? rest : [])].map(([k, l]) => `${l.length}× ${esc(k)}`)
-      .concat(rest.length > 1 ? [named.length ? `${restN}× andere` : `${restN} verschiedene Einsatzarten`] : []).join(" · ");
-    const alarms = list.map((r) => `<tr><td>${fmtDate(r.date)}${r.manual ? ' <span class="tag">vorläufig</span>' : ""}</td>` +
-      `<td>${r.timeUnknown ? "?" : esc(r.time)}</td><td title="${esc(r.name)}">${esc(r.keyword)}</td><td>${esc(r.event)}</td></tr>`).join("");
-    return `<details class="addr" data-k="${esc(street)}"${open.has(street) ? " open" : ""}><summary>` +
-      `<span class="addr-name"><b>${esc(street)}</b> <small>${districts}</small></span>` +
-      `<span class="addr-bar"><i style="width:${((100 * list.length) / max).toFixed(1)}%"></i></span>` +
-      `<span class="addr-n">${list.length}</span>` +
-      `<span class="addr-what">${what} · zuletzt ${fmtDate(list[0].date)}</span></summary>` +
-      `<div class="table-wrap"><table><tbody>${alarms}</tbody></table></div></details>`;
-  }).join("");
-}
-
-function renderAddresses(rows) {
-  addressList($("#c-addresses"), addressGroups(rows, 3).slice(0, 25), "In der Auswahl gibt es keinen Ort mit drei oder mehr Einsätzen.");
-  addressList($("#c-bma"), addressGroups(rows.filter(isBMA), 2), "In der Auswahl hat keine Brandmeldeanlage mehr als einmal ausgelöst.");
-}
-
-// ---------- Punktewand ----------
-// Every alarm is one dot, coloured by its type. Switching the grouping moves each dot to its new place.
-// Which colour and which group a dot gets: dotKind and dotGroups in lib/places.js.
-let dotsBy = "month";
-let dotsRows = [];     // the alarms currently drawn, in dot order
-let dotsPicked = null; // the tapped alarm
-
-// Where each dot goes: columns for month and hour (time runs left to right), rows for type and district.
-function dotLayout(rows, by, W) {
-  const s = W < 600 ? 7 : 9;
-  const groups = dotGroups(rows, by);
-  for (const g of groups) g.rows.sort((a, b) => DOT_ORDER.indexOf(dotKind(a)) - DOT_ORDER.indexOf(dotKind(b)) || a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-  const pos = new Map();
-  let labels = "", H;
-  if (by === "month" || by === "hour") {
-    const cw = W / groups.length, per = Math.max(1, Math.floor((cw - 3) / s)), T = 18, B = 22;
-    const high = Math.max(1, ...groups.map((g) => Math.ceil(g.rows.length / per)));
-    H = T + high * s + B;
-    groups.forEach((g, k) => {
-      const x0 = k * cw + (cw - per * s) / 2;
-      g.rows.forEach((r, j) => pos.set(r, [x0 + (j % per) * s + s / 2, T + (high - Math.floor(j / per) - 1) * s + s / 2]));
-      const top = T + (high - Math.ceil(g.rows.length / per)) * s - 5;
-      if (g.rows.length && cw >= 22) labels += `<text x="${(k + 0.5) * cw}" y="${top}" text-anchor="middle" class="count">${g.rows.length}</text>`; // narrow columns: in the tooltip only
-      if (by === "month" || W >= 600 || k % 3 === 0 || g.label === "?") labels += `<text x="${(k + 0.5) * cw}" y="${H - 5}" text-anchor="middle">${g.label}</text>`;
-    });
-  } else {
-    const Lw = Math.min(180, Math.round(W * 0.36)), R = 34, per = Math.max(1, Math.floor((W - Lw - R) / s)), gap = 10;
-    let y = 4;
-    for (const g of groups) {
-      g.rows.forEach((r, j) => pos.set(r, [Lw + (j % per) * s + s / 2, y + Math.floor(j / per) * s + s / 2]));
-      labels += `<text x="${Lw - 8}" y="${y + s / 2 + 4}" text-anchor="end">${esc(g.label)}</text>` +
-        `<text x="${Lw + Math.min(g.rows.length, per) * s + 6}" y="${y + s / 2 + 4}" class="count">${g.rows.length}</text>`;
-      y += Math.max(1, Math.ceil(g.rows.length / per)) * s + gap;
-    }
-    H = y;
-  }
-  return { pos, labels, H, r: s * 0.38 };
-}
-
-function renderDots(rows) {
-  const el = $("#c-dots");
-  if (!el.offsetWidth) return; // drawn when the view opens
-  const W = el.clientWidth;
-  const { pos, labels, H, r } = dotLayout(rows, dotsBy, W);
-  let svg = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${einsaetze(rows.length)} als Punkte"><g class="dot-labels">${labels}</g><g class="dots">`;
-  rows.forEach((a, i) => {
-    const [x, y] = pos.get(a);
-    const tip = `<b>${WEEKDAYS[weekday(parseDate(a.date))]}, ${fmtDate(a.date)}</b>${a.timeUnknown ? "" : `, ${esc(a.time)} Uhr`}<br>` +
-      `${esc(a.keyword)} · ${esc(a.name)}<br>${esc(a.event)}<br>${esc([a.street, a.district].filter(Boolean).join(", "))}`;
-    svg += `<circle class="dot ${dotKind(a)}${a === dotsPicked ? " on" : ""}" r="${r.toFixed(1)}" data-i="${i}" style="transform:translate(${x.toFixed(1)}px,${y.toFixed(1)}px);--d:${(i * 37) % 400}ms" data-tip="${esc(tip)}"/>`;
-  });
-  el.innerHTML = svg + "</g></svg>";
-  dotsRows = rows;
-  if (!rows.includes(dotsPicked)) dotsPicked = null;
-  dotsDetail();
-}
-
-// Regroup without redrawing, so each dot moves from its old place to the new one.
-function regroupDots(by) {
-  dotsBy = by;
-  document.querySelectorAll("#dots-by button").forEach((b) => b.classList.toggle("active", b.dataset.by === by));
-  const el = $("#c-dots"), svg = el.querySelector("svg");
-  if (!svg) return;
-  const W = el.clientWidth;
-  const { pos, labels, H } = dotLayout(dotsRows, by, W);
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.setAttribute("height", H);
-  svg.querySelector(".dot-labels").innerHTML = labels;
-  svg.querySelectorAll(".dot").forEach((c) => {
-    const [x, y] = pos.get(dotsRows[c.dataset.i]);
-    c.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
-  });
-}
-
-function dotsDetail() {
-  const a = dotsPicked;
-  $("#dots-detail").innerHTML = a
-    ? `<b>${WEEKDAYS_LONG[weekday(parseDate(a.date))]}, ${fmtDate(a.date)}${a.timeUnknown ? "" : `, ${esc(a.time)} Uhr`}</b> · ` +
-      `${esc(a.keyword)} ${esc(a.name)} · ${esc(a.event)} · ${esc([a.street, a.district].filter(Boolean).join(", "))}`
-    : "Einen Punkt antippen, um den Einsatz zu sehen.";
-}
-
-$("#dots-by").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) regroupDots(b.dataset.by); });
-$("#c-dots").addEventListener("click", (e) => {
-  const c = e.target.closest(".dot");
-  $("#c-dots").querySelectorAll(".dot.on").forEach((d) => d.classList.remove("on"));
-  dotsPicked = c ? dotsRows[c.dataset.i] : null;
-  if (c) c.classList.add("on");
-  dotsDetail();
-});
-
-// ---------- Jahresspirale ----------
-// One turn per year, one piece per day, from the inside out. Every date sits at the same angle in every
-// year, so the seasons line up. A gap at the top holds the year labels.
-function renderSpiral(rows) {
-  const el = $("#c-spiral");
-  if (!rows.length) { el.innerHTML = ""; $("#spiral-note").textContent = ""; return; }
-  const perDay = {};
-  for (const r of rows) (perDay[r.date] ||= []).push(r);
-  const years = [...new Set(rows.map((r) => r.date.slice(0, 4)))].sort();
-  const listed = isoDate(LISTED);
-  // A past year runs to 31.12.; the current one to its newest alarm (entered by hand or on the website).
-  const lastYear = years.at(-1);
-  const end = lastYear < String(new Date().getFullYear()) ? `${lastYear}-12-31` : maxDate(rows[0].date, minDate(listed, `${lastYear}-12-31`));
-  const R0 = 96, W = 46, T = 34, GAP = 16; // inner radius, distance between turns, band width, gap in degrees
-  const outer = R0 + years.length * W + T / 2;
-  const C = outer + 34;
-  const f = (n) => n.toFixed(1);
-  const deg = (i) => GAP / 2 + ((360 - GAP) * i) / 366;
-  const xy = (a, r) => { const t = ((a - 90) * Math.PI) / 180; return [C + r * Math.cos(t), C + r * Math.sin(t)]; };
-  const pt = (a, r) => xy(a, r).map(f).join(",");
-  const rad = (k, i) => R0 + (k + i / 366) * W;
-  const step = (n) => (n === 0 ? "var(--empty)" : `var(--heat-${n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : 4})`);
-  // With "Großlagen mitzählen" off, say so on those days instead of just showing 0.
-  const hiddenBig = {};
-  if (!$("#f-storm").checked) for (const r of ALL) if (r.bigDay && !r.standby) hiddenBig[r.date] = (hiddenBig[r.date] || 0) + 1;
-  let s = `<svg viewBox="0 0 ${2 * C} ${2 * C}" role="img" aria-label="Einsätze pro Tag als Spirale, ${years[0]} bis ${years.at(-1)}">`;
-  // month boundaries, visible between the turns
-  const monthStart = (m) => DAY_SLOTS.indexOf(`${String(m + 1).padStart(2, "0")}-01`);
-  MONTHS.forEach((name, m) => {
-    const a = deg(monthStart(m)), mid = deg((monthStart(m) + (m === 11 ? 366 : monthStart(m + 1))) / 2);
-    const [x1, y1] = xy(a, R0 - T / 2), [x2, y2] = xy(a, outer), [lx, ly] = xy(mid, outer + 16);
-    s += `<line class="grid" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/><text x="${f(lx)}" y="${f(ly + 4)}" text-anchor="middle">${name}</text>`;
-  });
-  years.forEach((y, k) => {
-    DAY_SLOTS.forEach((d, i) => {
-      const date = `${y}-${d}`;
-      if (d === "02-29" && new Date(Number(y), 1, 29).getMonth() !== 1) return; // no 29.02. this year
-      if (date > end) return;
-      const list = perDay[date] || [];
-      const a0 = deg(i), a1 = deg(i + 1), r0 = rad(k, i), r1 = rad(k, i + 1);
-      const fill = step(list.length);
-      const tip = `<b>${WEEKDAYS[weekday(parseDate(date))]}, ${fmtDate(date)}</b> · ${einsaetze(list.length)}` +
-        list.slice(0, 6).map((r) => `<br>${r.timeUnknown ? "" : `${esc(r.time)} `}${esc(r.keyword)} – ${esc(r.event)}`).join("") +
-        (list.length > 6 ? `<br>… und ${weitere(list.length - 6)}` : "") +
-        (hiddenBig[date] ? `<br>Großlage mit ${einsaetze(hiddenBig[date], true)}, nicht mitgezählt` : "") +
-        (date > listed ? "<br>Noch nicht auf der Website" : "");
-      s += `<path class="day-seg${date > listed ? " unlisted" : ""}" d="M${pt(a0, r0 + T / 2)}L${pt(a1, r1 + T / 2)}L${pt(a1, r1 - T / 2)}L${pt(a0, r0 - T / 2)}Z" ` +
-        `fill="${fill}" stroke="${fill}" data-tip="${esc(tip)}"/>`;
-    });
-    const [yx, yy] = xy(0, rad(k, 0));
-    s += `<text class="year-mark" x="${f(yx)}" y="${f(yy + 4)}" text-anchor="middle">${y}</text>`;
-  });
-  s += `<text x="${C}" y="${C - 4}" text-anchor="middle" class="center">${years.length > 1 ? `${years[0]}–${years.at(-1)}` : years[0]}</text>`;
-  s += `<text x="${C}" y="${C + 14}" text-anchor="middle">${years.length > 1 ? "von innen nach außen" : "ein Jahr, eine Runde"}</text>`;
-  el.innerHTML = s + "</svg>" + legend(["0", "1", "2", "3–4", "5+"], ["var(--empty)", "var(--heat-1)", "var(--heat-2)", "var(--heat-3)", "var(--heat-4)"]);
-  $("#spiral-note").textContent = "Jede Runde ist ein Jahr, jedes Stück ein Tag. Derselbe Tag liegt in jedem Jahr an derselben Stelle, " +
-    "so stehen die Jahreszeiten übereinander. Je dunkler, desto mehr Einsätze an diesem Tag." +
-    (end > listed ? ` Tage nach dem ${fmtDate(listed)} sind blasser: Die Website listet sie noch nicht, an diesen Tagen zählen nur vorläufige Einträge.` : "");
-}
 
 // ---------- "Einsatz heute?" ----------
 // The estimate and its backtest are in lib/estimate.js; this draws the view.
@@ -1411,61 +1121,6 @@ function radiusFrame(now) {
 $("#ra-play").addEventListener("click", radiusPlay);
 document.querySelectorAll("[data-radius]").forEach((b) => b.addEventListener("click", () => radiusFit(b.dataset.radius)));
 
-// ---------- Wetter ----------
-const WEATHER_BUCKETS = [
-  ["Windböen", "gust", [[0, 40, "unter 40 km/h"], [40, 60, "40–60 km/h"], [60, 80, "60–80 km/h"], [80, 999, "ab 80 km/h"]]],
-  ["Niederschlag", "rain", [[0, 0.1, "trocken"], [0.1, 5, "bis 5 mm"], [5, 20, "5–20 mm"], [20, 999, "ab 20 mm"]]],
-  ["Höchsttemperatur", "tmax", [[-99, 0, "unter 0 °C"], [0, 10, "0–10 °C"], [10, 20, "10–20 °C"], [20, 30, "20–30 °C"], [30, 99, "ab 30 °C"]]],
-];
-
-function renderWeather(rows, year, dropped) {
-  const box = $("#c-weather");
-  const days = Object.keys(WEATHER);
-  if (!days.length) {
-    box.innerHTML = `<p class="note">Die Wetterdaten erscheinen nach der nächsten täglichen Aktualisierung.</p>`;
-    return;
-  }
-  const perDay = {};
-  for (const r of rows) perDay[r.date] = (perDay[r.date] || 0) + 1;
-  const first = rows.length ? rows[rows.length - 1].date : "";
-  const last = isoDate(minDate(addDays(UPDATED, -1), addDays(LISTED, -1)));
-  // Only days the selection covers: the chosen year, and not the Großlage days that were filtered out
-  // (they'd otherwise count as stormy days without alarms). Silvester and Neujahr are left out too: their
-  // fireworks alarms come whatever the weather, and two stormy Neujahr days made windy days look busy.
-  const covered = days.filter((d) => d >= first && d <= last && (!year || d.startsWith(year)) && !dropped.has(d) &&
-    !["12-31", "01-01"].includes(d.slice(5)));
-  // Without a mouse the tooltip never shows, so the number of days goes next to the label.
-  const touch = matchMedia("(hover: none)").matches;
-  const tage = (n) => `${n} ${n === 1 ? "Tag" : "Tage"}`;
-  box.innerHTML = WEATHER_BUCKETS.map(([title, , ], i) => `<h2>${title}</h2><div class="chart" id="c-weather-${i}"></div>`).join("");
-  WEATHER_BUCKETS.forEach(([title, field, buckets], i) => {
-    barList($(`#c-weather-${i}`), buckets.map(([lo, hi, label]) => {
-      const ds = covered.filter((d) => WEATHER[d][field] >= lo && WEATHER[d][field] < hi);
-      const n = ds.reduce((a, d) => a + (perDay[d] || 0), 0);
-      const avg = ds.length ? n / ds.length : 0;
-      return {
-        label: touch && ds.length ? `${label} · ${tage(ds.length)}` : label,
-        value: Math.round(avg * 100) / 100, display: ds.length ? avg.toFixed(2).replace(".", ",") : "keine Tage",
-        tip: `<b>${label}</b><br>${tage(ds.length)}, ${einsaetze(n)}<br>Ø ${avg.toFixed(2).replace(".", ",")} pro Tag`,
-      };
-    }));
-  });
-}
-
-// ---------- Mythen-Check ----------
-// The myths and their tests are in lib/myths.js, the results and pictures in components/myths.js; this
-// draws the view.
-function renderMyths() {
-  const { results, first, last, days } = myths();
-  $("#myths-note").textContent = `Gezählt werden ${days.toLocaleString("de-DE")} Tage vom ${fmtDate(isoDate(first))} bis ${fmtDate(isoDate(last))}, ` +
-    "ohne Großlagen und ohne Wachbesetzungen.";
-  $("#c-myths").innerHTML = results.map((m) => {
-    const { cls, verdict, picture, sentence } = mythParts(m);
-    return `<article class="myth ${cls}"><header><h3>${m.title}</h3><span class="verdict">${verdict}</span></header>` +
-      `${picture}<p>${sentence}</p><p class="myth-about">${esc(m.about(m.t))}</p></article>`;
-  }).join("");
-}
-
 // ---------- Quiz "Schätz mal" ----------
 // The questions are built in lib/quiz.js; this shows them, one card at a time. Nothing is saved: no names,
 // no high score.
@@ -1638,58 +1293,6 @@ function showView(v) {
 // The admin link only shows in a browser that is signed in on the admin page (same site, so the
 // saved key is visible here). Everyone else never sees it.
 try { $("#admin-link").hidden = !localStorage.getItem("gh-token"); } catch {}
-
-// ---------- Als App speichern ----------
-// On phones and tablets, Übersicht offers to put the site on the home screen. Android browsers that can
-// install it (Chrome, Edge, Samsung Internet) say so with "beforeinstallprompt", only while it isn't
-// installed yet, and the button opens their own install window. iPhones and iPads have no such window and
-// can't tell whether the icon exists, so there the button opens a short guide; "Erledigt" or × hide the
-// offer on that device. Nothing shows on computers, in other browsers, or when the site runs as the app.
-const APP_OFFER_KEY = "app-offer-hidden";
-const appOffer = {
-  ios: /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1),
-  android: /Android/.test(navigator.userAgent),
-  install: null, // the browser's install window, while it offers one
-};
-function showAppOffer() {
-  let dismissed = false;
-  try { dismissed = localStorage.getItem(APP_OFFER_KEY) === "1"; } catch {}
-  const asApp = matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches || navigator.standalone === true;
-  $("#app-offer").hidden = dismissed || asApp || !(appOffer.ios || appOffer.install);
-}
-function dismissAppOffer() {
-  try { localStorage.setItem(APP_OFFER_KEY, "1"); } catch {}
-  showAppOffer();
-}
-window.addEventListener("beforeinstallprompt", (e) => {
-  if (!appOffer.android) return; // computers keep the browser's own install symbol
-  e.preventDefault(); // the button takes the place of Chrome's own install bar
-  appOffer.install = e;
-  showAppOffer();
-});
-window.addEventListener("appinstalled", () => { appOffer.install = null; showAppOffer(); });
-$("#app-offer-btn").addEventListener("click", async () => {
-  if (appOffer.ios) {
-    const guide = $("#app-offer-guide");
-    guide.hidden = !guide.hidden;
-    $("#app-offer-btn").setAttribute("aria-expanded", String(!guide.hidden));
-    return;
-  }
-  const install = appOffer.install;
-  appOffer.install = null; // the window opens only once; the browser offers it again on a later visit
-  try { await install.prompt(); await install.userChoice; } catch {}
-  showAppOffer();
-});
-$("#app-offer-close").addEventListener("click", dismissAppOffer);
-$("#app-offer-done").addEventListener("click", dismissAppOffer);
-if (appOffer.ios) {
-  $("#app-offer-sub").textContent = "Mit eigenem Symbol auf dem Home-Bildschirm.";
-  // The guide names the buttons as the phone shows them, so a phone set to another language gets the English names.
-  if (!/^de\b/i.test(navigator.language || "")) document.querySelectorAll("#app-offer-guide [data-en]").forEach((b) => (b.textContent = b.dataset.en));
-  $("#app-offer-btn").setAttribute("aria-expanded", "false");
-  $("#app-offer-btn").setAttribute("aria-controls", "app-offer-guide");
-}
-showAppOffer();
 
 loadData()
   .then((loaded) => {

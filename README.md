@@ -52,17 +52,20 @@ that haven't moved yet are still in `app.js`.
   heat colours and their legend), `tooltip.js` (the box that follows the pointer), `warnings.js` (the
   warnings box, see Warnungen below), `myths.js` (the myth results and pictures, on the Mythen-Check and in
   the quiz) and `leaflet.js` (loads the map library for the Karte and the Einsatzradius).
-- `views/`: the tabs with files of their own. So far that's the list, `AlarmList.jsx`, a React component;
-  `show.js` lets `app.js` hand it its alarms. React is bundled into a file of its own, so browsers keep it
-  when the site's own code changes.
+- `views/`: one folder per tab, named like the tab's `data-view` in `index.html`, with its code and its
+  styles: `overview/` (Übersicht, with `app-offer.js` for "Als App speichern"), `dots/` (Punktewand),
+  `calendar/` (Kalender), `spiral/` (Jahresspirale), `hours/` (Tageszeit), `keywords/` (Stichworte),
+  `districts/` (Stadtteile), `addresses/` (Stammadressen), `weather/` (Wetter) and `myths/` (Mythen-Check).
+  The list is a React component, `AlarmList.jsx`; `show.js` lets `app.js` hand it its alarms. React is
+  bundled into a file of its own, so browsers keep it when the site's own code changes.
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin
   page uses too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the
   Jahresrückblick counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot
   wall's groups and colours, distances for the Einsatzradius), `count.js` (counting alarms by street,
   keyword and so on) and `quiz.js` (the quiz questions).
-- `style.css`: the colours, the layout, and the styles of the tabs that haven't moved yet. The admin page
-  uses it too.
+- `style.css`: the colours, the layout, the styles several tabs share, and those of the tabs that haven't
+  moved yet. The admin page uses it too.
 - `admin.js`: the admin page (`web/admin.html`).
 
 ## Admin page

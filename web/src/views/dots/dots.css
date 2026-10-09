@@ -1,0 +1,14 @@
+/* Punktewand: the dots, which move to their new place when the grouping changes (dots.js). Their colours,
+   the button row and the legend are in style.css, because the Einsatzradius uses them too. */
+#c-dots svg { width: 100%; height: auto; display: block; overflow: visible; }
+#c-dots text.count { fill: var(--text); font-size: 11px; font-weight: 600; }
+#c-dots text.muted { fill: var(--muted); font-size: 11px; }
+.dot {
+  stroke: transparent; stroke-width: 3; cursor: pointer;
+  transition: transform .9s cubic-bezier(.3, .7, .2, 1) var(--d, 0ms);
+}
+.dot:hover, .dot.on { stroke: var(--text); stroke-width: 2; }
+.dot-labels { animation: fade-in .6s ease-out; }
+@keyframes fade-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .dot { transition: none; } .dot-labels { animation: none; } }
+#dots-detail { min-height: 2.6em; }
