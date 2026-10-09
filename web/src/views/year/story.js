@@ -1,6 +1,6 @@
 // Jahr als Story: full-screen cards to tap or swipe through, one fact each, sized for a phone screenshot.
-// Uses the year and the "Großlagen mitzählen" choice of the Jahresrückblick. It sets itself up when the page
-// loads; year.js only has to load this file.
+// The Jahresrückblick's button opens it with storyOpen(), for the year and the "Großlagen mitzählen" choice of
+// the tab. The rest sets itself up when the page loads.
 
 import { WEEKDAYS_LONG, parseDate, weekday, fmtDate, longestRun } from "../../lib/dates.js";
 import { esc, einsaetze } from "../../lib/text.js";
@@ -163,8 +163,9 @@ function storyShow(i) {
   $("#story-next").disabled = story.i === story.cards.length - 1;
 }
 
-function storyOpen() {
-  story.cards = storyCards($("#y-year").value, $("#y-storm").checked);
+// year: "2026"; storm: whether the Großlagen count.
+export function storyOpen(year, storm) {
+  story.cards = storyCards(year, storm);
   if (!story.cards.length) return;
   $("#story").hidden = false;
   document.body.classList.add("story-open");
@@ -183,7 +184,6 @@ function storyHide() {
 const storyClose = () => (history.state?.story ? history.back() : storyHide());
 
 window.addEventListener("popstate", () => { if (!$("#story").hidden) storyHide(); });
-$("#y-story").addEventListener("click", storyOpen);
 $("#story-close").addEventListener("click", storyClose);
 $("#story-prev").addEventListener("click", () => storyShow(story.i - 1));
 $("#story-next").addEventListener("click", () => storyShow(story.i + 1));

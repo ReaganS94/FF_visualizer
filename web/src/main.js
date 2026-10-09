@@ -19,7 +19,7 @@ import Addresses from "./views/addresses/Addresses.jsx";
 import Weather from "./views/weather/Weather.jsx";
 import { renderMyths } from "./views/myths/myths.js";
 import { renderChance, drawOutlook } from "./views/chance/chance.js";
-import { renderYear } from "./views/year/year.js";
+import YearReview from "./views/year/YearReview.jsx";
 import { renderMap } from "./views/map/map.js";
 import Radius from "./views/radius/Radius.jsx";
 import { quiz, quizShow } from "./views/quiz/quiz.js";
@@ -36,7 +36,7 @@ function render() {
   show($("section[data-view=districts]"), Districts, { rows }); // in React: views/districts/Districts.jsx
   show($("section[data-view=addresses]"), Addresses, { rows }); // in React: views/addresses/Addresses.jsx
   show($("section[data-view=list]"), AlarmList, { rows }); // in React: views/list/AlarmList.jsx
-  renderYear();
+  show($("section[data-view=year]"), YearReview, {}); // in React: views/year/YearReview.jsx
   renderMap(rows);
   show($("section[data-view=radius]"), Radius, { rows }); // in React: views/radius/Radius.jsx
   show($("section[data-view=weather]"), Weather, { rows, year: $("#f-year").value, storm: $("#f-storm").checked }); // in React: views/weather/Weather.jsx
@@ -70,10 +70,6 @@ loadData()
     }
     const years = [...new Set(ALL.map((r) => r.date.slice(0, 4)))].sort().reverse();
     $("#f-year").innerHTML += years.map((y) => `<option>${y}</option>`).join("");
-    $("#y-year").innerHTML = years.map((y) => `<option>${y}</option>`).join("");
-    $("#y-year").addEventListener("change", renderYear);
-    $("#y-storm").addEventListener("change", renderYear);
-    $("#y-print").addEventListener("click", () => window.print());
     document.querySelectorAll("#filters input, #filters select").forEach((el) => el.addEventListener("change", render));
     document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => showView(b.dataset.view)));
     let v = "overview";
