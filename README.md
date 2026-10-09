@@ -62,9 +62,9 @@ components.
   `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
   Zeitraffer), `radius/` (Einsatzradius, a React component: `Radius.jsx`, with `radius-map.js` for the map and
   its playback), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/` (Mythen-Check), `quiz/`
-  (Quiz), `list/` (Liste, a React component: `AlarmList.jsx`), `year/` (Jahresrückblick, a React component:
-  `YearReview.jsx`, with `story.js` for the year as a story and `race-chart.js` for the running totals both
-  show) and `chance/` ("Einsatz heute?").
+  (Quiz, a React component: `Quiz.jsx`), `list/` (Liste, a React component: `AlarmList.jsx`), `year/`
+  (Jahresrückblick, a React component: `YearReview.jsx`, with `story.js` for the year as a story and
+  `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?").
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin page uses
   too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the Jahresrückblick
@@ -258,7 +258,11 @@ npx playwright test --ui                         # watch the browser tests run s
 - `scrollbar.spec.js`: switching tabs on a computer screen, with the scrollbar showing: the page doesn't jump
   sideways between tabs that scroll and tabs that fit the window.
 - `quiz.spec.js`: a round of the quiz played by tapping, and 100 more rounds checked for "NaN" or page
-  markup in the questions and answers.
+  markup in the questions and answers; a round played with the keys, with the points of every answer in the
+  result, and other questions in the next round, not the same ones with other numbers; the slider from the
+  middle to its ends, its − button pressed with Enter, and the guess marked against the answer; a question kept
+  while other tabs, the filters and the window change, a chart drawn once with its answer, and full screen; and
+  on a phone, a round that keeps the page where it is on every answer.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
 - `admin.spec.js`: the admin page with a made-up website list and hand entries.
 - `fixtures.js`: the setup every browser test shares.
