@@ -1,5 +1,5 @@
 // Starts the page: loads the data, fills in the header and the year lists, wires up the tab bar and the filters,
-// and draws the open tab, again whenever a filter, the tab or the window's width changes. Each tab's code is in
+// and draws the tabs, again whenever a filter, the tab or the window's width changes. Each tab's code is in
 // views/<tab>/.
 
 import { parseDate, fmtDate } from "./lib/dates.js";
@@ -7,6 +7,7 @@ import { $ } from "./dom.js";
 import { ALL, LISTED, listBehind, selection, loadData } from "./data.js";
 import "./components/tooltip.js"; // the box that follows the pointer over charts and maps sets itself up
 import "./components/warnings.js"; // the warnings box loads and refreshes itself
+import { show } from "./show.js"; // before the tabs, so React's file stays the same as more tabs use React (browsers keep it)
 import { renderOverview } from "./views/overview/overview.js";
 import { renderDots } from "./views/dots/dots.js";
 import { renderCalendar } from "./views/calendar/calendar.js";
@@ -14,7 +15,7 @@ import { renderSpiral } from "./views/spiral/spiral.js";
 import { renderHours } from "./views/hours/hours.js";
 import { renderKeywords } from "./views/keywords/keywords.js";
 import { renderDistricts } from "./views/districts/districts.js";
-import { renderAddresses } from "./views/addresses/addresses.js";
+import Addresses from "./views/addresses/Addresses.jsx";
 import { renderWeather } from "./views/weather/weather.js";
 import { renderMyths } from "./views/myths/myths.js";
 import { renderChance, drawOutlook } from "./views/chance/chance.js";
@@ -22,7 +23,6 @@ import { renderYear } from "./views/year/year.js";
 import { renderMap } from "./views/map/map.js";
 import { renderRadius } from "./views/radius/radius.js";
 import { quiz, quizShow } from "./views/quiz/quiz.js";
-import { show } from "./show.js";
 import AlarmList from "./views/list/AlarmList.jsx";
 
 function render() {
@@ -34,7 +34,7 @@ function render() {
   renderHours(rows);
   renderKeywords(rows);
   renderDistricts(rows);
-  renderAddresses(rows);
+  show($("section[data-view=addresses]"), Addresses, { rows }); // in React: views/addresses/Addresses.jsx
   show($("section[data-view=list]"), AlarmList, { rows }); // in React: views/list/AlarmList.jsx
   renderYear();
   renderMap(rows);
