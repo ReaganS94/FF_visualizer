@@ -37,6 +37,8 @@ test("keeps an opened row open when the filters or the tab change", async ({ pag
   await openSite(page);
   await page.click("nav button[data-view=addresses]");
   await street(page, "c-addresses", "Limmerstraße").locator("summary").click();
+  // the street has the most alarms with the hand entry, but is further down in 2025
+  await page.selectOption("#f-year", "2025");
   await page.setChecked("#f-standby", true);
   await page.click("nav button[data-view=overview]");
   await page.click("nav button[data-view=addresses]");
