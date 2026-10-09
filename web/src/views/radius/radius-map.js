@@ -1,36 +1,47 @@
-// Einsatzradius: a line from the Wache to every alarm, over a grey map; "Abspielen" sends the lines out in date
-// order. The distances are worked out in lib/places.js.
+// The Einsatzradius's map: a line from the Wache to every alarm, over a grey map; "Abspielen" sends the lines out
+// in date order. The rest of the tab is the React component Radius.jsx. The map isn't drawn by React: Leaflet
+// makes it, and the lines and dots go on a canvas over it, drawn again with every frame while playing. What the
+// tab shows of it (the button, how many alarms are out so far, how many lie outside the map) it reads with
+// radiusView(), and radiusSubscribe() tells it when that changes. The distances are worked out in lib/places.js.
 
 import { parseDate, isoDate, addDays, fmtDate } from "../../lib/dates.js";
 import { esc, einsaetze, fmtKm } from "../../lib/text.js";
-import { pct } from "../../lib/count.js";
-import { DOT_ORDER, WACHE, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary } from "../../lib/places.js";
-import { $, calm } from "../../dom.js";
-import { GEO } from "../../data.js";
+import { DOT_ORDER, WACHE, KM_Y } from "../../lib/places.js";
+import { calm } from "../../dom.js";
 import { tip, placeTip } from "../../components/tooltip.js";
-import { barList } from "../../components/charts.js";
 import { loadScript, LEAFLET } from "../../components/leaflet.js";
 import "./radius.css";
 
 const FLY = 900, FADE = 900; // ms a line takes to reach its alarm, and to fade out after it lands
-const radius = { map: null, canvas: null, clock: null, dpr: 1, pts: [], key: "", first: null, days: 0,
-  shown: null, queue: [], flights: [], playing: false, day: 0, t: 0, raf: 0 };
+// speed: days per second while playing, as chosen under "Tempo" (normal: a month per second)
+const radius = { el: null, map: null, canvas: null, clock: null, dpr: 1, pts: [], key: "", first: null, days: 0,
+  shown: null, queue: [], flights: [], playing: false, day: 0, t: 0, raf: 0, speed: 30 };
 
-export async function renderRadius(rows) {
-  const el = $("#c-radius");
-  const pts = radiusPoints(rows, GEO);
+// What the tab shows of the map: phase is "start", "playing", "paused" or "done" (the button says what a press
+// does next), shown how many alarms are out so far (the first ones; null when not playing, which shows all of
+// them), and outside how many lie outside the part of the map in view.
+let view = { phase: "start", shown: null, outside: 0 };
+const listeners = new Set();
+export const radiusView = () => view;
+export function radiusSubscribe(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+function tell(changes) {
+  if (Object.entries(changes).every(([k, v]) => view[k] === v)) return;
+  view = { ...view, ...changes };
+  listeners.forEach((l) => l());
+}
+
+// Hands the map the located alarms (radiusPoints() in lib/places.js) each time the tab is drawn, and draws it
+// again if the tab shows. el: the map's box.
+export async function radiusUpdate(el, pts) {
   // Only a new selection resets a running playback, not a redraw.
   const key = pts.map((p) => p.r.date + p.r.time + p.ll).join("|");
   if (key !== radius.key) {
     radiusReset();
     Object.assign(radius, { pts, key, first: pts.length ? parseDate(pts[0].r.date) : null, days: pts.length ? pts.at(-1).day : 0 });
   }
-  const missing = rows.length - pts.length;
-  $("#radius-note").textContent = !Object.keys(GEO).length ? "Die Karte erscheint nach der nächsten täglichen Aktualisierung."
-    : missing ? `${missing} ${missing === 1 ? "Einsatz" : "Einsätze"} ohne bekannte Adresse (z. B. Autobahn) ${missing === 1 ? "fehlt" : "fehlen"}.` : "";
-  radiusStats();
-  $("#ra-play").disabled = !pts.length;
-  el.hidden = !pts.length;
   if (!el.offsetWidth) {
     if (radius.playing) radiusPause(); // leaving the view pauses it
     return;
@@ -44,6 +55,7 @@ export async function renderRadius(rows) {
 }
 
 function radiusMap(el) {
+  radius.el = el;
   // All alarms lie within about 11 km, so the map stays around the region: zoomed out no further than
   // zoom 9, and no further away than 150 km.
   const map = (radius.map = L.map(el, { zoomSnap: 0.25, minZoom: 9, maxBounds: L.latLng(WACHE).toBounds(300000) }));
@@ -75,7 +87,7 @@ function radiusMap(el) {
 }
 
 function radiusSize() {
-  const { canvas } = radius, el = $("#c-radius"), dpr = Math.min(2, devicePixelRatio || 1);
+  const { canvas, el } = radius, dpr = Math.min(2, devicePixelRatio || 1);
   canvas.width = el.clientWidth * dpr;
   canvas.height = el.clientHeight * dpr;
   canvas.style.width = el.clientWidth + "px";
@@ -84,7 +96,7 @@ function radiusSize() {
 }
 
 // "near": Linden, 3 km around the Wache; "all": every alarm of the selection.
-function radiusFit(which) {
+export function radiusFit(which) {
   const { map, pts } = radius;
   if (!map) return;
   if (which === "all" && pts.length) map.fitBounds(L.latLngBounds([WACHE, ...pts.map((p) => p.ll)]), { padding: [24, 24] });
@@ -93,23 +105,8 @@ function radiusFit(which) {
 
 function radiusOutside() {
   if (!radius.map) return;
-  const b = radius.map.getBounds(), out = radius.pts.filter((p) => !b.contains(p.ll)).length;
-  $("#radius-outside").textContent = out ? `${out} ${out === 1 ? "Einsatz liegt" : "Einsätze liegen"} außerhalb des Ausschnitts.` : "";
-}
-
-// Tiles and distance bars count what's on the map: every alarm, or the ones sent out so far while playing.
-function radiusStats() {
-  const list = radius.shown || radius.pts;
-  const { n, median, within2, far, bins } = radiusSummary(list);
-  $("#radius-tiles").innerHTML = [
-    [n ? fmtKm(median) : "–", "Die Hälfte der Einsätze liegt näher als das"],
-    [n ? `${pct(within2, n)} %` : "–", "im Umkreis von 2 km"],
-    [far ? fmtKm(far.km) : "–", "am weitesten weg", far ? `${esc(far.r.street)}, ${esc(far.r.district)}, ${fmtDate(far.r.date)}` : ""],
-  ].map(([v, l, d]) => `<div class="tile"><div class="v">${v}</div><div class="l">${l}</div>${d ? `<div class="d">${d}</div>` : ""}</div>`).join("");
-  // The bars keep the scale of all alarms while they fill up during playback.
-  barList($("#c-radius-km"), RADIUS_BINS.map(([, , label], i) => ({
-    label, value: bins[i], tip: `${label}: ${einsaetze(bins[i])}${n ? ` (${pct(bins[i], n)} %)` : ""}`,
-  })), { labelWidth: 90, scaleTo: Math.max(1, ...radiusSummary(radius.pts).bins) });
+  const b = radius.map.getBounds();
+  tell({ outside: radius.pts.filter((p) => !b.contains(p.ll)).length });
 }
 
 // The alarms at the dot nearest to the pointer (one street shares one spot on the map), oldest first.
@@ -215,27 +212,31 @@ function radiusDraw(now = performance.now()) {
 function radiusReset() {
   cancelAnimationFrame(radius.raf);
   Object.assign(radius, { raf: 0, playing: false, shown: null, queue: [], flights: [] });
-  $("#ra-play").textContent = "▶ Abspielen";
+  tell({ phase: "start", shown: null });
   if (radius.clock) radius.clock.hidden = true;
 }
 
 function radiusPause() {
   radius.playing = false; // lines already on their way still land
-  $("#ra-play").textContent = "▶ Weiter";
+  tell({ phase: "paused" });
 }
 
-function radiusPlay() {
+// The button under the tiles: plays, pauses and goes on playing.
+export function radiusPlay() {
   if (!radius.map || !radius.pts.length) return;
   if (radius.playing) return radiusPause();
   if (!radius.shown) { // start from the first alarm, a moment before it
     Object.assign(radius, { shown: [], queue: [...radius.pts], flights: [], day: -3 });
-    radiusStats();
   }
   radius.playing = true;
-  $("#ra-play").textContent = "❚❚ Pause";
+  tell({ phase: "playing", shown: radius.shown.length });
   radius.clock.hidden = false;
-  $("#c-radius").scrollIntoView({ block: "nearest", behavior: "smooth" }); // on phones the map sits below the controls
   if (!radius.raf) { radius.t = performance.now(); radius.raf = requestAnimationFrame(radiusFrame); }
+}
+
+// "Tempo": how many days pass per second while playing.
+export function radiusSpeed(days) {
+  radius.speed = days;
 }
 
 function radiusFrame(now) {
@@ -243,27 +244,22 @@ function radiusFrame(now) {
   const dt = Math.min(0.1, (now - radius.t) / 1000);
   radius.t = now;
   if (radius.playing) {
-    radius.day += dt * Number($("#ra-speed").value);
-    const before = radius.shown.length;
+    radius.day += dt * radius.speed;
     while (radius.queue.length && radius.queue[0].day <= radius.day) {
       const p = radius.queue.shift(), t = now + (calm() ? 0 : Math.random() * 250);
       p.land = calm() ? 0 : t + FLY;
       radius.shown.push(p);
       if (!calm()) radius.flights.push({ p, t });
     }
-    if (radius.shown.length !== before) radiusStats();
+    tell({ shown: radius.shown.length });
     const day = Math.max(0, Math.min(radius.days, Math.floor(radius.day)));
     radius.clock.innerHTML = `<b>${fmtDate(isoDate(addDays(radius.first, day)))}</b>${einsaetze(radius.shown.length)}`;
     if (!radius.queue.length && !radius.flights.length) { // all landed: back to the whole picture
       Object.assign(radius, { playing: false, shown: null });
-      $("#ra-play").textContent = "▶ Nochmal abspielen";
+      tell({ phase: "done", shown: null });
       radius.clock.hidden = true;
-      radiusStats();
     }
   }
   radiusDraw(now);
   radius.raf = radius.playing || radius.flights.length ? requestAnimationFrame(radiusFrame) : 0;
 }
-
-$("#ra-play").addEventListener("click", radiusPlay);
-document.querySelectorAll("[data-radius]").forEach((b) => b.addEventListener("click", () => radiusFit(b.dataset.radius)));

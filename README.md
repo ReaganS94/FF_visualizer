@@ -60,10 +60,10 @@ components.
   `hours/` (Tageszeit, a React component: `Hours.jsx`),
   `keywords/` (Stichworte, a React component: `Keywords.jsx`), `districts/` (Stadtteile, a React component:
   `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
-  Zeitraffer), `radius/` (Einsatzradius), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/`
-  (Mythen-Check), `quiz/` (Quiz), `list/` (Liste, a React component: `AlarmList.jsx`), `year/`
-  (Jahresrückblick, with `story.js` for the year as a story and `race-chart.js` for the running totals both
-  show) and `chance/` ("Einsatz heute?").
+  Zeitraffer), `radius/` (Einsatzradius, a React component: `Radius.jsx`, with `radius-map.js` for the map and
+  its playback), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/` (Mythen-Check), `quiz/`
+  (Quiz), `list/` (Liste, a React component: `AlarmList.jsx`), `year/` (Jahresrückblick, with `story.js` for
+  the year as a story and `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?").
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin page uses
   too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the Jahresrückblick
@@ -245,6 +245,11 @@ npx playwright test --ui                         # watch the browser tests run s
   Kalender's alarms of that day; without Silvester, Neujahr, days before the first alarm and from the website's
   newest day on; the chosen year, Großlage days and Wachbesetzungen; the days beside each range on a phone; and
   the note when there is no weather yet.
+- `radius.spec.js`: the Einsatzradius with made-up alarms and map positions: the tiles and the distance bars,
+  the alarms without a position or outside the map, the chosen year and Wachbesetzungen; the playback on a
+  paused clock, counting only the alarms sent out so far, pausing when the tab is left, playing on through a
+  new window width, starting over with a new selection, faster, and to the end; and the note when there are
+  no map positions yet.
 - `scrollbar.spec.js`: switching tabs on a computer screen, with the scrollbar showing: the page doesn't jump
   sideways between tabs that scroll and tabs that fit the window.
 - `quiz.spec.js`: a round of the quiz played by tapping, and 100 more rounds checked for "NaN" or page
