@@ -62,8 +62,9 @@ components.
   `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
   Zeitraffer), `radius/` (Einsatzradius, a React component: `Radius.jsx`, with `radius-map.js` for the map and
   its playback), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/` (Mythen-Check), `quiz/`
-  (Quiz), `list/` (Liste, a React component: `AlarmList.jsx`), `year/` (Jahresrückblick, with `story.js` for
-  the year as a story and `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?").
+  (Quiz), `list/` (Liste, a React component: `AlarmList.jsx`), `year/` (Jahresrückblick, a React component:
+  `YearReview.jsx`, with `story.js` for the year as a story and `race-chart.js` for the running totals both
+  show) and `chance/` ("Einsatz heute?").
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin page uses
   too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the Jahresrückblick
@@ -250,6 +251,10 @@ npx playwright test --ui                         # watch the browser tests run s
   paused clock, counting only the alarms sent out so far, pausing when the tab is left, playing on through a
   new window width, starting over with a new selection, faster, and to the end; and the note when there are
   no map positions yet.
+- `year.spec.js`: the Jahresrückblick with made-up alarms: the numbers, notes, running totals, months, alarm
+  types and notable alarms of the running year up to the website's newest alarm (with a hand entry after it) and
+  of whole years, with and without a Großlage; the chosen year kept while other tabs and the filters change; its
+  story; printing; and the running totals as wide as a phone.
 - `scrollbar.spec.js`: switching tabs on a computer screen, with the scrollbar showing: the page doesn't jump
   sideways between tabs that scroll and tabs that fit the window.
 - `quiz.spec.js`: a round of the quiz played by tapping, and 100 more rounds checked for "NaN" or page
