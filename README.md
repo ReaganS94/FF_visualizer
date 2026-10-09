@@ -50,24 +50,24 @@ components.
 - `show.js`: draws the tabs that are React components, with the alarms `main.js` hands them. React is
   bundled into a file of its own, so browsers keep it when the site's own code changes.
 - `components/`: pieces several tabs use, with their styles next to them: `charts.js` (bar charts, the blue
-  heat colours and their legend), `Chart.jsx` (the box a React tab has those charts drawn into),
-  `tooltip.js` (the box that follows the pointer), `warnings.js` (the warnings box, see Warnungen below),
-  `myths.js` (the myth results and pictures, on the Mythen-Check and in the quiz) and `leaflet.js` (loads
-  the map library for the Karte and the Einsatzradius).
+  heat colours and their legend), `Chart.jsx` (the box a React tab has those charts drawn into), `Legend.jsx`
+  (the colour legend, for React tabs), `tooltip.js` (the box that follows the pointer), `warnings.js` (the
+  warnings box, see Warnungen below), `myths.js` (the myth results and pictures, on the Mythen-Check and in
+  the quiz) and `leaflet.js` (loads the map library for the Karte and the Einsatzradius).
 - `views/`: one folder per tab, named like the tab's `data-view` in `index.html`, with its code and its
   styles: `overview/` (Übersicht, with `app-offer.js` for "Als App speichern"), `dots/` (Punktewand),
-  `calendar/` (Kalender), `spiral/` (Jahresspirale), `hours/` (Tageszeit), `keywords/` (Stichworte, a React
-  component: `Keywords.jsx`), `districts/` (Stadtteile, a React component: `Districts.jsx`), `addresses/`
-  (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the Zeitraffer), `radius/`
-  (Einsatzradius), `weather/` (Wetter), `myths/` (Mythen-Check), `quiz/` (Quiz), `list/` (Liste, a React
-  component: `AlarmList.jsx`), `year/` (Jahresrückblick, with `story.js` for the year as a story and
-  `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?").
+  `calendar/` (Kalender), `spiral/` (Jahresspirale), `hours/` (Tageszeit, a React component: `Hours.jsx`),
+  `keywords/` (Stichworte, a React component: `Keywords.jsx`), `districts/` (Stadtteile, a React component:
+  `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
+  Zeitraffer), `radius/` (Einsatzradius), `weather/` (Wetter), `myths/` (Mythen-Check), `quiz/` (Quiz),
+  `list/` (Liste, a React component: `AlarmList.jsx`), `year/` (Jahresrückblick, with `story.js` for the year
+  as a story and `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?").
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
-  `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin
-  page uses too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the
-  Jahresrückblick counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot
-  wall's groups and colours, distances for the Einsatzradius), `count.js` (counting alarms by street,
-  keyword and so on) and `quiz.js` (the quiz questions).
+  `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin page uses
+  too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the Jahresrückblick
+  counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot wall's groups and
+  colours, distances for the Einsatzradius), `count.js` (counting alarms by street, keyword, weekday and hour
+  and so on) and `quiz.js` (the quiz questions).
 - `style.css`: the colours, the layout and the styles several tabs share. The admin page uses it too.
 - `admin.js`: the admin page (`web/admin.html`).
 

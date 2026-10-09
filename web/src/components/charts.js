@@ -69,6 +69,7 @@ export function rampColors() {
     ? ["var(--empty)", "#cde2fb", "#86b6ef", "#3987e5", "#256abf", "#184f95"]
     : ["var(--empty)", "#b7d3f6", "#6da7ec", "#2a78d6", "#1c5cab", "#0d366b"];
 }
+// The colour key under a heat chart (components/Legend.jsx draws the same in the tabs that are React components).
 export function legend(labels, colors) {
   return `<div class="legend">${labels.map((l, i) => `<i style="background:${colors[i]}"></i>${esc(l)}`).join(" ")}</div>`;
 }

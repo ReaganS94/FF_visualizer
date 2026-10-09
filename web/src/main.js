@@ -12,7 +12,7 @@ import { renderOverview } from "./views/overview/overview.js";
 import { renderDots } from "./views/dots/dots.js";
 import { renderCalendar } from "./views/calendar/calendar.js";
 import { renderSpiral } from "./views/spiral/spiral.js";
-import { renderHours } from "./views/hours/hours.js";
+import Hours from "./views/hours/Hours.jsx";
 import Keywords from "./views/keywords/Keywords.jsx";
 import Districts from "./views/districts/Districts.jsx";
 import Addresses from "./views/addresses/Addresses.jsx";
@@ -31,7 +31,7 @@ function render() {
   renderCalendar(rows);
   renderSpiral(rows);
   renderDots(rows);
-  renderHours(rows);
+  show($("section[data-view=hours]"), Hours, { rows }); // in React: views/hours/Hours.jsx
   show($("section[data-view=keywords]"), Keywords, { rows }); // in React: views/keywords/Keywords.jsx
   show($("section[data-view=districts]"), Districts, { rows }); // in React: views/districts/Districts.jsx
   show($("section[data-view=addresses]"), Addresses, { rows }); // in React: views/addresses/Addresses.jsx
