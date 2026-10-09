@@ -1,4 +1,4 @@
-/* Quiz "Schätz mal" (quiz.js): one card at a time, and full screen on a TV or projector. */
+/* Quiz "Schätz mal" (Quiz.jsx): one card at a time, and full screen on a TV or projector. */
 .quiz { max-width: 680px; margin: 12px auto 0; }
 .quiz-top { display: flex; align-items: center; gap: 12px; min-height: 2.2em; }
 .quiz-bar { flex: 1; display: flex; gap: 4px; }
