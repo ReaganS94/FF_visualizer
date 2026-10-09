@@ -16,7 +16,7 @@ import Hours from "./views/hours/Hours.jsx";
 import Keywords from "./views/keywords/Keywords.jsx";
 import Districts from "./views/districts/Districts.jsx";
 import Addresses from "./views/addresses/Addresses.jsx";
-import { renderWeather } from "./views/weather/weather.js";
+import Weather from "./views/weather/Weather.jsx";
 import { renderMyths } from "./views/myths/myths.js";
 import { renderChance, drawOutlook } from "./views/chance/chance.js";
 import { renderYear } from "./views/year/year.js";
@@ -39,8 +39,7 @@ function render() {
   renderYear();
   renderMap(rows);
   renderRadius(rows);
-  const dropped = new Set($("#f-storm").checked ? [] : ALL.filter((r) => r.bigDay).map((r) => r.date));
-  renderWeather(rows.filter((r) => !r.standby), $("#f-year").value, dropped);
+  show($("section[data-view=weather]"), Weather, { rows, year: $("#f-year").value, storm: $("#f-storm").checked }); // in React: views/weather/Weather.jsx
   if ($("section[data-view=myths]").classList.contains("active")) renderMyths(); // same for every filter, and only worked out once opened
   if ($("section[data-view=quiz]").classList.contains("active") && !quiz.qs.length) quizShow();
   drawOutlook(); // needs the width, so only once the view shows
