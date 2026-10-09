@@ -55,8 +55,8 @@ components.
   warnings box, see Warnungen below), `myths.js` (the myth results and pictures, on the Mythen-Check and in
   the quiz) and `leaflet.js` (loads the map library for the Karte and the Einsatzradius).
 - `views/`: one folder per tab, named like the tab's `data-view` in `index.html`, with its code and its
-  styles: `overview/` (Übersicht, with `app-offer.js` for "Als App speichern"), `dots/` (Punktewand),
-  `calendar/` (Kalender, a React component: `Calendar.jsx`), `spiral/` (Jahresspirale),
+  styles: `overview/` (Übersicht, a React component: `Overview.jsx`, with `app-offer.js` for "Als App speichern"),
+  `dots/` (Punktewand), `calendar/` (Kalender, a React component: `Calendar.jsx`), `spiral/` (Jahresspirale),
   `hours/` (Tageszeit, a React component: `Hours.jsx`),
   `keywords/` (Stichworte, a React component: `Keywords.jsx`), `districts/` (Stadtteile, a React component:
   `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
@@ -225,6 +225,9 @@ npx playwright test --ui                         # watch the browser tests run s
   errors, no "NaN" or "undefined" in the text, no empty tab, nothing that makes the page scroll sideways.
   Also the year as a story, and the message when the alarms can't be loaded.
 - `warnings.spec.js`: the warnings with made-up ones: where they show, which one moves, and when a service is down.
+- `overview.spec.js`: the Übersicht: a column for every month, even one without alarms; the weekly average up to
+  the website's newest alarm while a made-up hand entry is newer, and over a whole chosen year; the share at night,
+  the same as the Tageszeit's; and the labels under the columns on a phone and on a computer.
 - `list.spec.js`: the list: the search, the filters, and a made-up hand entry marked "vorläufig".
 - `scrollbar.spec.js`: switching tabs on a computer screen, with the scrollbar showing: the page doesn't jump
   sideways between tabs that scroll and tabs that fit the window.

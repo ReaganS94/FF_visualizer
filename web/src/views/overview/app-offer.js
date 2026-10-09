@@ -3,7 +3,7 @@
 // it isn't installed yet, and the button opens their own install window. iPhones and iPads have no such window
 // and can't tell whether the icon exists, so there the button opens a short guide; "Erledigt" or × hide the
 // offer on that device. Nothing shows on computers, in other browsers, or when the site runs as the app.
-// It sets itself up when the page loads; overview.js only has to load this file.
+// It sets itself up when the page loads; Overview.jsx only has to load this file.
 
 import { $ } from "../../dom.js";
 import "./app-offer.css";

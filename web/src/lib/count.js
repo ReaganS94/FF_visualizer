@@ -1,6 +1,7 @@
 // Counting alarms by a key, and the numbers around counts.
-import { parseDate, weekday } from "./dates.js";
+import { parseDate, isoDate, weekday, minDate } from "./dates.js";
 import { BIG_DAY } from "./alarms.js";
+import { DAY_START, NIGHT_START } from "./estimate.js";
 
 // The `n` most common values of key(r), most first: [[value, rows], ...]. Rows without a value count as "unbekannt".
 export function topCounts(rows, key, n = 15) {
@@ -48,3 +49,35 @@ export function bigDayCounts(alarms) {
 
 // A day's shade on the Kalender, 0 to 5: 0, 1, 2, 3–4 and 5 to BIG_DAY − 1 alarms, and a Großlage's BIG_DAY or more.
 export const dayLevel = (n) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : n < BIG_DAY ? 4 : 5);
+
+// The alarms per week (the Übersicht) over the days the website's list covers: from 01.01. of the chosen year, or
+// from the first alarm, to the website's newest alarm or the year's end. Later days hold only hand entries so far,
+// the same rule as the year's story. rows: newest first; year: "2026", or "" for all; listed: the website's newest
+// day, "YYYY-MM-DD". { value, to } with `to` the last day counted, or null when no day is covered.
+export function perWeek(rows, year, listed) {
+  if (!rows.length) return null;
+  const from = year ? `${year}-01-01` : rows.at(-1).date;
+  const to = year && listed > `${year}-12-31` ? `${year}-12-31` : minDate(rows[0].date, listed);
+  if (to < from) return null;
+  const days = (parseDate(to) - parseDate(from)) / 864e5 + 1;
+  return { value: rows.filter((r) => r.date <= to).length / (days / 7), to };
+}
+
+// The share of the alarms with a real time that came at night (22 to 6 Uhr), in whole percent; null when none has one.
+export function nightShare(rows) {
+  const known = rows.filter((r) => !r.timeUnknown);
+  return known.length ? pct(known.filter((r) => r.hour >= NIGHT_START || r.hour < DAY_START).length, known.length) : null;
+}
+
+// The alarms in each month from the first alarm's month to the last one's, months without alarms included, oldest
+// first: [{ year, month (0–11), n }, ...]. rows: newest first.
+export function perMonth(rows) {
+  if (!rows.length) return [];
+  const counts = {};
+  for (const r of rows) counts[r.date.slice(0, 7)] = (counts[r.date.slice(0, 7)] || 0) + 1;
+  const first = parseDate(rows.at(-1).date), last = parseDate(rows[0].date);
+  const out = [];
+  for (let d = new Date(first.getFullYear(), first.getMonth(), 1); d <= last; d = new Date(d.getFullYear(), d.getMonth() + 1, 1))
+    out.push({ year: d.getFullYear(), month: d.getMonth(), n: counts[isoDate(d).slice(0, 7)] || 0 });
+  return out;
+}
