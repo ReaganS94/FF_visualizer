@@ -21,7 +21,7 @@ import { renderMyths } from "./views/myths/myths.js";
 import { renderChance, drawOutlook } from "./views/chance/chance.js";
 import { renderYear } from "./views/year/year.js";
 import { renderMap } from "./views/map/map.js";
-import { renderRadius } from "./views/radius/radius.js";
+import Radius from "./views/radius/Radius.jsx";
 import { quiz, quizShow } from "./views/quiz/quiz.js";
 import AlarmList from "./views/list/AlarmList.jsx";
 
@@ -38,7 +38,7 @@ function render() {
   show($("section[data-view=list]"), AlarmList, { rows }); // in React: views/list/AlarmList.jsx
   renderYear();
   renderMap(rows);
-  renderRadius(rows);
+  show($("section[data-view=radius]"), Radius, { rows }); // in React: views/radius/Radius.jsx
   show($("section[data-view=weather]"), Weather, { rows, year: $("#f-year").value, storm: $("#f-storm").checked }); // in React: views/weather/Weather.jsx
   if ($("section[data-view=myths]").classList.contains("active")) renderMyths(); // same for every filter, and only worked out once opened
   if ($("section[data-view=quiz]").classList.contains("active") && !quiz.qs.length) quizShow();
