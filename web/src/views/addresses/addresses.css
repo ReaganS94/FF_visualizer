@@ -1,4 +1,4 @@
-/* Stammadressen: one row per street, a bar for the count, the alarms folded underneath (addresses.js). */
+/* Stammadressen: one row per street, a bar for the count, the alarms folded underneath (Addresses.jsx). */
 .addr-list { margin-top: 8px; }
 .addr { border-bottom: 1px solid var(--border); }
 .addr summary { display: grid; grid-template-columns: minmax(0, 17rem) minmax(0, 1fr) 2.5rem; grid-template-areas: "name bar n" "what what what";

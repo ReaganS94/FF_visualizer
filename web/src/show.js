@@ -1,5 +1,5 @@
-// The tabs move to React one at a time; a tab that moved is a component in its folder in views/ (so far the
-// Liste: views/list/AlarmList.jsx). Until all have moved, main.js hands the React ones their data through show().
+// The tabs move to React one at a time; a tab that moved is a component in its folder in views/ (the Liste is
+// views/list/AlarmList.jsx). Until all have moved, main.js hands the React ones their data through show().
 import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";

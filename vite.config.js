@@ -11,7 +11,7 @@ export default defineConfig({
   root: "web",
   base: "./", // relative links, so the site works under /FF_visualizer/ on GitHub Pages and anywhere else
   appType: "mpa", // two pages; a missing file is a 404, as on GitHub Pages
-  plugins: [react()], // the tabs that moved to React (so far the Liste) are written in JSX
+  plugins: [react()], // the tabs that moved to React are written in JSX
   build: {
     outDir: "../dist",
     emptyOutDir: true,
