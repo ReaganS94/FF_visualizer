@@ -226,6 +226,17 @@ npx playwright test --ui                         # watch the browser tests run s
   Also the year as a story, and the message when the alarms can't be loaded.
 - `warnings.spec.js`: the warnings with made-up ones: where they show, which one moves, and when a service is down.
 - `list.spec.js`: the list: the search, the filters, and a made-up hand entry marked "vorläufig".
+- `addresses.spec.js`: the Stammadressen: the busiest streets and the fire alarm systems, rows that open to their
+  alarms and stay open when a filter or the tab changes, and the note when no place has enough alarms.
+- `keywords.spec.js`: the Stichworte: the alarm types and keywords ranked, their tooltips, the chosen year, and
+  the long names above their bars on a narrow phone.
+- `districts.spec.js`: the Stadtteile: the 20 busiest districts with their busiest streets in the tooltips, and
+  the chosen year.
+- `hours.spec.js`: the Tageszeit: the weekday × hour grid with the busiest hour in the key's darkest colour, the
+  same alarms by hour, and the chosen year.
+- `calendar.spec.js`: the Kalender: a square for every day up to today in the colour the key gives its alarms,
+  a block per year, the Großlage days when "Großlagen mitzählen" is off, and the paler days the website
+  doesn't list yet, with a made-up hand entry.
 - `scrollbar.spec.js`: switching tabs on a computer screen, with the scrollbar showing: the page doesn't jump
   sideways between tabs that scroll and tabs that fit the window.
 - `quiz.spec.js`: a round of the quiz played by tapping, and 100 more rounds checked for "NaN" or page
