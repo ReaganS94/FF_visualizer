@@ -1,4 +1,4 @@
-/* Kalender: one block of squares per year (calendar.js). */
+/* Kalender: one block of squares per year (Calendar.jsx). */
 #c-calendar { overflow-x: auto; }
 #c-calendar svg { width: 100%; height: auto; display: block; overflow: visible; min-width: 900px; }
 #c-calendar .cell.unlisted { opacity: .45; }

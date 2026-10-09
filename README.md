@@ -56,7 +56,8 @@ components.
   the quiz) and `leaflet.js` (loads the map library for the Karte and the Einsatzradius).
 - `views/`: one folder per tab, named like the tab's `data-view` in `index.html`, with its code and its
   styles: `overview/` (Übersicht, with `app-offer.js` for "Als App speichern"), `dots/` (Punktewand),
-  `calendar/` (Kalender), `spiral/` (Jahresspirale), `hours/` (Tageszeit, a React component: `Hours.jsx`),
+  `calendar/` (Kalender, a React component: `Calendar.jsx`), `spiral/` (Jahresspirale),
+  `hours/` (Tageszeit, a React component: `Hours.jsx`),
   `keywords/` (Stichworte, a React component: `Keywords.jsx`), `districts/` (Stadtteile, a React component:
   `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
   Zeitraffer), `radius/` (Einsatzradius), `weather/` (Wetter), `myths/` (Mythen-Check), `quiz/` (Quiz),
