@@ -1,0 +1,91 @@
+/* "Einsatz heute?" (chance.js): the ring, the tiles for today and tonight, the next 7 days and the check of the
+   estimate. */
+.chance-grid { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 8px 28px; align-items: start; margin-top: 16px; }
+@media (max-width: 760px) { .chance-grid { grid-template-columns: minmax(0, 1fr); } }
+.chance-grid .tiles { margin-top: 0; }
+.chance-grid h2 { margin-top: 18px; }
+#chance-ring svg { display: block; width: 100%; max-width: 380px; height: auto; margin: 0 auto; }
+#chance-ring .seg { stroke: var(--surface); stroke-width: 2; }
+#chance-ring .seg:hover { stroke: var(--text); stroke-width: 1.5; }
+#chance-ring .hand { stroke: var(--text); stroke-width: 2; stroke-linecap: round; }
+#chance-ring .hand-mark { fill: var(--text); }
+#chance-ring text.muted { fill: var(--muted); }
+#chance-ring text.strong { fill: var(--text); font-weight: 600; }
+#chance-ring text.big { fill: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+#ring-legend .legend { justify-content: center; flex-wrap: wrap; }
+#ring-legend .legend i.band { height: 5px; width: 16px; margin-left: 6px; }
+#ring-legend .note { text-align: center; margin-top: 4px; }
+.tile.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.disclaimer { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 10px; padding: 12px 14px; margin-top: 16px; }
+
+/* "Die nächsten 7 Tage" */
+.wx-note { border: 1px solid; border-left-width: 4px; border-radius: 10px; padding: 10px 14px; margin-top: 10px; }
+.wx-note.hot { border-color: var(--wx-hot); background: color-mix(in srgb, var(--wx-hot) 12%, var(--panel)); }
+.wx-note.storm { border-color: var(--wx-storm); background: color-mix(in srgb, var(--wx-storm) 12%, var(--panel)); }
+.outlook { margin-top: 12px; }
+.outlook svg { display: block; max-width: 100%; height: auto; margin: 0 auto; overflow: visible; }
+.outlook text { text-anchor: middle; fill: var(--text); font-variant-numeric: tabular-nums; }
+.wx-card { fill: var(--panel); stroke: var(--border); }
+.wx-col.now .wx-card { stroke: var(--accent); stroke-width: 2; }
+.wx-day { font-weight: 650; }
+.outlook .wx-date, .outlook .wx-tminlabel { fill: var(--muted); font-size: 11px; }
+.wx-sun circle { fill: var(--wx-sun); }
+.wx-sun line { stroke: var(--wx-sun); stroke-width: 2; stroke-linecap: round; }
+.wx-cloud { fill: var(--wx-cloud); }
+.wx-cloud.dark { fill: var(--wx-cloud-dark); }
+.wx-rain line { stroke: var(--wx-rain); stroke-width: 2; stroke-linecap: round; }
+.wx-snow circle { fill: var(--wx-rain); }
+.wx-fog line { stroke: var(--wx-cloud-dark); stroke-width: 2.5; stroke-linecap: round; }
+.wx-bolt { fill: var(--wx-bolt); stroke: color-mix(in srgb, var(--wx-bolt) 60%, #000); stroke-width: .6; }
+.wx-band { fill: url(#wx-temp); fill-opacity: .28; }
+.wx-tmax { fill: none; stroke: url(#wx-temp); stroke-width: 3; stroke-linecap: round; }
+.wx-tmin { fill: none; stroke: url(#wx-temp); stroke-width: 1.5; stroke-opacity: .6; }
+.wx-dot { fill: url(#wx-temp); stroke: var(--panel); stroke-width: 1.5; }
+.outlook .wx-tmaxlabel { font-size: 13px; font-weight: 650; }
+.outlook .wx-tmaxlabel.hot { fill: var(--wx-hot-text); }
+.wx-heatline { stroke: var(--wx-hot); stroke-width: 1.2; stroke-dasharray: 4 4; }
+.outlook .wx-heatlabel { fill: var(--wx-hot-text); font-size: 10.5px; font-weight: 600; text-anchor: start; }
+.wx-wind path { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; }
+.wx-wind.storm path { stroke: var(--wx-storm); stroke-width: 2; }
+.outlook .wx-gust { font-size: 12px; }
+.outlook .wx-gust.storm { fill: var(--wx-storm); font-weight: 700; }
+.wx-ring { fill: none; stroke: var(--empty); stroke-width: 6; }
+.outlook .wx-pct { font-size: 12px; font-weight: 650; }
+.wx-hit { fill: transparent; }
+#outlook-legend { flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
+#outlook-legend span { display: inline-flex; align-items: center; gap: 5px; }
+#outlook-legend i.wx-key { width: 14px; height: 14px; border-radius: 3px; border: 1px solid; }
+#outlook-legend i.wx-key.hot { border-color: var(--wx-hot); background: color-mix(in srgb, var(--wx-hot) 30%, var(--panel)); }
+#outlook-legend i.wx-key.storm { border-color: var(--wx-storm); background: color-mix(in srgb, var(--wx-storm) 30%, var(--panel)); }
+/* gentle movement on heat, storm and thunder days */
+.wx-hotbg { animation: wx-glow 4s ease-in-out infinite; }
+.wx-icon.hot .wx-sun { animation: wx-spin 30s linear infinite; }
+.wx-stormbg.thunder { animation: wx-flash 7s infinite; }
+.wx-bolt { animation: wx-bolt 7s infinite; }
+.wx-wind.storm path { stroke-dasharray: 5 3; animation: wx-blow 1.2s linear infinite; }
+@keyframes wx-glow { 50% { opacity: .5; } }
+@keyframes wx-spin { to { transform: rotate(360deg); } }
+@keyframes wx-flash { 0%, 84%, 92%, 100% { opacity: .7; } 86% { opacity: 1; filter: brightness(1.8); } 88% { opacity: .7; } 90% { opacity: 1; filter: brightness(1.5); } }
+@keyframes wx-bolt { 0%, 84%, 100% { opacity: 1; } 86% { opacity: .25; } 88% { opacity: 1; } 90% { opacity: .4; } }
+@keyframes wx-blow { to { stroke-dashoffset: -16; } }
+@media (prefers-reduced-motion: reduce) {
+  .wx-hotbg, .wx-icon.hot .wx-sun, .wx-stormbg.thunder, .wx-bolt, .wx-wind.storm path { animation: none; }
+}
+
+/* "k von 100": the short version of the estimate check */
+.odds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; max-width: 640px; margin: 10px 0 4px; }
+.odd { margin: 0; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); text-align: center; display: flex; flex-direction: column; }
+.odd.now { border-color: var(--heat-3); }
+.odd figcaption { font-size: .8rem; color: var(--text-2); line-height: 1.35; flex: 1 0 auto; }
+.odd figcaption b { color: var(--text); font-size: .95rem; }
+.odd figcaption .tag { display: table; margin: 4px auto 0; }
+.odd figcaption .tag.ghost { visibility: hidden; }
+.dots100 { display: block; width: 100%; max-width: 150px; margin: 8px auto; }
+.dots100 circle { fill: var(--border); }
+.dots100 circle.on { fill: var(--heat-3); }
+.odd-v { font-size: .95rem; white-space: nowrap; }
+.odd-v b { font-size: 1.5rem; }
+.odd-d { font-size: .78rem; color: var(--text-2); line-height: 1.35; }
+details.more { margin-top: 8px; }
+details.more summary { cursor: pointer; color: var(--text-2); font-size: .9rem; }
+@media (max-width: 420px) { .odds { gap: 8px; } .odd { padding: 8px 6px; } .odd-v { font-size: .85rem; } .odd-v b { font-size: 1.2rem; } }

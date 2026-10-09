@@ -38,16 +38,16 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 
 ## Where is what
 
-The site's code is in `web/src/`. It is being split up so that every tab gets a folder of its own in `views/`,
-with its code and its styles; after that the tabs move to [React](https://react.dev) one at a time. The tabs
-that haven't moved yet are still in `app.js`.
+The site's code is in `web/src/`. Every tab has a folder of its own in `views/`, with its code and its styles.
+The tabs are moving to [React](https://react.dev) one at a time; so far the Liste has.
 
-- `app.js`: starts the page (the tab bar, the filters, loading the data) and draws the tabs that haven't
-  moved to `views/` yet.
+- `main.js`: starts the page: loads the data, wires up the tab bar and the filters, and draws the open tab.
 - `data.js`: the data every tab draws from (alarms, keyword names, map positions, weather, school holidays,
   home games), loaded once when the page opens, and the filters above the tabs.
 - `dom.js`: two small helpers: `$` finds an element on the page, `calm()` says whether the device asks for
   less motion.
+- `show.js`: draws the tabs that are React components (so far the Liste), with the alarms `main.js` hands
+  them. React is bundled into a file of its own, so browsers keep it when the site's own code changes.
 - `components/`: pieces several tabs use, with their styles next to them: `charts.js` (bar charts, the blue
   heat colours and their legend), `tooltip.js` (the box that follows the pointer), `warnings.js` (the
   warnings box, see Warnungen below), `myths.js` (the myth results and pictures, on the Mythen-Check and in
@@ -55,17 +55,17 @@ that haven't moved yet are still in `app.js`.
 - `views/`: one folder per tab, named like the tab's `data-view` in `index.html`, with its code and its
   styles: `overview/` (Übersicht, with `app-offer.js` for "Als App speichern"), `dots/` (Punktewand),
   `calendar/` (Kalender), `spiral/` (Jahresspirale), `hours/` (Tageszeit), `keywords/` (Stichworte),
-  `districts/` (Stadtteile), `addresses/` (Stammadressen), `weather/` (Wetter) and `myths/` (Mythen-Check).
-  The list is a React component, `AlarmList.jsx`; `show.js` lets `app.js` hand it its alarms. React is
-  bundled into a file of its own, so browsers keep it when the site's own code changes.
+  `districts/` (Stadtteile), `addresses/` (Stammadressen), `map/` (Karte, with the Zeitraffer), `radius/`
+  (Einsatzradius), `weather/` (Wetter), `myths/` (Mythen-Check), `quiz/` (Quiz), `list/` (Liste, a React
+  component: `AlarmList.jsx`), `year/` (Jahresrückblick, with `story.js` for the year as a story and
+  `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?").
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin
   page uses too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the
   Jahresrückblick counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot
   wall's groups and colours, distances for the Einsatzradius), `count.js` (counting alarms by street,
   keyword and so on) and `quiz.js` (the quiz questions).
-- `style.css`: the colours, the layout, the styles several tabs share, and those of the tabs that haven't
-  moved yet. The admin page uses it too.
+- `style.css`: the colours, the layout and the styles several tabs share. The admin page uses it too.
 - `admin.js`: the admin page (`web/admin.html`).
 
 ## Admin page

@@ -1,0 +1,7 @@
+/* Karte (map.js): the map, and the dots the Zeitraffer leaves on it. */
+#c-map { height: min(70vh, 560px); border-radius: 10px; border: 1px solid var(--border); margin-top: 8px; }
+.rp-dot { fill: var(--accent); fill-opacity: .4; }
+/* a new alarm lights up large and shrinks into its dot */
+.rp-flash { animation: rp-flash 1.4s ease-out; transform-box: fill-box; transform-origin: center; }
+@keyframes rp-flash { from { transform: scale(4); fill-opacity: .95; } to { transform: scale(1); fill-opacity: .4; } }
+@media (prefers-reduced-motion: reduce) { .rp-flash { animation: none; } }
