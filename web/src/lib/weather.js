@@ -19,6 +19,16 @@ const WX = [
 // Without a code (weather saved before the symbols were added) only rain can be told.
 export const wxKind = (w) => (w.code == null ? (w.rain >= 1 ? ["rain", "Regen"] : null) : WX.find(([is]) => is(w.code)).slice(1));
 
+// The temperature scale of the outlook on "Einsatz heute?" for the forecast days `days` ([{ tmax, tmin }, ...]): from
+// `lo` to `hi` °C, at least 10 degrees. The HOT line (heatLine) only shows once it gets warm; otherwise it would
+// squeeze the band.
+export function tempScale(days) {
+  const maxT = Math.max(...days.map((w) => w.tmax)), minT = Math.min(...days.map((w) => w.tmin));
+  const heatLine = maxT >= HOT - 5;
+  const hi = Math.max(heatLine ? HOT + 2 : maxT + 2, maxT + 1);
+  return { hi, lo: Math.min(minT - 1, hi - 10), heatLine };
+}
+
 // How often past days with this weather had an alarm during the day, against the other days.
 // win: alarmWindows() from estimate.js, is: e.g. isHot.
 export function weatherFacts(first, last, win, is, weather) {

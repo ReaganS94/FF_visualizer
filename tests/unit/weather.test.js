@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 import { parseDate } from "../../web/src/lib/dates.js";
-import { isHot, isStorm, isThunder, wxKind, weatherFacts, weatherDays, perRange } from "../../web/src/lib/weather.js";
+import { isHot, isStorm, isThunder, wxKind, weatherFacts, weatherDays, perRange, tempScale } from "../../web/src/lib/weather.js";
 
 test("hot from 30 °C, storm from 60 km/h, thunder from code 95", () => {
   expect([isHot({ tmax: 30 }), isHot({ tmax: 29.9 })]).toEqual([true, false]);
@@ -44,4 +44,12 @@ test("perRange counts each day in the range its value falls in, from lo up to be
   expect(perRange(["2025-03-01", "2025-03-05"], weather, "rain", ranges, perDay)).toEqual([
     { days: 1, alarms: 2 }, { days: 0, alarms: 0 }, { days: 0, alarms: 0 }, { days: 1, alarms: 4 },
   ]);
+});
+
+test("tempScale: the outlook's temperatures with at least 10 degrees, and the 30 °C line from 25 °C", () => {
+  expect(tempScale([{ tmax: 14, tmin: 6 }, { tmax: 12, tmin: 5 }])).toEqual({ hi: 16, lo: 4, heatLine: false });
+  expect(tempScale([{ tmax: 14, tmin: 12 }])).toEqual({ hi: 16, lo: 6, heatLine: false });
+  expect(tempScale([{ tmax: 25, tmin: 15 }])).toEqual({ hi: 32, lo: 14, heatLine: true });
+  expect(tempScale([{ tmax: 36, tmin: 22 }, { tmax: 33, tmin: 30 }])).toEqual({ hi: 37, lo: 21, heatLine: true });
+  expect(tempScale([{ tmax: 24.9, tmin: 20 }])).toEqual({ hi: 26.9, lo: 16.9, heatLine: false });
 });

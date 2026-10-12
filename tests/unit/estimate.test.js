@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { parseDate, isoDate, addDays } from "../../web/src/lib/dates.js";
-import { alarmWindows, lastCovered, estimate, backtest, backtestFit, backtestGroups, alarmsIn } from "../../web/src/lib/estimate.js";
+import { alarmWindows, lastCovered, estimate, backtest, backtestFit, backtestGroups, alarmsIn, pastNights, estimateLevel } from "../../web/src/lib/estimate.js";
 
 // Every date from `from` to `to` ("YYYY-MM-DD"), for which keep(date, index) is true.
 function dates(from, to, keep = () => true) {
@@ -97,4 +97,17 @@ test("backtestGroups adds the rows up into low, middle and high estimates", () =
     ["10–30 %", 70, 14, 20, "Ja"],
     ["ab 30 %", 10, 5, 50, "Zu wenige Fälle"],
   ]);
+});
+
+test("pastNights: the same night in each earlier year the data fully covers, with its alarms", () => {
+  const row = (date, hour, standby = false) => ({ date, hour, standby, timeUnknown: false });
+  const rows = [row("2023-12-31", 23), row("2024-01-01", 1), row("2024-01-01", 7), row("2024-12-31", 22, true), row("2025-12-31", 23)];
+  // 2022 is before the data starts and 2025 after it ends; the Wachbesetzung and the alarm after 6 Uhr don't count
+  expect(pastNights(rows, parseDate("2026-12-31"), parseDate("2023-01-01"), parseDate("2025-10-06"))).toEqual([[2023, 2], [2024, 0]]);
+  expect(pastNights(rows, parseDate("2026-12-31"), parseDate("2023-12-31"), parseDate("2026-01-01"))).toEqual([[2023, 2], [2024, 0], [2025, 1]]);
+  expect(pastNights(rows, parseDate("2026-12-31"), parseDate("2024-01-01"), parseDate("2024-12-30"))).toEqual([]);
+});
+
+test("estimateLevel: the outlook's ring shades at 15, 25 and 40 %", () => {
+  expect([0, 0.149, 0.15, 0.249, 0.25, 0.399, 0.4, 1].map(estimateLevel)).toEqual([1, 1, 2, 2, 3, 3, 4, 4]);
 });

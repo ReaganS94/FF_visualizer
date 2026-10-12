@@ -36,6 +36,13 @@ export function weekHours(rows) {
   return { grid, hours };
 }
 
+// The alarms with a real time by hour, without standbys: the ring on "Einsatz heute?".
+export function hourTotals(rows) {
+  const hours = Array(24).fill(0);
+  for (const r of rows) if (!r.standby && !r.timeUnknown) hours[r.hour]++;
+  return hours;
+}
+
 // A count's shade on a heat chart, 0 to 5: 0 for none, else 1 to 5 by fifths of the largest count, max.
 export const heatLevel = (n, max) => (n === 0 ? 0 : 1 + Math.min(4, Math.floor((n / max) * 5 - 1e-9)));
 

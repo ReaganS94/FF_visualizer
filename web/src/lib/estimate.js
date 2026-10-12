@@ -103,6 +103,20 @@ export function backtestGroups(bt) {
   }).filter((g) => g.n);
 }
 
+// The same night as `date` in each earlier year that the data from `first` to `last` fully covers, with its
+// alarms: [[year, count], ...], oldest first. "Einsatz heute?" shows these for a special night instead of a percentage.
+export function pastNights(rows, date, first, last) {
+  const past = [];
+  for (let y = first.getFullYear(); y < date.getFullYear(); y++) {
+    const d = new Date(y, date.getMonth(), date.getDate());
+    if (d >= first && d <= last) past.push([y, alarmsIn(rows, isoDate(d), true)]);
+  }
+  return past;
+}
+
+// A day estimate's shade in the outlook's small rings, 1 to 4: under 15 %, under 25 %, under 40 % and more.
+export const estimateLevel = (p) => (p < 0.15 ? 1 : p < 0.25 ? 2 : p < 0.4 ? 3 : 4);
+
 // Alarms in a day (06–22) or night (22–06, into the next morning) window of `iso`. Standbys don't count.
 export function alarmsIn(rows, iso, night) {
   const next = isoDate(addDays(parseDate(iso), 1));

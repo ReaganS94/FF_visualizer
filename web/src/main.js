@@ -18,7 +18,7 @@ import Districts from "./views/districts/Districts.jsx";
 import Addresses from "./views/addresses/Addresses.jsx";
 import Weather from "./views/weather/Weather.jsx";
 import Myths from "./views/myths/Myths.jsx";
-import { renderChance, drawOutlook } from "./views/chance/chance.js";
+import Chance from "./views/chance/Chance.jsx";
 import YearReview from "./views/year/YearReview.jsx";
 import { renderMap } from "./views/map/map.js";
 import Radius from "./views/radius/Radius.jsx";
@@ -43,7 +43,7 @@ function render() {
   const myths = $("section[data-view=myths]");
   if (myths.classList.contains("active")) show(myths, Myths, {}); // in React: views/myths/Myths.jsx; same for every filter, and only worked out once opened
   show($("section[data-view=quiz]"), Quiz, {}); // in React: views/quiz/Quiz.jsx
-  drawOutlook(); // needs the width, so only once the view shows
+  show($("section[data-view=chance]"), Chance, {}); // in React: views/chance/Chance.jsx; the outlook needs the width, so it is drawn once the tab shows
 }
 
 function showView(v) {
@@ -76,7 +76,6 @@ loadData()
     let v = "overview";
     try { v = localStorage.getItem("view") || v; } catch {}
     showView(v); // draws the chosen view
-    renderChance();
     // Only a change of width needs new charts; height changes when a phone's toolbar hides.
     let resize, width = innerWidth;
     window.addEventListener("resize", () => {

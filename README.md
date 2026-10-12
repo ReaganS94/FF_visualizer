@@ -65,7 +65,8 @@ components.
   its playback), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/` (Mythen-Check, a React
   component: `Myths.jsx`), `quiz/` (Quiz, a React component: `Quiz.jsx`), `list/` (Liste, a React component:
   `AlarmList.jsx`), `year/` (Jahresrückblick, a React component: `YearReview.jsx`, with `story.js` for the year
-  as a story and `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?").
+  as a story and `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?", a React
+  component: `Chance.jsx`).
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin page uses
   too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the Jahresrückblick
@@ -277,6 +278,12 @@ npx playwright test --ui                         # watch the browser tests run s
   out before the tab opens; a card per myth with its verdict and what was counted; each picture showing its
   numbers on an axis to a round number; the cards unchanged after other tabs, the filters and a new window
   width; the myths without data left out; and the quiz's myth question showing the same picture.
+- `chance.spec.js`: "Einsatz heute?" with made-up alarms and weather, on a paused clock: the ring with its shades,
+  tooltips and the "jetzt" hand, today's tiles and yesterday's estimate against what happened, at midday, before
+  6 Uhr and on Silvester; the hand moving every minute and the night becoming "jetzt" at 22 Uhr; the next 7 days
+  with their notes on heat, storm and thunder, a column per day with its symbol, temperatures, gusts and estimate,
+  and a tooltip; a calm week drawn again for a new window width, also one that came while another tab showed; a
+  single day of forecast; and the pictures and exact numbers of how well the estimate did.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
 - `admin.spec.js`: the admin page with a made-up website list and hand entries.
 - `fixtures.js`: the setup every browser test shares.
