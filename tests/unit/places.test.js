@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import {
-  isBMA, isRWM, addressGroups, dotKind, dotGroups, DOT_KINDS, DOT_ORDER, WACHE, KM_X, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
+  isBMA, isRWM, addressGroups, dotKind, dotGroups, dotLayout, DOT_KINDS, DOT_ORDER, WACHE, KM_X, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
 } from "../../web/src/lib/places.js";
 
 const alarm = (more = {}) => ({ date: "2026-10-07", hour: 12, timeUnknown: false, base: "th", event: "", group: "Brand", street: "", district: "", ...more });
@@ -45,6 +45,60 @@ describe("dotGroups", () => {
     const districts = dotGroups(rows, "district");
     expect(districts.map((g) => g.label)).toEqual([...Array.from({ length: 12 }, (_, k) => `D${k}`), "3 weitere"]);
     expect(districts.at(-1).rows.length).toBe(8 + 7 + 6);
+  });
+});
+
+describe("dotLayout", () => {
+  // newest first, as in the data: two Brand alarms and an Unwetter one in January, Technische Hilfe in March
+  const rows = [
+    alarm({ date: "2026-03-02", time: "10:00", hour: 10, group: "Technische Hilfe" }),
+    alarm({ date: "2026-01-20", time: "08:00", hour: 8, group: "Brand" }),
+    alarm({ date: "2026-01-05", time: "23:00", hour: 23, group: "Unwetter" }),
+    alarm({ date: "2026-01-05", time: "09:00", hour: 9, group: "Brand" }),
+  ];
+
+  test("by month: a column per month, dots 9 px apart, by colour and then oldest first, numbers above", () => {
+    const { pos, labels, H, r } = dotLayout(rows, "month", 1200);
+    // columns 100 px wide with 10 dots per line, centred: January from x 5, March from x 205
+    expect(rows.map((a) => pos.get(a))).toEqual([[209.5, 22.5], [18.5, 22.5], [27.5, 22.5], [9.5, 22.5]]);
+    expect([H, r]).toEqual([18 + 9 + 22, 9 * 0.38]);
+    expect(labels.slice(0, 5)).toEqual([
+      { x: 50, y: 13, anchor: "middle", count: true, text: "3" }, { x: 50, y: 44, anchor: "middle", text: "Jan" },
+      { x: 150, y: 44, anchor: "middle", text: "Feb" },
+      { x: 250, y: 13, anchor: "middle", count: true, text: "1" }, { x: 250, y: 44, anchor: "middle", text: "Mär" },
+    ]);
+    expect(labels.filter((l) => !l.count).map((l) => l.text)).toHaveLength(12);
+  });
+
+  test("a full column grows upwards, and each number sits on its own column", () => {
+    const many = Array.from({ length: 12 }, (_, k) => alarm({ date: `2026-01-${String(k + 1).padStart(2, "0")}`, time: "12:00" }));
+    const { pos, labels, H } = dotLayout([...many, rows[0]], "month", 1200);
+    expect(H).toBe(18 + 2 * 9 + 22);
+    expect(many.map((a) => pos.get(a)[1])).toEqual([...Array(10).fill(31.5), 22.5, 22.5]);
+    expect(labels.filter((l) => l.count).map((l) => [l.text, l.y])).toEqual([["12", 13], ["1", 22]]);
+  });
+
+  test("by hour: a column per hour and one for alarms without a time; a narrow chart has smaller dots and fewer labels", () => {
+    const all = [...rows, alarm({ date: "2026-02-01", time: "00:00", hour: 0, timeUnknown: true })];
+    const wide = dotLayout(all, "hour", 1200);
+    expect(wide.labels.filter((l) => !l.count).map((l) => l.text)).toEqual([...Array.from({ length: 24 }, (_, h) => String(h)), "?"]);
+    expect(wide.labels.filter((l) => l.count).map((l) => l.text)).toEqual(["1", "1", "1", "1", "1"]);
+    const narrow = dotLayout(all, "hour", 390);
+    expect(narrow.labels.map((l) => l.text)).toEqual(["0", "3", "6", "9", "12", "15", "18", "21", "?"]);
+    expect([narrow.r, narrow.H]).toEqual([7 * 0.38, 18 + 7 + 22]);
+  });
+
+  test("by type and district: a line per group, its name before and its number after the dots", () => {
+    const { pos, labels, H } = dotLayout(rows, "type", 1200);
+    expect(rows.map((a) => pos.get(a))).toEqual([[184.5, 27.5], [193.5, 8.5], [184.5, 46.5], [184.5, 8.5]]);
+    expect(labels.slice(0, 2)).toEqual([{ x: 172, y: 12.5, anchor: "end", text: "Brand" }, { x: 204, y: 12.5, count: true, text: "2" }]);
+    expect(H).toBe(4 + 3 * (9 + 10));
+    // on a phone: 30 dots in a line next to names at most 140 px wide, then the next line
+    const street = Array.from({ length: 31 }, (_, k) => alarm({ date: `2026-05-${String(k + 1).padStart(2, "0")}`, time: "12:00", district: "Linden-Nord" }));
+    const phone = dotLayout(street, "district", 390);
+    expect([phone.pos.get(street[29]), phone.pos.get(street[30])]).toEqual([[140 + 29 * 7 + 3.5, 7.5], [143.5, 14.5]]);
+    expect(phone.labels).toEqual([{ x: 132, y: 11.5, anchor: "end", text: "Linden-Nord" }, { x: 140 + 30 * 7 + 6, y: 11.5, count: true, text: "31" }]);
+    expect(phone.H).toBe(4 + 2 * 7 + 10);
   });
 });
 
