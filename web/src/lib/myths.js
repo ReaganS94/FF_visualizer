@@ -145,3 +145,6 @@ export function mythSentence(m) {
     : r > 0.9 ? ["etwa gleich viele", "wie"] : [`${Math.round(100 * (1 - r))} % weniger`, "als"];
   return `${m.on} gab es ${how} Einsätze ${word} ${m.vs}. ${why}`;
 }
+
+// Where the axis of a myth's picture ends: the first round number at least 10 % above the dot and the band.
+export const mythMax = (t) => [0.5, 1, 2, 5, 10, 20, 50].find((v) => v >= 1.1 * Math.max(t.avg, t.hi)) || 100;

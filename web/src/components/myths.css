@@ -1,4 +1,4 @@
-/* A myth's picture: the strip with the dot and the chance band, its axis and legend (components/myths.js),
+/* A myth's picture: the strip with the dot and the chance band, its axis and legend (MythPicture.jsx),
    on the Mythen-Check and in the quiz. */
 .myth-strip { position: relative; height: 22px; margin: 16px 7px 0; border-bottom: 1px solid var(--muted); }
 .myth-band { position: absolute; top: 4px; bottom: 4px; margin-left: -1px; background: var(--border); background: color-mix(in srgb, var(--muted) 35%, transparent); border-radius: 3px; }
