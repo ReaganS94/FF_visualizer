@@ -1,13 +1,12 @@
 // Übersicht: four numbers (alarms, average per week, share at night, the latest alarm) and the alarms per
-// month. The warnings box and the offer to put the site on the home screen sit above them on the tab, outside
-// React: components/warnings.js and app-offer.js draw those.
+// month. The warnings box and the offer to put the site on the home screen sit above them on the tab (App.jsx
+// puts them there: components/Warnings.jsx and AppOffer.jsx).
 import { MONTHS, isoDate, fmtDate } from "../../lib/dates.js";
 import { einsaetze, dec } from "../../lib/text.js";
 import { perWeek, nightShare, perMonth } from "../../lib/count.js";
 import { LISTED } from "../../data.js";
 import { columnChart } from "../../components/charts.js";
 import Chart from "../../components/Chart.jsx";
-import "./app-offer.js"; // the offer to put the site on the home screen sets itself up
 
 // rows: the alarms chosen with the filters above the tabs, newest first; year: the year chosen there ("" for all).
 export default function Overview({ rows, year }) {

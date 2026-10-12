@@ -1,87 +1,16 @@
-// Starts the page: loads the data, fills in the header and the year lists, wires up the tab bar and the filters,
-// and draws the tabs, again whenever a filter, the tab or the window's width changes. Each tab's code is in
+// Starts the page: draws it (App.jsx), loads the data, and draws it again with the data. Each tab's code is in
 // views/<tab>/.
 
-import { parseDate, fmtDate } from "./lib/dates.js";
 import { $ } from "./dom.js";
-import { ALL, LISTED, listBehind, selection, loadData } from "./data.js";
+import { loadData } from "./data.js";
 import "./components/tooltip.js"; // the box that follows the pointer over charts and maps sets itself up
-import "./components/warnings.js"; // the warnings box loads and refreshes itself
-import { show } from "./show.js"; // before the tabs, so React's file stays the same as more tabs use React (browsers keep it)
-import Overview from "./views/overview/Overview.jsx";
-import Dots from "./views/dots/Dots.jsx";
-import Calendar from "./views/calendar/Calendar.jsx";
-import Spiral from "./views/spiral/Spiral.jsx";
-import Hours from "./views/hours/Hours.jsx";
-import Keywords from "./views/keywords/Keywords.jsx";
-import Districts from "./views/districts/Districts.jsx";
-import Addresses from "./views/addresses/Addresses.jsx";
-import Weather from "./views/weather/Weather.jsx";
-import Myths from "./views/myths/Myths.jsx";
-import Chance from "./views/chance/Chance.jsx";
-import YearReview from "./views/year/YearReview.jsx";
-import AlarmMap from "./views/map/AlarmMap.jsx";
-import Radius from "./views/radius/Radius.jsx";
-import Quiz from "./views/quiz/Quiz.jsx";
-import AlarmList from "./views/list/AlarmList.jsx";
-
-function render() {
-  const rows = selection();
-  show($("#overview-body"), Overview, { rows, year: $("#f-year").value }); // in React: views/overview/Overview.jsx
-  show($("section[data-view=calendar]"), Calendar, { rows, storm: $("#f-storm").checked }); // in React: views/calendar/Calendar.jsx
-  show($("section[data-view=spiral]"), Spiral, { rows, storm: $("#f-storm").checked }); // in React: views/spiral/Spiral.jsx
-  show($("section[data-view=dots]"), Dots, { rows }); // in React: views/dots/Dots.jsx
-  show($("section[data-view=hours]"), Hours, { rows }); // in React: views/hours/Hours.jsx
-  show($("section[data-view=keywords]"), Keywords, { rows }); // in React: views/keywords/Keywords.jsx
-  show($("section[data-view=districts]"), Districts, { rows }); // in React: views/districts/Districts.jsx
-  show($("section[data-view=addresses]"), Addresses, { rows }); // in React: views/addresses/Addresses.jsx
-  show($("section[data-view=list]"), AlarmList, { rows }); // in React: views/list/AlarmList.jsx
-  show($("section[data-view=year]"), YearReview, {}); // in React: views/year/YearReview.jsx
-  show($("section[data-view=map]"), AlarmMap, { rows }); // in React: views/map/AlarmMap.jsx
-  show($("section[data-view=radius]"), Radius, { rows }); // in React: views/radius/Radius.jsx
-  show($("section[data-view=weather]"), Weather, { rows, year: $("#f-year").value, storm: $("#f-storm").checked }); // in React: views/weather/Weather.jsx
-  const myths = $("section[data-view=myths]");
-  if (myths.classList.contains("active")) show(myths, Myths, {}); // in React: views/myths/Myths.jsx; same for every filter, and only worked out once opened
-  show($("section[data-view=quiz]"), Quiz, {}); // in React: views/quiz/Quiz.jsx
-  show($("section[data-view=chance]"), Chance, {}); // in React: views/chance/Chance.jsx; the outlook needs the width, so it is drawn once the tab shows
-}
-
-function showView(v) {
-  document.querySelectorAll("[data-view]").forEach((el) => el.classList.toggle("active", el.dataset.view === v));
-  $("#filters").style.display = ["chance", "year", "myths", "quiz"].includes(v) ? "none" : "";
-  try { localStorage.setItem("view", v); } catch {}
-  if (ALL.length) render(); // hidden sections have no width, so draw charts once visible
-}
+import "./components/warnings.js"; // the warnings load and refresh themselves; Warnings.jsx in App.jsx draws them
+import { show } from "./show.js"; // before the page, so React's file stays the same (browsers keep it)
+import App from "./App.jsx";
 
 // The admin link only shows in a browser that is signed in on the admin page (same site, so the
 // saved key is visible here). Everyone else never sees it.
 try { $("#admin-link").hidden = !localStorage.getItem("gh-token"); } catch {}
 
-loadData()
-  .then((loaded) => {
-    if (!loaded) {
-      $("#updated").textContent = "–";
-      $("#listed").textContent = " · Die Einsätze konnten nicht geladen werden. Bitte die Seite neu laden.";
-      return;
-    }
-    $("#updated").textContent = new Date(loaded.updated).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
-    if (listBehind()) {
-      const byHand = ALL.some((r) => r.manual && parseDate(r.date) > LISTED);
-      $("#listed").textContent = ` · Die Website listet Einsätze bis ${fmtDate(loaded.newest)}${byHand ? ", neuere sind vorläufig eingetragen" : ""}.`;
-    }
-    const years = [...new Set(ALL.map((r) => r.date.slice(0, 4)))].sort().reverse();
-    $("#f-year").innerHTML += years.map((y) => `<option>${y}</option>`).join("");
-    document.querySelectorAll("#filters input, #filters select").forEach((el) => el.addEventListener("change", render));
-    document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => showView(b.dataset.view)));
-    let v = "overview";
-    try { v = localStorage.getItem("view") || v; } catch {}
-    showView(v); // draws the chosen view
-    // Only a change of width needs new charts; height changes when a phone's toolbar hides.
-    let resize, width = innerWidth;
-    window.addEventListener("resize", () => {
-      if (innerWidth === width) return;
-      width = innerWidth;
-      clearTimeout(resize);
-      resize = setTimeout(render, 150);
-    });
-  });
+show($("#app"), App, {});
+loadData().then((status) => show($("#app"), App, { status }));

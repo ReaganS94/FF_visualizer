@@ -78,7 +78,8 @@ test("puts all warnings at the very top of every tab once one needs attention, m
   await expect(top(page)).toContainText('<Test> & "Quote"');
   expect(await top(page).locator("test").count()).toBe(0);
   expect(await source(top(page))).toBe("Quellen: Deutscher Wetterdienst (Stadt Hannover) und Warn-App NINA (Region Hannover). Stand: 12:00 Uhr.");
-  expect(await top(page).evaluate((el) => el === document.body.firstElementChild)).toBe(true);
+  // the first thing on the page (in the page's box, App.jsx's)
+  expect(await top(page).evaluate((el) => !el.previousElementSibling && el.parentElement === document.body.firstElementChild)).toBe(true);
   for (const view of ["calendar", "chance", "overview"]) {
     await page.click(`nav button[data-view=${view}]`);
     await expect(top(page)).toBeVisible();
