@@ -2,7 +2,6 @@
 // The values below only change in loadData(); the tabs import and read them.
 import { parseDate, addDays } from "./lib/dates.js";
 import { mergeManual, clean } from "./lib/alarms.js";
-import { $ } from "./dom.js";
 
 export let ALL = [];             // cleaned alarms
 export let KW = { groups: {}, codes: {} }; // keyword names, from data/keywords.json
@@ -17,10 +16,8 @@ export let HEIMSPIELE = [];     // Hannover 96 home games, from data/heimspiele.
 export const listBehind = () => addDays(LISTED, 2) < UPDATED; // the website hasn't listed anything for days
 
 // ---------- filters ----------
-export function selection() {
-  const year = $("#f-year").value;
-  const standby = $("#f-standby").checked;
-  const storm = $("#f-storm").checked;
+// The alarms chosen with them: the year ("" for all), and whether Wachbesetzungen and Großlagen count.
+export function selection({ year, standby, storm }) {
   return ALL.filter((r) =>
     (!year || r.date.startsWith(year)) && (standby || !r.standby) && (storm || !r.bigDay));
 }

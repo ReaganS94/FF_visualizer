@@ -1,5 +1,5 @@
-// The tabs move to React one at a time; a tab that moved is a component in its folder in views/ (the Liste is
-// views/list/AlarmList.jsx). Until all have moved, main.js hands the React ones their data through show().
+// Draws a React component into an element of index.html: the page (App.jsx, from main.js) and the year story's
+// dialog (Story.jsx), each with a root of its own.
 import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";

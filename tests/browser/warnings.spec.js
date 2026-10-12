@@ -74,11 +74,15 @@ test("puts all warnings at the very top of every tab once one needs attention, m
   // only the first one moves, so several warnings don't turn into a light show
   expect(await moves(top(page))).toEqual(["pulse", "still", "still", "still"]);
   expect(await top(page).locator(".warn").first().evaluate((w) => getComputedStyle(w).animationName)).toBe("warn-ring");
+  // NINA's own warnings point there for more
+  expect(await top(page).locator(".warn-body").evaluateAll((ws) => ws.map((w) => w.querySelector(".warn-text:last-child")?.textContent || ""))).toEqual(
+    ["Mehr dazu in NINA.", "", "Sturmböen um 70 km/h.", "Es tritt leichter Frost auf."]);
   // text from the services shows as text, never as page markup
   await expect(top(page)).toContainText('<Test> & "Quote"');
   expect(await top(page).locator("test").count()).toBe(0);
   expect(await source(top(page))).toBe("Quellen: Deutscher Wetterdienst (Stadt Hannover) und Warn-App NINA (Region Hannover). Stand: 12:00 Uhr.");
-  expect(await top(page).evaluate((el) => el === document.body.firstElementChild)).toBe(true);
+  // the first thing on the page (in the page's box, App.jsx's)
+  expect(await top(page).evaluate((el) => !el.previousElementSibling && el.parentElement === document.body.firstElementChild)).toBe(true);
   for (const view of ["calendar", "chance", "overview"]) {
     await page.click(`nav button[data-view=${view}]`);
     await expect(top(page)).toBeVisible();
@@ -93,6 +97,7 @@ test("loads when the page opens and again every 5 minutes, keeping an opened \"W
   await expect(top(page)).toBeVisible();
   expect(page.calls).toEqual({ dwd: 1, nina: 1 });
   await page.click("#warn-top details summary");
+  await top(page).locator(".warn").first().evaluate((w) => (w.dataset.mark = "old"));
   await page.click("nav button[data-view=calendar]");
   await page.click("nav button[data-view=chance]");
   expect(page.calls).toEqual({ dwd: 1, nina: 1 });
@@ -100,6 +105,30 @@ test("loads when the page opens and again every 5 minutes, keeping an opened \"W
   await expect.poll(() => page.calls.dwd).toBe(2);
   await expect(top(page).locator(":scope > .note")).toContainText("Stand: 12:05 Uhr.");
   expect(await top(page).locator("details").evaluate((d) => d.open)).toBe(true);
+  // the same warnings aren't drawn again, so the first one doesn't move again
+  expect(await top(page).locator(".warn").first().getAttribute("data-mark")).toBe("old");
+  // new ones are, and the first one moves again
+  await page.route("https://api.brightsky.dev/**", (r) => { page.calls.dwd++; return r.fulfill(json({ alerts: DWD.alerts.slice(0, 2) })); });
+  await page.clock.runFor(5 * 60 * 1000 + 1000);
+  await expect.poll(() => page.calls.dwd).toBe(3);
+  await expect(top(page).locator(".warn")).toHaveCount(3);
+  expect(await top(page).locator(".warn").first().getAttribute("data-mark")).toBe(null);
+  expect(await moves(top(page))).toEqual(["pulse", "still", "still"]);
+});
+
+test("shows nothing until the services answer", async ({ page }) => {
+  let answer;
+  const waiting = new Promise((resolve) => (answer = resolve));
+  await page.clock.install({ time: NOW });
+  await page.route("https://api.brightsky.dev/**", async (r) => { await waiting; r.fulfill(json(DWD)); });
+  await page.goto("/index.html");
+  await page.waitForFunction(() => document.querySelector("#f-year option + option"));
+  await expect(top(page)).toBeHidden();
+  await expect(box(page)).toBeHidden();
+  expect(await page.locator(".warnings").evaluateAll((ws) => ws.map((w) => `${w.hidden} ${w.innerHTML}`))).toEqual(["true ", "true "]);
+  answer();
+  await expect(top(page)).toBeVisible();
+  expect(page.errors).toEqual([]);
 });
 
 test("a Stufe 2 warning goes to the top too, and only shakes once", async ({ page }) => {
