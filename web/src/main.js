@@ -20,7 +20,7 @@ import Weather from "./views/weather/Weather.jsx";
 import Myths from "./views/myths/Myths.jsx";
 import Chance from "./views/chance/Chance.jsx";
 import YearReview from "./views/year/YearReview.jsx";
-import { renderMap } from "./views/map/map.js";
+import AlarmMap from "./views/map/AlarmMap.jsx";
 import Radius from "./views/radius/Radius.jsx";
 import Quiz from "./views/quiz/Quiz.jsx";
 import AlarmList from "./views/list/AlarmList.jsx";
@@ -37,7 +37,7 @@ function render() {
   show($("section[data-view=addresses]"), Addresses, { rows }); // in React: views/addresses/Addresses.jsx
   show($("section[data-view=list]"), AlarmList, { rows }); // in React: views/list/AlarmList.jsx
   show($("section[data-view=year]"), YearReview, {}); // in React: views/year/YearReview.jsx
-  renderMap(rows);
+  show($("section[data-view=map]"), AlarmMap, { rows }); // in React: views/map/AlarmMap.jsx
   show($("section[data-view=radius]"), Radius, { rows }); // in React: views/radius/Radius.jsx
   show($("section[data-view=weather]"), Weather, { rows, year: $("#f-year").value, storm: $("#f-storm").checked }); // in React: views/weather/Weather.jsx
   const myths = $("section[data-view=myths]");

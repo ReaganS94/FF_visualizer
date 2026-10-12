@@ -77,6 +77,18 @@ export function dotLayout(rows, by, W) {
   return { pos, labels, H, r: s * 0.38 };
 }
 
+// The Karte's alarms with a known position ({ p: [lat, lng], date }, in the order given) and how many have none.
+// Positions are stored under the spelling as entered; a new spelling of a known street isn't looked up yet.
+export function mapPoints(rows, geo) {
+  const points = [];
+  let missing = 0;
+  for (const r of rows) {
+    const p = geo[r.geoKey] || geo[`${r.street}|${r.district}`];
+    if (p) points.push({ p, date: r.date }); else missing++;
+  }
+  return { points, missing };
+}
+
 // Distances are straight lines on a flat grid around the Wache, which is close enough within a city.
 export const WACHE = [52.36847, 9.71195]; // Teichstraße 8 (two map services agree to within 25 m)
 export const KM_X = 111.32 * Math.cos((WACHE[0] * Math.PI) / 180), KM_Y = 110.57; // km per degree east and north

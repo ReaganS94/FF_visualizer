@@ -1,4 +1,4 @@
-/* Karte (map.js): the map, and the dots the Zeitraffer leaves on it. */
+/* Karte (AlarmMap.jsx, alarm-map.js): the map, and the dots the Zeitraffer leaves on it. */
 #c-map { height: min(70vh, 560px); border-radius: 10px; border: 1px solid var(--border); margin-top: 8px; }
 .rp-dot { fill: var(--accent); fill-opacity: .4; }
 /* a new alarm lights up large and shrinks into its dot */

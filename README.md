@@ -60,8 +60,8 @@ components.
   `Calendar.jsx`), `spiral/` (Jahresspirale, a React component: `Spiral.jsx`),
   `hours/` (Tageszeit, a React component: `Hours.jsx`),
   `keywords/` (Stichworte, a React component: `Keywords.jsx`), `districts/` (Stadtteile, a React component:
-  `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
-  Zeitraffer), `radius/` (Einsatzradius, a React component: `Radius.jsx`, with `radius-map.js` for the map and
+  `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, a React
+  component: `AlarmMap.jsx`, with `alarm-map.js` for the heat map and the Zeitraffer), `radius/` (Einsatzradius, a React component: `Radius.jsx`, with `radius-map.js` for the map and
   its playback), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/` (Mythen-Check, a React
   component: `Myths.jsx`), `quiz/` (Quiz, a React component: `Quiz.jsx`), `list/` (Liste, a React component:
   `AlarmList.jsx`), `year/` (Jahresrückblick, a React component: `YearReview.jsx`, with `story.js` for the year
@@ -71,8 +71,9 @@ components.
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin page uses
   too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the Jahresrückblick
   counts and compares, and where the Jahresspirale ends), `myths.js` (the Mythen-Check), `places.js`
-  (Stammadressen, the dot wall's groups, colours and layout, distances for the Einsatzradius), `count.js`
-  (counting alarms by street, keyword, weekday and hour and so on) and `quiz.js` (the quiz questions).
+  (Stammadressen, the dot wall's groups, colours and layout, the Karte's map positions, distances for the
+  Einsatzradius), `count.js` (counting alarms by street, keyword, weekday and hour and so on) and `quiz.js`
+  (the quiz questions).
 - `style.css`: the colours, the layout and the styles several tabs share. The admin page uses it too.
 - `admin.js`: the admin page (`web/admin.html`).
 
@@ -252,6 +253,12 @@ npx playwright test --ui                         # watch the browser tests run s
   the alarms without a position or outside the map, the chosen year and Wachbesetzungen; the playback on a
   paused clock, counting only the alarms sent out so far, pausing when the tab is left, playing on through a
   new window width, starting over with a new selection, faster, and to the end; and the note when there are
+  no map positions yet.
+- `map.spec.js`: the Karte with made-up alarms and map positions: how many alarms are on the map and how many
+  have no position, the chosen year and Wachbesetzungen, a new window width while another tab shows; the
+  Zeitraffer on a paused clock, its dots, date box and slider, pausing, playing on through a new window width,
+  ending when the tab is left, starting over with a new selection, faster, to the end and again; the slider
+  showing the alarms up to a day; "Zeitraffer beenden" bringing the heat map back; and the note when there are
   no map positions yet.
 - `year.spec.js`: the Jahresrückblick with made-up alarms: the numbers, notes, running totals, months, alarm
   types and notable alarms of the running year up to the website's newest alarm (with a hand entry after it) and
