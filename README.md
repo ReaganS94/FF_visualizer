@@ -49,15 +49,15 @@ components.
   less motion.
 - `show.js`: draws the tabs that are React components, with the alarms `main.js` hands them. React is
   bundled into a file of its own, so browsers keep it when the site's own code changes.
-- `components/`: pieces several tabs use, with their styles next to them: `charts.js` (bar charts, the blue
-  heat colours and their legend), `Chart.jsx` (the box a React tab has those charts drawn into), `Legend.jsx`
-  (the colour legend, for React tabs), `tooltip.js` (the box that follows the pointer), `warnings.js` (the
-  warnings box, see Warnungen below), `myths.js` (the myth results and pictures, on the Mythen-Check and in
-  the quiz) and `leaflet.js` (loads the map library for the Karte and the Einsatzradius).
+- `components/`: pieces several tabs use, with their styles next to them: `charts.js` (bar charts and the blue
+  heat colours), `Chart.jsx` (the box a React tab has those charts drawn into), `Legend.jsx` (the colour legend),
+  `tooltip.js` (the box that follows the pointer), `warnings.js` (the warnings box, see Warnungen below),
+  `myths.js` (the myth results and pictures, on the Mythen-Check and in the quiz) and `leaflet.js` (loads the map
+  library for the Karte and the Einsatzradius).
 - `views/`: one folder per tab, named like the tab's `data-view` in `index.html`, with its code and its
   styles: `overview/` (Übersicht, a React component: `Overview.jsx`, with `app-offer.js` for "Als App speichern"),
   `dots/` (Punktewand, a React component: `Dots.jsx`), `calendar/` (Kalender, a React component:
-  `Calendar.jsx`), `spiral/` (Jahresspirale),
+  `Calendar.jsx`), `spiral/` (Jahresspirale, a React component: `Spiral.jsx`),
   `hours/` (Tageszeit, a React component: `Hours.jsx`),
   `keywords/` (Stichworte, a React component: `Keywords.jsx`), `districts/` (Stadtteile, a React component:
   `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
@@ -69,9 +69,9 @@ components.
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin page uses
   too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the Jahresrückblick
-  counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot wall's groups,
-  colours and layout, distances for the Einsatzradius), `count.js` (counting alarms by street, keyword,
-  weekday and hour and so on) and `quiz.js` (the quiz questions).
+  counts and compares, and where the Jahresspirale ends), `myths.js` (the Mythen-Check), `places.js`
+  (Stammadressen, the dot wall's groups, colours and layout, distances for the Einsatzradius), `count.js`
+  (counting alarms by street, keyword, weekday and hour and so on) and `quiz.js` (the quiz questions).
 - `style.css`: the colours, the layout and the styles several tabs share. The admin page uses it too.
 - `admin.js`: the admin page (`web/admin.html`).
 
@@ -269,6 +269,10 @@ npx playwright test --ui                         # watch the browser tests run s
   new grouping moving the same dots one after another; the filters and another tab drawing them afresh in the
   same grouping and letting go of an alarm no longer there; and smaller dots on a phone, drawn afresh when it is
   turned.
+- `spiral.spec.js`: the Jahresspirale with made-up alarms: a turn per year with a piece for every day, the leap
+  day included, up to the newest alarm, shaded like the colour key; the same day at the same angle in every
+  year; the tooltips; a year alone, which runs to 31.12. once it is over; Großlagen left out and Wachbesetzungen
+  counted; no spiral for a year without alarms; and the paler days the website doesn't list yet.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
 - `admin.spec.js`: the admin page with a made-up website list and hand entries.
 - `fixtures.js`: the setup every browser test shares.

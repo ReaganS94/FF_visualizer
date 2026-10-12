@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { topCounts, counted, pct, niceMax, weekHours, heatLevel, bigDayCounts, dayLevel, perWeek, nightShare, perMonth } from "../../web/src/lib/count.js";
+import { topCounts, counted, pct, niceMax, weekHours, heatLevel, bigDayCounts, dayLevel, spiralLevel, perWeek, nightShare, perMonth } from "../../web/src/lib/count.js";
 import { BIG_DAY } from "../../web/src/lib/alarms.js";
 
 const rows = ["Brand", "Hilfe", "Brand", "", "Hilfe", "Brand", "Unwetter"].map((group, i) => ({ i, group }));
@@ -58,6 +58,10 @@ test("bigDayCounts counts the alarms of each Großlage day, without standbys", (
 
 test("dayLevel shades a day by its alarms: 0, 1, 2, 3–4, up to a Großlage, and a Großlage's", () => {
   expect([0, 1, 2, 3, 4, 5, BIG_DAY - 1, BIG_DAY, BIG_DAY + 15].map(dayLevel)).toEqual([0, 1, 2, 3, 3, 4, 4, 5, 5]);
+});
+
+test("spiralLevel shades a day by its alarms: 0, 1, 2, 3–4, and 5 or more", () => {
+  expect([0, 1, 2, 3, 4, 5, 9, BIG_DAY, 40].map(spiralLevel)).toEqual([0, 1, 2, 3, 3, 4, 4, 4, 4]);
 });
 
 test("perWeek counts the alarms per week up to the website's newest day, and says which day that is", () => {

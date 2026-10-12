@@ -1,4 +1,4 @@
-/* Jahresspirale (spiral.js). */
+/* Jahresspirale (Spiral.jsx). */
 #c-spiral svg { display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; }
 #c-spiral .day-seg { stroke-width: .6; }
 #c-spiral .day-seg.unlisted { opacity: .45; }

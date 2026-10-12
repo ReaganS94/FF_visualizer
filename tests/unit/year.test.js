@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { parseDate, longestRun } from "../../web/src/lib/dates.js";
-import { NOTABLE, yearInfo, DAY_SLOTS, runningTotal } from "../../web/src/lib/year.js";
+import { NOTABLE, yearInfo, DAY_SLOTS, runningTotal, spiralEnd } from "../../web/src/lib/year.js";
 
 // Cleaned alarms as yearInfo gets them: newest first.
 const alarm = (date, more = {}) => ({ date, standby: false, bigDay: false, ...more });
@@ -79,6 +79,15 @@ describe("running totals", () => {
     expect(values.slice(59, 62)).toEqual([3, 4, null]);
     expect(runningTotal(rows, "").every((v) => v === null)).toBe(true);
   });
+});
+
+test("spiralEnd: a past year to 31.12., the running year to the website's newest day or a newer alarm", () => {
+  expect(spiralEnd([alarm("2025-06-01"), alarm("2024-01-02")], "2026-03-01", "2026")).toBe("2025-12-31");
+  expect(spiralEnd([alarm("2026-02-10"), alarm("2025-06-01")], "2026-03-01", "2026")).toBe("2026-03-01");
+  expect(spiralEnd([alarm("2026-03-05"), alarm("2026-02-10")], "2026-03-01", "2026")).toBe("2026-03-05"); // entered by hand
+  // in January, while the website still ends in December: the running year only to its newest alarm, last year to 31.12.
+  expect(spiralEnd([alarm("2027-01-04"), alarm("2026-12-30")], "2026-12-30", "2027")).toBe("2027-01-04");
+  expect(spiralEnd([alarm("2026-12-20")], "2026-12-28", "2027")).toBe("2026-12-31");
 });
 
 test("NOTABLE picks the bigger keywords", () => {

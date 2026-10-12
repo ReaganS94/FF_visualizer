@@ -1,5 +1,5 @@
 // Charts several tabs draw, as SVG into the element they get: vertical bars (columnChart), ranked
-// horizontal bars (barList), and the blue heat colours with their legend.
+// horizontal bars (barList), and the blue heat colours (their legend is components/Legend.jsx).
 import { esc } from "../lib/text.js";
 import { niceMax } from "../lib/count.js";
 
@@ -68,8 +68,4 @@ export function rampColors() {
   return dark
     ? ["var(--empty)", "#cde2fb", "#86b6ef", "#3987e5", "#256abf", "#184f95"]
     : ["var(--empty)", "#b7d3f6", "#6da7ec", "#2a78d6", "#1c5cab", "#0d366b"];
-}
-// The colour key under a heat chart (components/Legend.jsx draws the same in the tabs that are React components).
-export function legend(labels, colors) {
-  return `<div class="legend">${labels.map((l, i) => `<i style="background:${colors[i]}"></i>${esc(l)}`).join(" ")}</div>`;
 }

@@ -11,7 +11,7 @@ import { show } from "./show.js"; // before the tabs, so React's file stays the 
 import Overview from "./views/overview/Overview.jsx";
 import Dots from "./views/dots/Dots.jsx";
 import Calendar from "./views/calendar/Calendar.jsx";
-import { renderSpiral } from "./views/spiral/spiral.js";
+import Spiral from "./views/spiral/Spiral.jsx";
 import Hours from "./views/hours/Hours.jsx";
 import Keywords from "./views/keywords/Keywords.jsx";
 import Districts from "./views/districts/Districts.jsx";
@@ -29,7 +29,7 @@ function render() {
   const rows = selection();
   show($("#overview-body"), Overview, { rows, year: $("#f-year").value }); // in React: views/overview/Overview.jsx
   show($("section[data-view=calendar]"), Calendar, { rows, storm: $("#f-storm").checked }); // in React: views/calendar/Calendar.jsx
-  renderSpiral(rows);
+  show($("section[data-view=spiral]"), Spiral, { rows, storm: $("#f-storm").checked }); // in React: views/spiral/Spiral.jsx
   show($("section[data-view=dots]"), Dots, { rows }); // in React: views/dots/Dots.jsx
   show($("section[data-view=hours]"), Hours, { rows }); // in React: views/hours/Hours.jsx
   show($("section[data-view=keywords]"), Keywords, { rows }); // in React: views/keywords/Keywords.jsx
