@@ -64,7 +64,7 @@ components.
   component: `AlarmMap.jsx`, with `alarm-map.js` for the heat map and the Zeitraffer), `radius/` (Einsatzradius, a React component: `Radius.jsx`, with `radius-map.js` for the map and
   its playback), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/` (Mythen-Check, a React
   component: `Myths.jsx`), `quiz/` (Quiz, a React component: `Quiz.jsx`), `list/` (Liste, a React component:
-  `AlarmList.jsx`), `year/` (Jahresrückblick, a React component: `YearReview.jsx`, with `story.js` for the year
+  `AlarmList.jsx`), `year/` (Jahresrückblick, a React component: `YearReview.jsx`, with `Story.jsx` for the year
   as a story and `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?", a React
   component: `Chance.jsx`).
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):

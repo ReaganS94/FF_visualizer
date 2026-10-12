@@ -1,4 +1,4 @@
-/* Jahr als Story (story.js): full-screen cards, one fact each. Its own colours, the same in light and dark mode,
+/* Jahr als Story (Story.jsx): full-screen cards, one fact each. Its own colours, the same in light and dark mode,
    so a screenshot looks the same for everyone. */
 body.story-open { overflow: hidden; }
 .story { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, .82); }
