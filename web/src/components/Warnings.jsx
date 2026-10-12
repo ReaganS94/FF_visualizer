@@ -36,7 +36,7 @@ export default function Warnings({ place }) {
   const lines = items.length > 0 && items.map((w) => ({ ...w, span: warnSpan(w.onset, w.expires, now) }));
   // The box is drawn anew only when what it says changed, so an opened "Was tun?" stays open over a refresh
   // and the first warning only moves again when something changed.
-  const key = JSON.stringify(shown ? lines && lines.map(({ onset, expires, ...w }) => w) : null) + (calm ? nina : "");
+  const key = JSON.stringify(shown ? lines : null) + (calm ? nina : "");
   return (
     <div className={cls} id={id} role="region" aria-label="Warnungen für Hannover" hidden={!shown}>
       {shown && (

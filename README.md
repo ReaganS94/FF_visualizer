@@ -39,23 +39,26 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
 ## Where is what
 
 The site's code is in `web/src/`. Every tab has a folder of its own in `views/`, with its code and its styles.
-The tabs are moving to [React](https://react.dev) one at a time; the list below marks those that are React
-components.
+The page is drawn with [React](https://react.dev): `App.jsx` draws everything around the tabs, and each tab is a
+React component of its own.
 
-- `main.js`: starts the page: loads the data, wires up the tab bar and the filters, and draws the tabs.
+- `main.js`: starts the page: loads the data and has `App.jsx` draw the page.
+- `App.jsx`: the page around the tabs: the warnings at the very top, the header with the "Stand" line, the tab
+  bar, the filters above the tabs, and the tabs, drawn again when a filter, the tab or the window's width changes.
+  It opens on the tab shown last time.
 - `data.js`: the data every tab draws from (alarms, keyword names, map positions, weather, school holidays,
   home games), loaded once when the page opens, and the filters above the tabs.
 - `dom.js`: two small helpers: `$` finds an element on the page, `calm()` says whether the device asks for
   less motion.
-- `show.js`: draws the tabs that are React components, with the alarms `main.js` hands them. React is
+- `show.js`: puts a React component on the page (the page itself, and the year story). React is
   bundled into a file of its own, so browsers keep it when the site's own code changes.
 - `components/`: pieces several tabs use, with their styles next to them: `charts.js` (bar charts and the blue
   heat colours), `Chart.jsx` (the box a React tab has those charts drawn into), `Legend.jsx` (the colour legend),
-  `tooltip.js` (the box that follows the pointer), `warnings.js` (the warnings box, see Warnungen below),
+  `tooltip.js` (the box that follows the pointer), `warnings.js` (loads the warnings, see Warnungen below) with `Warnings.jsx` (the warnings boxes),
   `myths.js` (the myth results, kept for the Mythen-Check and the quiz), `MythPicture.jsx` (a myth's picture, on
   both) and `leaflet.js` (loads the map library for the Karte and the Einsatzradius).
 - `views/`: one folder per tab, named like the tab's `data-view` in `index.html`, with its code and its
-  styles: `overview/` (Übersicht, a React component: `Overview.jsx`, with `app-offer.js` for "Als App speichern"),
+  styles: `overview/` (Übersicht, a React component: `Overview.jsx`, with `AppOffer.jsx` and `app-offer.js` for "Als App speichern"),
   `dots/` (Punktewand, a React component: `Dots.jsx`), `calendar/` (Kalender, a React component:
   `Calendar.jsx`), `spiral/` (Jahresspirale, a React component: `Spiral.jsx`),
   `hours/` (Tageszeit, a React component: `Hours.jsx`),
@@ -229,6 +232,9 @@ npx playwright test --ui                         # watch the browser tests run s
 - `site.spec.js`: every tab with every year and both filters, on a computer and two phone sizes: no
   errors, no "NaN" or "undefined" in the text, no empty tab, nothing that makes the page scroll sideways.
   Also the year as a story, and the message when the alarms can't be loaded.
+- `app.spec.js`: the page around the tabs with made-up alarms: the "Stand" line and the note about the website's
+  list, the tab bar before and after the alarms load, the filters for every tab and where they hide, the tab shown
+  last time, and the charts drawn again for a new width.
 - `warnings.spec.js`: the warnings with made-up ones: where they show, which one moves, and when a service is down.
 - `overview.spec.js`: the Übersicht: a column for every month, even one without alarms; the weekly average up to
   the website's newest alarm while a made-up hand entry is newer, and over a whole chosen year; the share at night,
