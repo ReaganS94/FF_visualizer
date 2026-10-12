@@ -17,7 +17,7 @@ import Keywords from "./views/keywords/Keywords.jsx";
 import Districts from "./views/districts/Districts.jsx";
 import Addresses from "./views/addresses/Addresses.jsx";
 import Weather from "./views/weather/Weather.jsx";
-import { renderMyths } from "./views/myths/myths.js";
+import Myths from "./views/myths/Myths.jsx";
 import { renderChance, drawOutlook } from "./views/chance/chance.js";
 import YearReview from "./views/year/YearReview.jsx";
 import { renderMap } from "./views/map/map.js";
@@ -40,7 +40,8 @@ function render() {
   renderMap(rows);
   show($("section[data-view=radius]"), Radius, { rows }); // in React: views/radius/Radius.jsx
   show($("section[data-view=weather]"), Weather, { rows, year: $("#f-year").value, storm: $("#f-storm").checked }); // in React: views/weather/Weather.jsx
-  if ($("section[data-view=myths]").classList.contains("active")) renderMyths(); // same for every filter, and only worked out once opened
+  const myths = $("section[data-view=myths]");
+  if (myths.classList.contains("active")) show(myths, Myths, {}); // in React: views/myths/Myths.jsx; same for every filter, and only worked out once opened
   show($("section[data-view=quiz]"), Quiz, {}); // in React: views/quiz/Quiz.jsx
   drawOutlook(); // needs the width, so only once the view shows
 }

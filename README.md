@@ -52,8 +52,8 @@ components.
 - `components/`: pieces several tabs use, with their styles next to them: `charts.js` (bar charts and the blue
   heat colours), `Chart.jsx` (the box a React tab has those charts drawn into), `Legend.jsx` (the colour legend),
   `tooltip.js` (the box that follows the pointer), `warnings.js` (the warnings box, see Warnungen below),
-  `myths.js` (the myth results and pictures, on the Mythen-Check and in the quiz) and `leaflet.js` (loads the map
-  library for the Karte and the Einsatzradius).
+  `myths.js` (the myth results, kept for the Mythen-Check and the quiz), `MythPicture.jsx` (a myth's picture, on
+  both) and `leaflet.js` (loads the map library for the Karte and the Einsatzradius).
 - `views/`: one folder per tab, named like the tab's `data-view` in `index.html`, with its code and its
   styles: `overview/` (Übersicht, a React component: `Overview.jsx`, with `app-offer.js` for "Als App speichern"),
   `dots/` (Punktewand, a React component: `Dots.jsx`), `calendar/` (Kalender, a React component:
@@ -62,10 +62,10 @@ components.
   `keywords/` (Stichworte, a React component: `Keywords.jsx`), `districts/` (Stadtteile, a React component:
   `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
   Zeitraffer), `radius/` (Einsatzradius, a React component: `Radius.jsx`, with `radius-map.js` for the map and
-  its playback), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/` (Mythen-Check), `quiz/`
-  (Quiz, a React component: `Quiz.jsx`), `list/` (Liste, a React component: `AlarmList.jsx`), `year/`
-  (Jahresrückblick, a React component: `YearReview.jsx`, with `story.js` for the year as a story and
-  `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?").
+  its playback), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/` (Mythen-Check, a React
+  component: `Myths.jsx`), `quiz/` (Quiz, a React component: `Quiz.jsx`), `list/` (Liste, a React component:
+  `AlarmList.jsx`), `year/` (Jahresrückblick, a React component: `YearReview.jsx`, with `story.js` for the year
+  as a story and `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?").
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin page uses
   too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the Jahresrückblick
@@ -273,6 +273,10 @@ npx playwright test --ui                         # watch the browser tests run s
   day included, up to the newest alarm, shaded like the colour key; the same day at the same angle in every
   year; the tooltips; a year alone, which runs to 31.12. once it is over; Großlagen left out and Wachbesetzungen
   counted; no spiral for a year without alarms; and the paler days the website doesn't list yet.
+- `myths.spec.js`: the Mythen-Check with made-up alarms, school holidays, home games and hot days: nothing worked
+  out before the tab opens; a card per myth with its verdict and what was counted; each picture showing its
+  numbers on an axis to a round number; the cards unchanged after other tabs, the filters and a new window
+  width; the myths without data left out; and the quiz's myth question showing the same picture.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
 - `admin.spec.js`: the admin page with a made-up website list and hand entries.
 - `fixtures.js`: the setup every browser test shares.

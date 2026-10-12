@@ -5,10 +5,11 @@ import { flushSync } from "react-dom";
 import { QUIZ_LEN, quizRound, unitText } from "../../lib/quiz.js";
 import { ALL, KW, GEO, WEATHER, LISTED } from "../../data.js";
 import { columnChart, barList } from "../../components/charts.js";
-import { myths, mythParts } from "../../components/myths.js";
+import { myths } from "../../components/myths.js";
+import MythPicture from "../../components/MythPicture.jsx";
 import "./quiz.css";
 
-// The questions and explanations are page markup (lib/quiz.js escapes the data in them), and so is a myth's picture.
+// The questions and explanations are page markup (lib/quiz.js escapes the data in them).
 const html = (s) => ({ __html: s });
 
 // Whether the page shows something full screen, for the button's label.
@@ -192,7 +193,7 @@ export default function Quiz() {
         )}
         <p className={`quiz-result p${p}`}><b>{verdict}</b>{` ${p ? `+${p} ${p === 1 ? "Punkt" : "Punkte"}` : ""}`}</p>
         {said && <p className="quiz-answer" dangerouslySetInnerHTML={html(said)} />}
-        {q.chart && (q.chart.type === "myth" ? <div className="quiz-myth" dangerouslySetInnerHTML={html(mythParts(q.chart.myth).picture)} />
+        {q.chart && (q.chart.type === "myth" ? <div className="quiz-myth"><MythPicture myth={q.chart.myth} /></div>
           : <QuizChart chart={q.chart} />)}
         <div className="quiz-actions">
           <button type="button" className="primary" data-quiz="next" onClick={() => go(false)}>{i + 1 < n ? "Weiter" : "Zum Ergebnis"}</button>

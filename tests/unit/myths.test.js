@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { parseDate, isoDate, addDays, weekday } from "../../web/src/lib/dates.js";
-import { fullMoons, holidays, rng, testMyth, mythResults, mythVerdict, mythSentence } from "../../web/src/lib/myths.js";
+import { fullMoons, holidays, rng, testMyth, mythResults, mythVerdict, mythSentence, mythMax } from "../../web/src/lib/myths.js";
 
 test("full moons as Hannover dates", () => {
   // 13 in 2026 (two in May); the one on 29.06. at 23:57 UTC is the 30th in Hannover
@@ -83,6 +83,12 @@ describe("mythVerdict", () => {
     expect(first(1, 0)).toBe("An Vollmond-Tagen gab es mehr Einsätze als an ähnlichen Tagen ohne Vollmond");
     expect(mythSentence(m(1, 1))).toMatch(/Tagen ohne Vollmond\. Wählt man ebenso viele zufällige ähnliche Tage, .* gut mit Zufall zu erklären\.$/);
   });
+});
+
+test("a myth's picture: the axis ends at the first round number at least 10 % above the dot and the band", () => {
+  const max = (avg, hi) => mythMax({ avg, hi });
+  expect([max(0, 0), max(0.2, 0.4), max(0.45, 0.3), max(0.46, 0.3), max(1, 0.5), max(3, 1), max(1, 4.6), max(12, 1), max(40, 2), max(46, 1)])
+    .toEqual([0.5, 0.5, 0.5, 1, 2, 5, 10, 20, 50, 100]);
 });
 
 describe("mythResults", () => {
