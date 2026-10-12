@@ -264,6 +264,11 @@ npx playwright test --ui                         # watch the browser tests run s
   types and notable alarms of the running year up to the website's newest alarm (with a hand entry after it) and
   of whole years, with and without a Großlage; the chosen year kept while other tabs and the filters change; its
   story; printing; and the running totals as wide as a phone.
+- `story.spec.js`: the year as a story with made-up alarms: every card of a whole year with and without its
+  Großlage, the pictures on the cards, a running year up to the website's newest alarm, Neujahr with only a hand
+  entry, a year with only a Großlage, the same number as the year before, short pauses and one place more than
+  fits; the numbers counting up on a paused clock; keys, taps, swipes, the buttons, the back button and the focus;
+  and the whole screen on a phone.
 - `scrollbar.spec.js`: switching tabs on a computer screen, with the scrollbar showing: the page doesn't jump
   sideways between tabs that scroll and tabs that fit the window.
 - `quiz.spec.js`: a round of the quiz played by tapping, and 100 more rounds checked for "NaN" or page

@@ -204,7 +204,6 @@ function Story({ cards, i, n, open }) {
 
 const story = { cards: [], i: 0, n: 0, open: false };
 const draw = () => show($("#story"), Story, { ...story });
-draw();
 
 function storyShow(i) {
   story.i = Math.max(0, Math.min(story.cards.length - 1, i));
@@ -232,7 +231,10 @@ function storyHide() {
   draw();
   $("#y-story").focus();
 }
-const storyClose = () => (history.state?.story ? history.back() : storyHide());
+function storyClose() {
+  if (history.state?.story) history.back();
+  else storyHide();
+}
 
 window.addEventListener("popstate", () => { if (!$("#story").hidden) storyHide(); });
 document.addEventListener("keydown", (e) => {
@@ -241,3 +243,5 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowRight" || (e.key === " " && !e.target.closest("button"))) { e.preventDefault(); storyShow(story.i + 1); }
   else if (e.key === "ArrowLeft") storyShow(story.i - 1);
 });
+
+draw(); // the closed dialog, until the first story opens

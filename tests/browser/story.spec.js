@@ -100,6 +100,8 @@ test("the pictures on the cards: the hours, day and night, the places, the year 
   const bars = await page.$$eval("#story-card .st-hours .bars i", (is) => is.map((i) => `${i.className || "-"} ${i.style.height}`));
   expect(bars).toHaveLength(24);
   expect([bars[0], bars[1], bars[2], bars[9], bars[14], bars[23]]).toEqual(["hi 100%", "- 50%", "- 2%", "- 50%", "- 100%", "- 50%"]);
+  // the big word shrinks with its length
+  expect(await page.$eval("#story-card .st-hero", (e) => e.style.cssText)).toBe("font-size: min(26cqw, 10.9cqw, 16cqh); --i: 1;");
   await go(1);
   expect(await page.$$eval("#story-card .st-split i", (is) => is.map((i) => `${i.className || "-"} ${i.style.flexGrow}`))).toEqual(["- 43", "hi 57"]);
   await go(2);
@@ -209,8 +211,17 @@ test("the numbers count up from 0 when their card shows, and again when it shows
 
 test("keys, taps, swipes, the buttons and the back button; the page stays put underneath", async ({ page }) => {
   await setup(page);
-  await page.keyboard.press("ArrowRight"); // closed: nothing happens
+  // closed: the keys are the page's own (space ticks a focused checkbox)
+  await page.focus("#y-storm");
+  await page.keyboard.press(" ");
+  await expect(page.locator("#y-storm")).not.toBeChecked();
+  await page.keyboard.press(" ");
+  await expect(page.locator("#y-storm")).toBeChecked();
+  // space on the focused close button closes the story, like a click
   await openStory(page, "2025");
+  await page.keyboard.press(" ");
+  await expect(page.locator("#story")).toBeHidden();
+  await page.click("#y-story");
   await expect(page.locator("body")).toHaveClass(/story-open/);
   await expect(page.locator("#story-close")).toBeFocused();
   await expect(page.locator("#story-prev")).toBeDisabled();
@@ -231,7 +242,10 @@ test("keys, taps, swipes, the buttons and the back button; the page stays put un
   const y = box.y + box.height / 2;
   await page.mouse.click(box.x + box.width * 0.9, y);
   expect(await at(page)).toBe(3);
+  await page.mouse.click(box.x + box.width * 0.4, y); // just right of the left third
+  expect(await at(page)).toBe(4);
   await page.mouse.click(box.x + box.width * 0.2, y);
+  await page.mouse.click(box.x + box.width * 0.3, y);
   expect(await at(page)).toBe(2);
   const swipe = async (from, to) => {
     await page.mouse.move(box.x + box.width * from, y);
@@ -273,6 +287,22 @@ test("keys, taps, swipes, the buttons and the back button; the page stays put un
   await page.keyboard.press("Escape");
   await expect(page.locator("#story")).toBeHidden();
   await expect(page.locator("#y-story")).toBeFocused();
+  expect(page.errors).toEqual([]);
+});
+
+test("a running year whose pauses are all short, and one more place than fits", async ({ page }) => {
+  const rows = [
+    alarm("2026-01-01", "10:00", "b1", "Erster Weg"), alarm("2026-01-01", "11:00", "b1", "Zweiter Weg"),
+    alarm("2026-01-03", "10:00", "h", "Dritter Weg"), alarm("2026-01-03", "11:00", "h", "Vierter Weg"),
+    alarm("2026-01-04", "10:00", "b1", "Fünfter Weg"), // the website's newest alarm
+  ];
+  await setup(page, { rows, hand: [alarm("2026-09-01", "10:00", "b1", "Sechster Weg")] });
+  await openStory(page, "2026");
+  const cards = await allCards(page);
+  // the longest pause up to the website's newest alarm is one day: no card for it, "–" in the numbers
+  expect(cards.map((c) => c.body[0])).not.toContain("Die längste Pause");
+  expect(cards.at(-1).body[1]).toContain("Längste Pause–");
+  expect(cards.find((c) => c.body[0] === "Die häufigsten Einsatzorte").body[2]).toBe("Und ein weiterer Ort mit 1 Einsatz.");
   expect(page.errors).toEqual([]);
 });
 
