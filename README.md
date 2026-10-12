@@ -56,7 +56,8 @@ components.
   the quiz) and `leaflet.js` (loads the map library for the Karte and the Einsatzradius).
 - `views/`: one folder per tab, named like the tab's `data-view` in `index.html`, with its code and its
   styles: `overview/` (Übersicht, a React component: `Overview.jsx`, with `app-offer.js` for "Als App speichern"),
-  `dots/` (Punktewand), `calendar/` (Kalender, a React component: `Calendar.jsx`), `spiral/` (Jahresspirale),
+  `dots/` (Punktewand, a React component: `Dots.jsx`), `calendar/` (Kalender, a React component:
+  `Calendar.jsx`), `spiral/` (Jahresspirale),
   `hours/` (Tageszeit, a React component: `Hours.jsx`),
   `keywords/` (Stichworte, a React component: `Keywords.jsx`), `districts/` (Stadtteile, a React component:
   `Districts.jsx`), `addresses/` (Stammadressen, a React component: `Addresses.jsx`), `map/` (Karte, with the
@@ -68,9 +69,9 @@ components.
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
   `dates.js`, `text.js`, `alarms.js` (the cleaning and the matching of hand entries, which the admin page uses
   too), `estimate.js` ("Einsatz heute?" and its backtest), `weather.js`, `year.js` (what the Jahresrückblick
-  counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot wall's groups and
-  colours, distances for the Einsatzradius), `count.js` (counting alarms by street, keyword, weekday and hour
-  and so on) and `quiz.js` (the quiz questions).
+  counts and compares), `myths.js` (the Mythen-Check), `places.js` (Stammadressen, the dot wall's groups,
+  colours and layout, distances for the Einsatzradius), `count.js` (counting alarms by street, keyword,
+  weekday and hour and so on) and `quiz.js` (the quiz questions).
 - `style.css`: the colours, the layout and the styles several tabs share. The admin page uses it too.
 - `admin.js`: the admin page (`web/admin.html`).
 
@@ -263,6 +264,11 @@ npx playwright test --ui                         # watch the browser tests run s
   middle to its ends, its − button pressed with Enter, and the guess marked against the answer; a question kept
   while other tabs, the filters and the window change, a chart drawn once with its answer, and full screen; and
   on a phone, a round that keeps the page where it is on every answer.
+- `dots.spec.js`: the Punktewand with made-up alarms: a dot for each in its type's colour, in a column per month
+  or hour or a line per type or district, with their numbers; the tooltip, and a tapped alarm under the chart; a
+  new grouping moving the same dots one after another; the filters and another tab drawing them afresh in the
+  same grouping and letting go of an alarm no longer there; and smaller dots on a phone, drawn afresh when it is
+  turned.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
 - `admin.spec.js`: the admin page with a made-up website list and hand entries.
 - `fixtures.js`: the setup every browser test shares.

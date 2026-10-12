@@ -9,7 +9,7 @@ import "./components/tooltip.js"; // the box that follows the pointer over chart
 import "./components/warnings.js"; // the warnings box loads and refreshes itself
 import { show } from "./show.js"; // before the tabs, so React's file stays the same as more tabs use React (browsers keep it)
 import Overview from "./views/overview/Overview.jsx";
-import { renderDots } from "./views/dots/dots.js";
+import Dots from "./views/dots/Dots.jsx";
 import Calendar from "./views/calendar/Calendar.jsx";
 import { renderSpiral } from "./views/spiral/spiral.js";
 import Hours from "./views/hours/Hours.jsx";
@@ -30,7 +30,7 @@ function render() {
   show($("#overview-body"), Overview, { rows, year: $("#f-year").value }); // in React: views/overview/Overview.jsx
   show($("section[data-view=calendar]"), Calendar, { rows, storm: $("#f-storm").checked }); // in React: views/calendar/Calendar.jsx
   renderSpiral(rows);
-  renderDots(rows);
+  show($("section[data-view=dots]"), Dots, { rows }); // in React: views/dots/Dots.jsx
   show($("section[data-view=hours]"), Hours, { rows }); // in React: views/hours/Hours.jsx
   show($("section[data-view=keywords]"), Keywords, { rows }); // in React: views/keywords/Keywords.jsx
   show($("section[data-view=districts]"), Districts, { rows }); // in React: views/districts/Districts.jsx

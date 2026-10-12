@@ -41,6 +41,42 @@ export function dotGroups(rows, by) {
     ...(rest.length ? [{ label: weitere(all.length - DOT_TOP_DISTRICTS), rows: rest }] : [])];
 }
 
+// Where each dot of the dot wall goes in a chart W pixels wide: columns for month and hour (time runs left to
+// right), rows for type and district, each group's dots by colour, then oldest first. Returns each alarm's
+// place [x, y], the texts to write ({x, y, anchor, count, text}; count: the number of a group's alarms), the
+// height and the dots' radius.
+export function dotLayout(rows, by, W) {
+  const s = W < 600 ? 7 : 9;
+  const groups = dotGroups(rows, by);
+  for (const g of groups) g.rows.sort((a, b) => DOT_ORDER.indexOf(dotKind(a)) - DOT_ORDER.indexOf(dotKind(b)) || a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  const pos = new Map(), labels = [];
+  let H;
+  if (by === "month" || by === "hour") {
+    const cw = W / groups.length, per = Math.max(1, Math.floor((cw - 3) / s)), T = 18, B = 22;
+    const high = Math.max(1, ...groups.map((g) => Math.ceil(g.rows.length / per)));
+    H = T + high * s + B;
+    groups.forEach((g, k) => {
+      const x0 = k * cw + (cw - per * s) / 2;
+      g.rows.forEach((r, j) => pos.set(r, [x0 + (j % per) * s + s / 2, T + (high - Math.floor(j / per) - 1) * s + s / 2]));
+      const top = T + (high - Math.ceil(g.rows.length / per)) * s - 5;
+      // a number only above a column wide enough for it; on a narrow chart only every third hour is named
+      if (g.rows.length && cw >= 22) labels.push({ x: (k + 0.5) * cw, y: top, anchor: "middle", count: true, text: String(g.rows.length) });
+      if (by === "month" || W >= 600 || k % 3 === 0 || g.label === "?") labels.push({ x: (k + 0.5) * cw, y: H - 5, anchor: "middle", text: g.label });
+    });
+  } else {
+    const Lw = Math.min(180, Math.round(W * 0.36)), R = 34, per = Math.max(1, Math.floor((W - Lw - R) / s)), gap = 10;
+    let y = 4;
+    for (const g of groups) {
+      g.rows.forEach((r, j) => pos.set(r, [Lw + (j % per) * s + s / 2, y + Math.floor(j / per) * s + s / 2]));
+      labels.push({ x: Lw - 8, y: y + s / 2 + 4, anchor: "end", text: g.label },
+        { x: Lw + Math.min(g.rows.length, per) * s + 6, y: y + s / 2 + 4, count: true, text: String(g.rows.length) });
+      y += Math.max(1, Math.ceil(g.rows.length / per)) * s + gap;
+    }
+    H = y;
+  }
+  return { pos, labels, H, r: s * 0.38 };
+}
+
 // Distances are straight lines on a flat grid around the Wache, which is close enough within a city.
 export const WACHE = [52.36847, 9.71195]; // Teichstraße 8 (two map services agree to within 25 m)
 export const KM_X = 111.32 * Math.cos((WACHE[0] * Math.PI) / 180), KM_Y = 110.57; // km per degree east and north
