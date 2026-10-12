@@ -49,6 +49,8 @@ export function bigDayCounts(alarms) {
 
 // A day's shade on the Kalender, 0 to 5: 0, 1, 2, 3–4 and 5 to BIG_DAY − 1 alarms, and a Großlage's BIG_DAY or more.
 export const dayLevel = (n) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : n < BIG_DAY ? 4 : 5);
+// A day's shade on the Jahresspirale, 0 to 4: 0, 1, 2, 3–4 and 5 or more alarms.
+export const spiralLevel = (n) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : 4);
 
 // The alarms per week (the Übersicht) over the days the website's list covers: from 01.01. of the chosen year, or
 // from the first alarm, to the website's newest alarm or the year's end. Later days hold only hand entries so far,

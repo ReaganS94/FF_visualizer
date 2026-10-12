@@ -1,6 +1,6 @@
 // The Jahresrückblick and the year story: which alarms a year counts, what it is compared with, and
-// the line of alarms added up day by day.
-import { isoDate, addDays, minDate } from "./dates.js";
+// the line of alarms added up day by day; and where the Jahresspirale ends.
+import { isoDate, addDays, minDate, maxDate } from "./dates.js";
 
 // Keywords worth listing individually in the annual report.
 export const NOTABLE = /^(b2|b3|ob|ba2|bg2|abc2|hm2|hm3|hw\d|hu\d|manv.*)$/;
@@ -28,6 +28,14 @@ export function yearInfo(year, storm, all, listed, today = new Date()) {
 
 // The days of a leap year ("MM-DD"), so every date sits at the same place in every year.
 export const DAY_SLOTS = Array.from({ length: 366 }, (_, i) => isoDate(addDays(new Date(2024, 0, 1), i)).slice(5));
+
+// The last day the Jahresspirale draws: 31.12. of its newest year once that year is over, else the website's
+// newest day or the newest alarm, whichever is later (one entered by hand can be newer). rows: newest first, at
+// least one; listed: the website's newest day, "YYYY-MM-DD"; thisYear: the running year, "2026".
+export function spiralEnd(rows, listed, thisYear) {
+  const last = rows[0].date.slice(0, 4);
+  return last < thisYear ? `${last}-12-31` : maxDate(rows[0].date, minDate(listed, `${last}-12-31`));
+}
 
 // Alarms from 01.01. added up day by day, one number per DAY_SLOTS day; null after `until` ("MM-DD"),
 // so the line stops there.
