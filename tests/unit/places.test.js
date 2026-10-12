@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import {
-  isBMA, isRWM, addressGroups, dotKind, dotGroups, dotLayout, DOT_KINDS, DOT_ORDER, WACHE, KM_X, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
+  isBMA, isRWM, addressGroups, dotKind, dotGroups, dotLayout, DOT_KINDS, DOT_ORDER, mapPoints, WACHE, KM_X, KM_Y, RADIUS_BINS, radiusPoints, radiusSummary,
 } from "../../web/src/lib/places.js";
 
 const alarm = (more = {}) => ({ date: "2026-10-07", hour: 12, timeUnknown: false, base: "th", event: "", group: "Brand", street: "", district: "", ...more });
@@ -100,6 +100,21 @@ describe("dotLayout", () => {
     expect(phone.labels).toEqual([{ x: 132, y: 11.5, anchor: "end", text: "Linden-Nord" }, { x: 140 + 30 * 7 + 6, y: 11.5, count: true, text: "31" }]);
     expect(phone.H).toBe(4 + 2 * 7 + 10);
   });
+});
+
+test("mapPoints: the alarms with a position, in the order given, by the spelling as entered first", () => {
+  const geo = { "Nord|Linden-Nord": [1, 2], "Nordstr.|Linden-Nord": [3, 4], "Ost|Mitte": [5, 6], "Weg|Ahlem": null };
+  const rows = [
+    alarm({ date: "2026-10-07", street: "Ost", district: "Mitte" }),
+    alarm({ date: "2026-10-05", street: "Unbekannt", district: "Ahlem" }),
+    alarm({ date: "2026-10-04", street: "Weg", district: "Ahlem" }),
+    alarm({ date: "2026-10-03", street: "Nord", district: "Linden-Nord", geoKey: "Nordstr.|Linden-Nord" }),
+    alarm({ date: "2026-10-01", street: "Nord", district: "Linden-Nord", geoKey: "Nord.|Linden-Nord" }),
+  ];
+  expect(mapPoints(rows, geo)).toEqual({
+    points: [{ p: [5, 6], date: "2026-10-07" }, { p: [3, 4], date: "2026-10-03" }, { p: [1, 2], date: "2026-10-01" }], missing: 2,
+  });
+  expect(mapPoints([], geo)).toEqual({ points: [], missing: 0 });
 });
 
 describe("radius", () => {
