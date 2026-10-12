@@ -1,4 +1,4 @@
-/* "Einsatz heute?" (chance.js): the ring, the tiles for today and tonight, the next 7 days and the check of the
+/* "Einsatz heute?" (Chance.jsx): the ring, the tiles for today and tonight, the next 7 days and the check of the
    estimate. */
 .chance-grid { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 8px 28px; align-items: start; margin-top: 16px; }
 @media (max-width: 760px) { .chance-grid { grid-template-columns: minmax(0, 1fr); } }

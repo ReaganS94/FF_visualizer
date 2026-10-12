@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { topCounts, counted, pct, niceMax, weekHours, heatLevel, bigDayCounts, dayLevel, spiralLevel, perWeek, nightShare, perMonth } from "../../web/src/lib/count.js";
+import { topCounts, counted, pct, niceMax, weekHours, hourTotals, heatLevel, bigDayCounts, dayLevel, spiralLevel, perWeek, nightShare, perMonth } from "../../web/src/lib/count.js";
 import { BIG_DAY } from "../../web/src/lib/alarms.js";
 
 const rows = ["Brand", "Hilfe", "Brand", "", "Hilfe", "Brand", "Unwetter"].map((group, i) => ({ i, group }));
@@ -92,4 +92,14 @@ test("perMonth counts the alarms of every month from the first to the last, empt
   expect(perMonth(days("2026-01-02", "2025-11-30"))).toEqual([
     { year: 2025, month: 10, n: 1 }, { year: 2025, month: 11, n: 0 }, { year: 2026, month: 0, n: 1 }]);
   expect(perMonth([])).toEqual([]);
+});
+
+test("hourTotals counts the alarms with a time by hour, without standbys", () => {
+  const rows = [{ hour: 0 }, { hour: 23 }, { hour: 23 }, { hour: 10, standby: true }, { hour: 0, timeUnknown: true }, { hour: 10 }];
+  const hours = hourTotals(rows);
+  expect(hours).toHaveLength(24);
+  expect(hours[0]).toBe(1);
+  expect(hours[10]).toBe(1);
+  expect(hours[23]).toBe(2);
+  expect(hours.reduce((a, b) => a + b)).toBe(4);
 });
