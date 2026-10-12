@@ -64,7 +64,7 @@ components.
   component: `AlarmMap.jsx`, with `alarm-map.js` for the heat map and the Zeitraffer), `radius/` (Einsatzradius, a React component: `Radius.jsx`, with `radius-map.js` for the map and
   its playback), `weather/` (Wetter, a React component: `Weather.jsx`), `myths/` (Mythen-Check, a React
   component: `Myths.jsx`), `quiz/` (Quiz, a React component: `Quiz.jsx`), `list/` (Liste, a React component:
-  `AlarmList.jsx`), `year/` (Jahresrückblick, a React component: `YearReview.jsx`, with `story.js` for the year
+  `AlarmList.jsx`), `year/` (Jahresrückblick, a React component: `YearReview.jsx`, with `Story.jsx` for the year
   as a story and `race-chart.js` for the running totals both show) and `chance/` ("Einsatz heute?", a React
   component: `Chance.jsx`).
 - `lib/`: the rules and calculations, without any page code, so they can be tested on their own (see Tests):
@@ -264,6 +264,11 @@ npx playwright test --ui                         # watch the browser tests run s
   types and notable alarms of the running year up to the website's newest alarm (with a hand entry after it) and
   of whole years, with and without a Großlage; the chosen year kept while other tabs and the filters change; its
   story; printing; and the running totals as wide as a phone.
+- `story.spec.js`: the year as a story with made-up alarms: every card of a whole year with and without its
+  Großlage, the pictures on the cards, a running year up to the website's newest alarm, Neujahr with only a hand
+  entry, a year with only a Großlage, the same number as the year before, short pauses and one place more than
+  fits; the numbers counting up on a paused clock; keys, taps, swipes, the buttons, the back button and the focus;
+  and the whole screen on a phone.
 - `scrollbar.spec.js`: switching tabs on a computer screen, with the scrollbar showing: the page doesn't jump
   sideways between tabs that scroll and tabs that fit the window.
 - `quiz.spec.js`: a round of the quiz played by tapping, and 100 more rounds checked for "NaN" or page

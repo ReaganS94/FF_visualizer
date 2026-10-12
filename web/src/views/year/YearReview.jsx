@@ -1,7 +1,7 @@
 // Jahresrückblick: a year's numbers, its running total next to the other years, its months, alarm types and
 // notable alarms. What a year counts and compares with is worked out in lib/year.js; this draws the tab. The year
 // and "Großlagen mitzählen" are chosen in the tab itself: the filters above the tabs don't apply here. The running
-// totals are drawn by race-chart.js, the story of the year by story.js.
+// totals are drawn by race-chart.js, the story of the year by Story.jsx.
 import { useState } from "react";
 import { MONTHS, fmtDate } from "../../lib/dates.js";
 import { esc, einsaetze } from "../../lib/text.js";
@@ -13,7 +13,7 @@ import { ALL, LISTED } from "../../data.js";
 import { columnChart, barList } from "../../components/charts.js";
 import Chart from "../../components/Chart.jsx";
 import { raceChart } from "./race-chart.js";
-import { storyOpen } from "./story.js";
+import { storyOpen } from "./Story.jsx";
 import "./year.css";
 
 export default function YearReview() {
