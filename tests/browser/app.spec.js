@@ -1,6 +1,7 @@
 // The page around the tabs (App.jsx): the "Stand" line, the tab bar, the filters above the tabs and the tab
 // shown last time. The alarms are made up by the test, so every number is known.
 import { test, expect, json, openSite } from "./fixtures.js";
+import { ADMIN } from "../../web/src/lib/links.js";
 
 const alarm = (date, keyword = "b1", o) => ({ date, time: "10:00", category: "Einsatz", keyword, event: "Testeinsatz",
   street: "Teststraße", district: "Linden-Mitte", remarks: "", ...o });
@@ -133,11 +134,26 @@ test("a new width draws the charts again, a new height doesn't", async ({ page }
   expect(page.errors).toEqual([]);
 });
 
-test("the link to the admin page shows only on a device signed in there", async ({ page }) => {
+test("the link to the admin page shows only on a device that came from there", async ({ page }) => {
   await openApp(page);
   await expect(page.locator("#admin-link")).toBeHidden();
-  await page.evaluate(() => localStorage.setItem("gh-token", "x"));
+  // "Zur Statistik" on the admin page leads to #admin, which the page remembers and takes off the address
+  await page.goto("about:blank");
+  await page.goto("/index.html#admin");
+  await expect(page.locator("#admin-link")).toBeVisible();
+  expect(new URL(page.url()).hash).toBe("");
+  await expect(page.locator("#admin-link a")).toHaveAttribute("href", ADMIN);
   await page.reload();
   await expect(page.locator("#admin-link")).toBeVisible();
   expect(page.errors).toEqual([]);
 });
+
+test("a device with the old admin key keeps the link, and the key is removed", async ({ page }) => {
+  await openApp(page);
+  await page.evaluate(() => localStorage.setItem("gh-token", "x"));
+  await page.reload();
+  await expect(page.locator("#admin-link")).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("gh-token"))).toBeNull();
+  expect(page.errors).toEqual([]);
+});
+

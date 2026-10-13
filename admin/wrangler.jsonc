@@ -1,0 +1,16 @@
+// The admin Worker (admin/worker.js). The "Publish admin page" workflow deploys it after the site is built
+// into dist/; the Worker serves the admin page from there. Its settings (TEAM_DOMAIN, ACCESS_AUD and the secret
+// GITHUB_TOKEN) are made in Cloudflare's dashboard and kept on every deploy.
+{
+  "name": "ff-linden-admin",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "keep_vars": true,
+  "assets": {
+    "directory": "../dist",
+    "binding": "ASSETS",
+    // The Worker answers first, so "/" leads to the admin page and /api/ is never a file.
+    "run_worker_first": true
+  }
+}

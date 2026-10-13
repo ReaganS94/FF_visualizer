@@ -23,7 +23,8 @@ Visualizes the alarms (Einsätze) of the Freiwillige Feuerwehr Hannover-Linden, 
   attention (see Warnungen below).
 - `web/index.html` and `web/src/`: the page and its code, see "Where is what" below.
 - `web/public/data/keywords.json`: names and groups for the keyword codes. Edit it directly on GitHub to fix a name.
-- `web/admin.html` and `web/src/admin.js`: form for adding alarms before the website lists them (see below).
+- `web/admin.html` and `web/src/admin.js`: form for adding alarms before the website lists them, on its own
+  address behind a login (`admin/`, see below).
 - `web/public/`: files published as they are: the data in `web/public/data/` (written by the jobs above and the
   admin page), the icons and the app manifest.
 - `web/public/manifest.webmanifest` and `web/public/icons/`: let phones add the site to the home screen as an app
@@ -79,12 +80,23 @@ React component of its own.
   (the quiz questions).
 - `style.css`: the colours, the layout and the styles several tabs share. The admin page uses it too.
 - `admin.js`: the admin page (`web/admin.html`).
+- `lib/links.js`: the addresses of the public site and the admin page.
 
 ## Admin page
 
-`/admin.html` saves alarms into `web/public/data/manual.json` via the GitHub API. It needs a fine-grained personal
-access token limited to this repository with "Contents: Read and write"; the token is stored only in that
-browser. A manual entry is ignored once the website lists an alarm with the same keyword within an hour of
+The admin page lives at https://ff-linden-admin.ff-statistik.workers.dev/, a Cloudflare Worker
+(`admin/worker.js`) behind [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/).
+Access asks for a login (an emailed code, or GitHub) before the page loads, and lets in only the people its
+policy lists: that list is the list of admins. The Worker serves the page and saves the entries into
+`web/public/data/manual.json` with a GitHub key that only it knows; the browser keeps no key. Every save checks
+again that Access signed the request for this application. When the login runs out (after 24 hours, unless
+Access is set otherwise) the page says so and asks to load it again; "Abmelden" ends the login.
+The statistics page shows its "Einsatz nachtragen" link only in browsers that came from the admin page
+("Zur Statistik" there). The old `/admin.html` on the public site only sends people to the new address, and
+both pages delete the key the old page kept in the browser.
+The website's list and the keywords come from the public site, which always has the newest.
+
+A manual entry is ignored once the website lists an alarm with the same keyword within an hour of
 it, so nothing is counted twice. Each website alarm stands in for at most one hand entry (closest in time
 first), so two alarms with the same keyword within an hour both stay until the website lists both.
 The street field suggests the spellings the website uses, and "Strasse" or "Str." is saved as "Straße".
@@ -94,6 +106,32 @@ Each entry's status is "auf der Website" once matched, "nur hier" while the webs
 "bitte prüfen" when the website already lists later alarms but none matching this one (probably written with
 another keyword or time; then it would count twice). On the statistics page, hand entries that
 aren't matched yet are called "vorläufig" (tag in the list and on the "Letzter Einsatz" tile, and in the notes).
+
+### Setting up the admin page
+
+Once, in this order (the Worker refuses every save until steps 4 and 5 are done):
+
+1. In the Cloudflare dashboard, open Zero Trust, pick a team name (its address is
+   `<team>.cloudflareaccess.com`) and the Free plan (up to 50 people). Cloudflare asks for a payment card even
+   for the Free plan and doesn't charge it. Settings → Authentication: "One-time PIN" (a code by email) is
+   there; GitHub can be added as a second login method.
+2. My Profile → API Tokens → Create Token → template "Edit Cloudflare Workers". Add it on GitHub under Settings
+   → Secrets and variables → Actions as `CLOUDFLARE_API_TOKEN`, and the Account ID (Workers & Pages, on the
+   right) as `CLOUDFLARE_ACCOUNT_ID`.
+3. Actions → "Publish admin page" → Run workflow. It creates the Worker `ff-linden-admin`; after that it runs
+   by itself when the admin page or the Worker change (`.github/workflows/admin.yml`).
+4. Workers & Pages → `ff-linden-admin` → protect it with Access (all traffic). In Zero Trust → Access →
+   Applications → its application: the policy decides who gets in (Include → Emails: one line per admin), and
+   the overview shows the "Application Audience (AUD) Tag".
+5. The Worker's Settings → Variables and Secrets: `TEAM_DOMAIN` = `<team>.cloudflareaccess.com`, `ACCESS_AUD` =
+   that tag, and the secret `GITHUB_TOKEN` = a new
+   [fine-grained token](https://github.com/settings/personal-access-tokens/new) for this repository only, with
+   "Contents: Read and write" and nothing else.
+6. Open the admin page, log in, and save and delete a test entry. Then delete the token the old admin page used
+   on GitHub (Settings → Developer settings → Fine-grained tokens).
+
+A new admin: add their email to the Access policy (step 4). If the Worker's address isn't
+`ff-linden-admin.ff-statistik.workers.dev`, change `ADMIN` in `web/src/lib/links.js` and the link in `web/index.html`.
 
 ## Jahresrückblick
 
@@ -214,7 +252,8 @@ Two kinds of tests, both run by `npm test` (needs Node.js 22.12 or newer). They 
 and every change to `main` (Actions → "Tests"), and the pull request shows a red check with the failing
 test when something broke.
 
-- `tests/unit/`: the rules and calculations in `web/src/lib/`, and the NINA relay in `relay/`, run in Node
+- `tests/unit/`: the rules and calculations in `web/src/lib/`, the NINA relay in `relay/` and the admin Worker
+  in `admin/` (logins played by keys the test makes), run in Node
   with [Vitest](https://vitest.dev), in a second or so.
 - `tests/browser/`: the site itself, built as for publishing, opened in Chromium with
   [Playwright](https://playwright.dev) and clicked through like a visitor. Nothing leaves the machine:
@@ -303,7 +342,9 @@ npx playwright test --ui                         # watch the browser tests run s
   and a tooltip; a calm week drawn again for a new window width, also one that came while another tab showed; a
   single day of forecast; and the pictures and exact numbers of how well the estimate did.
 - `app-offer.spec.js`: the "Als App speichern" button on iPhone, iPad, Android and a computer.
-- `admin.spec.js`: the admin page with a made-up website list and hand entries.
+- `admin.spec.js`: the admin page with a made-up website list, hand entries and server: adding, changing and
+  deleting, the duplicate questions, a change from elsewhere, a login that ran out, an account that isn't an
+  admin, and the old page on the public site sending people to the new one.
 - `fixtures.js`: the setup every browser test shares.
 
 ## Publish
@@ -311,6 +352,7 @@ npx playwright test --ui                         # watch the browser tests run s
 The "Publish site" workflow (`.github/workflows/deploy.yml`) builds the site and publishes it on
 GitHub Pages after every change to `main` and after every data update. Actions → "Publish site" →
 Run workflow publishes by hand. It needs Settings → Pages → Build and deployment → Source: "GitHub Actions".
+The admin page has its own workflow, "Publish admin page" (see "Setting up the admin page").
 
 ## Data cleaning (done in the browser, see `web/src/lib/alarms.js` and `web/src/data.js`)
 
