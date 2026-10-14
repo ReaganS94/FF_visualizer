@@ -65,7 +65,7 @@ async function check(request, env) {
   } catch { return "the token is not a JWT"; }
   if (header.alg !== "RS256") return `unexpected algorithm ${header.alg}`;
   const key = await signingKey(team, header.kid);
-  if (!key) return `no public key ${header.kid} at https://${team}/cdn-cgi/access/certs`;
+  if (!key) return `no public key ${header.kid} at https://${team}/cdn-cgi/access/certs: ${keysProblem}`;
   const signed = new TextEncoder().encode(parts[0] + "." + parts[1]);
   if (!(await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, base64url(parts[2]), signed))) return "bad signature";
   const now = Date.now() / 1000;
@@ -85,22 +85,29 @@ function cookie(request, name) {
   return null;
 }
 
-// Access's public keys, fetched once an hour; it changes them every few weeks.
+// Access's public keys, fetched once an hour; it changes them every few weeks. `keysProblem` says why the
+// last fetch gave no usable list, for the log.
 let keys = { at: 0, team: "", list: [] };
+let keysProblem = "";
 async function signingKey(team, kid) {
   if (keys.team !== team || Date.now() - keys.at > 60 * 60 * 1000 || !keys.list.some((k) => k.kid === kid)) {
-    try {
-      const res = await fetch(`https://${team}/cdn-cgi/access/certs`);
-      if (!res.ok) return null;
-      keys = { at: Date.now(), team, list: (await res.json()).keys || [] };
-    } catch { return null; }
+    let res;
+    try { res = await fetch(`https://${team}/cdn-cgi/access/certs`, { headers: { accept: "application/json" } }); } catch (e) {
+      keysProblem = `fetching the keys failed: ${e.message}`;
+      return null;
+    }
+    if (!res.ok) { keysProblem = `fetching the keys answered ${res.status}`; return null; }
+    let body;
+    try { body = await res.json(); } catch { keysProblem = `the keys answer is not JSON (${res.headers.get("content-type")})`; return null; }
+    keys = { at: Date.now(), team, list: Array.isArray(body.keys) ? body.keys : [] };
   }
   const jwk = keys.list.find((k) => k.kid === kid);
-  if (!jwk) return null;
-  return crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
+  if (!jwk) { keysProblem = `the keys list has ${keys.list.map((k) => k.kid).join(", ") || "no keys"}`; return null; }
+  const { alg, use, key_ops, ...plain } = jwk; // only the key itself; the algorithm is fixed below
+  return crypto.subtle.importKey("jwk", plain, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
 }
 
-export function resetKeys() { keys = { at: 0, team: "", list: [] }; }
+export function resetKeys() { keys = { at: 0, team: "", list: [] }; keysProblem = ""; }
 
 const base64url = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
 const text = (bytes) => new TextDecoder().decode(bytes);

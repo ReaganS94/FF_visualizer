@@ -170,3 +170,17 @@ test("logs why a login was refused, without the token", async () => {
   expect(warn.mock.calls.join(" ")).not.toContain(token);
   warn.mockRestore();
 });
+
+test("logs why Access's keys couldn't be used", async () => {
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const token = await sign({ aud: [AUD], iss: `https://${TEAM}`, email: "x@example.com", exp: now() + 3600 }, { kid: "k2" });
+  await ask("/api/manual", { token });
+  fetch.mockImplementationOnce(async () => new Response("<html>", { status: 403 }));
+  resetKeys();
+  await ask("/api/manual", { token: await login() });
+  expect(warn.mock.calls.map((c) => c[0])).toEqual([
+    `Access check failed: no public key k2 at https://${TEAM}/cdn-cgi/access/certs: the keys list has k1`,
+    `Access check failed: no public key k1 at https://${TEAM}/cdn-cgi/access/certs: fetching the keys answered 403`,
+  ]);
+  warn.mockRestore();
+});
