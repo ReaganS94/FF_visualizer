@@ -58,6 +58,29 @@ flowchart TD
 | "Publish admin page" fails | The Cloudflare key on GitHub expired, or a secret has a stray line break. |
 | No NINA warnings | The NINA relay Worker on Cloudflare, see [docs/features.md](docs/features.md#the-nina-relay). |
 
+## Where things are
+
+```text
+.github/workflows/   GitHub jobs: Update data, Publish site, Publish admin page, Tests
+scraper/             Python scripts the "Update data" job runs (alarms, weather, 96 games, street positions)
+web/                 the site
+  index.html           the statistics page
+  admin.html           the admin page
+  public/data/         the data the jobs and the admin page write (alarms, weather, hand entries, ...)
+  src/
+    main.js, App.jsx   start-up, and the page around the tabs (header, tab bar, filters, warnings)
+    views/             one folder per tab, with its code and styles
+    components/        pieces several tabs share (charts, tooltip, warnings, map loader)
+    lib/               the rules and calculations, without page code, so they can be tested alone
+    admin.js           the admin page's code
+admin/               the Cloudflare Worker behind the admin page, and its settings
+relay/               the Cloudflare Worker that passes NINA's warnings on
+tests/
+  unit/                tests of lib/, admin/ and relay/ (Vitest)
+  browser/             the site clicked through in Chromium (Playwright)
+docs/                the longer explanations linked above
+```
+
 ## Working on the code
 
 ```sh
@@ -68,5 +91,4 @@ python scraper/scrape.py --all   # fetch the full alarm history
 ```
 
 The first browser test run needs `npx playwright install chromium`. "Tests" runs on every pull request and every
-change to `main`. Each tab is a folder in `web/src/views/`, the rules and calculations are in `web/src/lib/`, the
-admin Worker is in `admin/` and the NINA relay in `relay/`.
+change to `main`.
