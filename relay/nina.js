@@ -2,7 +2,7 @@
 // warnings for the Region Hannover to the site with the header that lets another website read it: NINA's own
 // answer doesn't carry that header, so browsers throw the list away when the site asks NINA directly.
 // It passes on this one list only, and keeps it for a minute, so NINA gets at most one request a minute
-// however many people have the site open. README.md, "Warnungen", says how to put it online.
+// however many people have the site open. docs/features.md, "The NINA relay", says how to put it online.
 // NINA lists warnings per district; 032410000000 is the Region Hannover (its key with the last 7 digits 0).
 const NINA = "https://warnung.bund.de/api31/dashboard/032410000000.json";
 const KEEP = 60 * 1000;

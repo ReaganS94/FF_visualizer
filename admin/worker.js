@@ -2,7 +2,7 @@
 // before anything here runs, and only lets in the people its policy lists (that list is the list of admins).
 // The Worker serves the admin page (built into dist/ like the rest of the site) and saves the hand entries
 // in web/public/data/manual.json through the GitHub API, with a key that only the Worker knows. The browser
-// never sees it. README.md, "Admin page", says how to set it up.
+// never sees it. docs/admin.md says how to set it up.
 //
 // Settings (Worker → Settings → Variables and Secrets):
 // - TEAM_DOMAIN: the Zero Trust team's address, like "ff-linden.cloudflareaccess.com"
