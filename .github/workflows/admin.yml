@@ -1,0 +1,63 @@
+name: Publish admin page
+
+# Builds the site and puts the admin page online as the Cloudflare Worker in admin/ (admin/worker.js), at
+# https://ff-linden-admin.ff-statistik.workers.dev/. It runs after changes to the admin page or the Worker,
+# and by hand with "Run workflow" on the Actions tab. It needs the repository secrets CLOUDFLARE_API_TOKEN and
+# CLOUDFLARE_ACCOUNT_ID (README.md, "Admin page"); without them it only says what is missing.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "admin/**"
+      - "web/admin.html"
+      - "web/src/admin.js"
+      - "web/src/lib/**"
+      - "web/src/style.css"
+      - "package-lock.json"
+      - ".github/workflows/admin.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check the Cloudflare secrets
+        id: secrets
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$ACCOUNT" ]; then
+            echo "::notice::The admin page wasn't published: the secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are missing (README.md, \"Admin page\")."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v5
+        if: steps.secrets.outputs.ready == 'true'
+      - uses: actions/setup-node@v6
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npm ci
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npm run build
+      # The Worker serves only the admin page: the data and the statistics page stay on GitHub Pages, which
+      # always has the newest.
+      - if: steps.secrets.outputs.ready == 'true'
+        run: rm -rf dist/data dist/index.html
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npx --yes wrangler@4.142.0 deploy --config admin/wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

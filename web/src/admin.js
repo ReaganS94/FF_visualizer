@@ -1,73 +1,64 @@
-// Saves manual alarms into web/public/data/manual.json through the GitHub API. The token only lives in
-// this browser's localStorage; the site itself has no server.
+// Saves manual alarms into web/public/data/manual.json. The page runs on its own address, a Cloudflare Worker
+// (admin/worker.js) behind Cloudflare Access: Access asks for the login before the page loads, and the Worker
+// does the saving with a GitHub key that never reaches the browser.
 import { fmtDate } from "./lib/dates.js";
 import { esc } from "./lib/text.js";
 import { tidyStreet, stamp, sameAlarm, matchedManual } from "./lib/alarms.js";
-
-const REPO = "ReaganS94/FF_visualizer";
-const FILE = "web/public/data/manual.json";
-const API = `https://api.github.com/repos/${REPO}`;
+import { SITE, ADMIN } from "./lib/links.js";
 
 const $ = (s) => document.querySelector(s);
 
-let token = "";
-try { token = localStorage.getItem("gh-token") || ""; } catch {}
+// The old admin page lived on the public site and kept a GitHub key in the browser. That copy now only sends
+// people here, and forgets the key on the way.
+const moved = location.origin + location.pathname === new URL("admin.html", SITE).href;
+if (moved) {
+  try { localStorage.removeItem("gh-token"); } catch {}
+  location.replace(ADMIN);
+}
 
-// ---------- GitHub API ----------
-async function gh(path, opts = {}) {
+// ---------- The Worker ----------
+async function api(opts = {}) {
   let res;
   try {
-    res = await fetch(API + path, {
-      ...opts,
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", ...(opts.headers || {}) },
-    });
+    // Once the login has run out, Access answers with a redirect to its login page; "manual" keeps it
+    // from being followed, so the page can say what happened.
+    res = await fetch("/api/manual", { cache: "no-store", redirect: "manual", ...opts, headers: { "content-type": "application/json" } });
   } catch {
     // A save may have gone through even though the answer never arrived.
     const hint = opts.method ? " Bitte die Seite neu laden und nachsehen, ob die Änderung schon da ist." : "";
-    throw new Error("Keine Verbindung zu GitHub." + hint);
+    throw new Error("Keine Verbindung zum Server." + hint);
   }
+  if (res.type === "opaqueredirect" || res.status === 401) throw expired();
+  const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    // A token without "Contents: Read and write" still logs in (the repo is readable) but can't save.
-    const hint = res.status === 403 ? " Der Schlüssel braucht die Berechtigung „Contents: Read and write“." : "";
-    // GitHub answers in English; the cases a person can fix themselves get a German sentence.
-    const text = res.status === 401 ? "Der Schlüssel ist ungültig oder abgelaufen."
-      : res.status === 404 ? "Der Schlüssel hat keinen Zugriff auf das Repository."
-      : body.message || res.statusText;
-    const err = new Error(text + hint);
+    const err = new Error(body.error || res.statusText);
     err.status = res.status;
     throw err;
   }
-  return res.json();
+  return body;
 }
 
-// base64 <-> UTF-8 text (atob/btoa alone break umlauts)
-const decode = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, "")), (c) => c.charCodeAt(0)));
-function encode(text) {
-  let bin = "";
-  for (const byte of new TextEncoder().encode(text)) bin += String.fromCharCode(byte);
-  return btoa(bin);
+function expired() {
+  const err = new Error("Die Anmeldung ist abgelaufen.");
+  err.status = 401;
+  return err;
 }
 
-// GitHub lets browsers keep this answer for a minute. Without "no-store" a second change within that
-// minute starts from the old list and GitHub rejects it ("does not match <sha>").
 async function readManual() {
-  const file = await gh(`/contents/${FILE}?ref=main`, { cache: "no-store" });
-  return { sha: file.sha, rows: JSON.parse(decode(file.content)).rows };
+  const { sha, rows, user } = await api();
+  if (user) $("#user").textContent = user;
+  return { sha, rows };
 }
 
 // Read-modify-write; if someone (or the daily job) committed in between, GitHub rejects the stale
-// sha with 409 and we retry on the fresh file.
+// version with 409 and we retry on the fresh file.
 async function updateManual(change, message) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const { sha, rows } = await readManual();
     const next = change(rows).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
     if (JSON.stringify(next) === JSON.stringify(rows)) return next; // e.g. entry already deleted: no empty commit
     try {
-      await gh(`/contents/${FILE}`, {
-        method: "PUT",
-        body: JSON.stringify({ message, sha, branch: "main", content: encode(JSON.stringify({ rows: next }, null, 1) + "\n") }),
-      });
+      await api({ method: "PUT", body: JSON.stringify({ sha, rows: next, message }) });
       return next;
     } catch (e) {
       if (e.status !== 409) throw e;
@@ -78,33 +69,15 @@ async function updateManual(change, message) {
 }
 
 // ---------- UI ----------
-function show() {
-  $("#login").classList.toggle("active", !token);
-  $("#editor").classList.toggle("active", !!token);
-  if (token) loadEditor();
+
+// When the login has run out or the account isn't allowed, the form goes away and a message says what to do.
+function stop(err) {
+  $("#editor").classList.remove("active");
+  $("#stopped").classList.add("active");
+  $("#stopped-msg").textContent = err.status === 401
+    ? "Die Anmeldung ist abgelaufen. Bitte die Seite neu laden und wieder anmelden."
+    : "Dieses Konto darf keine Einsätze nachtragen. Bitte abmelden und mit einem anderen Konto anmelden.";
 }
-
-$("#f-login").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  token = $("#token").value.trim();
-  $("#login-msg").textContent = "Prüfe Schlüssel …";
-  try {
-    const repo = await gh("");
-    if (!repo.permissions?.push) throw new Error("Der Schlüssel darf nicht auf das Repository schreiben.");
-    try { localStorage.setItem("gh-token", token); } catch {}
-    $("#login-msg").textContent = "";
-    show();
-  } catch (err) {
-    token = "";
-    $("#login-msg").textContent = `Anmeldung fehlgeschlagen: ${err.message}`;
-  }
-});
-
-$("#logout").addEventListener("click", () => {
-  try { localStorage.removeItem("gh-token"); } catch {}
-  token = "";
-  show();
-});
 
 let scraped = [];
 
@@ -116,8 +89,9 @@ async function loadEditor() {
     form.time.value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   }
   const [kw, alarms] = await Promise.all([
-    fetch("data/keywords.json", { cache: "no-cache" }).then((r) => r.json()).catch(() => ({ codes: {} })),
-    fetch("data/alarms.json", { cache: "no-cache" }).then((r) => r.json()).catch(() => ({ rows: [] })),
+    // The website's list and the keywords come from the public site, which always has the newest.
+    fetch(new URL("data/keywords.json", SITE), { cache: "no-cache" }).then((r) => r.json()).catch(() => ({ codes: {} })),
+    fetch(new URL("data/alarms.json", SITE), { cache: "no-cache" }).then((r) => r.json()).catch(() => ({ rows: [] })),
   ]);
   scraped = alarms.rows;
   $("#kw-list").innerHTML = Object.entries(kw.codes).map(([c, i]) => `<option value="${esc(c)}">${esc(i.name)}</option>`).join("");
@@ -129,14 +103,7 @@ async function loadEditor() {
   try {
     renderManual((await readManual()).rows);
   } catch (err) {
-    if (err.status === 401) {
-      // Expired key: back to the login form, which is where the message is visible.
-      try { localStorage.removeItem("gh-token"); } catch {}
-      token = "";
-      show();
-      $("#login-msg").textContent = `Bitte neu anmelden. ${err.message}`;
-      return;
-    }
+    if (err.status === 401 || err.status === 403) { stop(err); return; }
     $("#save-msg").textContent = `Konnte die Liste nicht laden: ${err.message}`;
   }
 }
@@ -193,6 +160,7 @@ $("#t-manual").addEventListener("click", async (e) => {
     if (editing && sameEntry(editing, row)) { setEditing(null); clearForm(); }
     $("#save-msg").textContent = "Gelöscht.";
   } catch (err) {
+    if (err.status === 401 || err.status === 403) { stop(err); return; }
     $("#save-msg").textContent = `Löschen fehlgeschlagen: ${err.message}`;
   }
 });
@@ -242,10 +210,11 @@ $("#f-alarm").addEventListener("submit", async (e) => {
     setEditing(null);
     clearForm();
   } catch (err) {
+    if (err.status === 401 || err.status === 403) { stop(err); return; }
     $("#save-msg").textContent = `Speichern fehlgeschlagen: ${err.message}`;
   } finally {
     $("#save").disabled = false;
   }
 });
 
-show();
+if (!moved) loadEditor();
