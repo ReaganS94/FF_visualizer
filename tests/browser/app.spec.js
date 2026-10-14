@@ -117,9 +117,14 @@ test("a new width draws the charts again, a new height doesn't", async ({ page }
   await page.setViewportSize({ width: 1000, height: 800 });
   await openApp(page);
   await page.click("nav button[data-view=dots]");
-  const wall = () => page.$eval("#c-dots svg", (s) => `${s.dataset.mark || "new"} ${s.viewBox.baseVal.width}/${s.parentElement.clientWidth}`);
+  // the wall can be mid-redraw when it's read, so "none" until a drawn one is in place
+  const wall = () =>
+    page.evaluate(() => {
+      const s = document.querySelector("#c-dots svg");
+      return s?.parentElement ? `${s.dataset.mark || "new"} ${s.viewBox.baseVal.width}/${s.parentElement.clientWidth}` : "none";
+    });
   const mark = () => page.$eval("#c-dots svg", (s) => (s.dataset.mark = "old"));
-  expect(await wall()).toMatch(/^new (\d+)\/\1$/);
+  await expect.poll(wall).toMatch(/^new (\d+)\/\1$/);
   await mark();
   await page.setViewportSize({ width: 1000, height: 500 });
   await page.waitForTimeout(300); // a new width redraws after 150 ms
@@ -130,7 +135,7 @@ test("a new width draws the charts again, a new height doesn't", async ({ page }
   // showing a tab draws it again too
   await mark();
   await page.click("nav button[data-view=dots]");
-  expect(await wall()).toMatch(/^new /);
+  await expect.poll(wall).toMatch(/^new /);
   expect(page.errors).toEqual([]);
 });
 

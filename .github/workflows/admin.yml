@@ -3,7 +3,7 @@ name: Publish admin page
 # Builds the site and puts the admin page online as the Cloudflare Worker in admin/ (admin/worker.js), at
 # https://ff-linden-admin.ff-statistik.workers.dev/. It runs after changes to the admin page or the Worker,
 # and by hand with "Run workflow" on the Actions tab. It needs the repository secrets CLOUDFLARE_API_TOKEN and
-# CLOUDFLARE_ACCOUNT_ID (README.md, "Admin page"); without them it only says what is missing.
+# CLOUDFLARE_ACCOUNT_ID (docs/admin.md); without them it only says what is missing.
 on:
   push:
     branches: [main]
@@ -36,7 +36,7 @@ jobs:
           ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           if [ -z "$TOKEN" ] || [ -z "$ACCOUNT" ]; then
-            echo "::notice::The admin page wasn't published: the secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are missing (README.md, \"Admin page\")."
+            echo "::notice::The admin page wasn't published: the secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are missing (docs/admin.md)."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
