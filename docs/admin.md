@@ -6,7 +6,7 @@
 
 The admin page lives at https://ff-linden-admin.ff-statistik.workers.dev/, a Cloudflare Worker
 (`admin/worker.js`) behind [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/).
-Access asks for a login (an emailed code, or GitHub) before the page loads, and lets in only the people its
+Access asks for a login (for example a code sent by email) before the page loads, and lets in only the people its
 policy lists: that list is the list of admins. The Worker serves the page and saves the entries into
 `web/public/data/manual.json` with a GitHub key that only it knows; the browser keeps no key. Every save checks
 again that Access signed the request for this application. When the login runs out (after 24 hours, unless
@@ -35,8 +35,10 @@ Once, in this order. Until step 3 is done the Worker refuses every save, so noth
    name it `ff-linden-admin`, Deploy. Its address is `https://ff-linden-admin.<your subdomain>.workers.dev`.
 2. **Put Access in front of it.** Zero Trust must be switched on (the Free plan is enough). Open the Worker →
    the **Access** tab → switch Access on. This creates an application called "ff-linden-admin - Cloudflare
-   Workers". Then Zero Trust → Access controls → Applications → that application → its policy → add your
-   email (one per admin). Its first policy only lets in Cloudflare account members.
+   Workers". Then Zero Trust → Access controls → Applications → that application → its policy. It starts with
+   a rule that lets in every Cloudflare account member: **remove that rule** and put in Emails, one per admin.
+   Access lets in anyone who matches any rule, and the Worker trusts every login Access lets through, so a
+   leftover account-member rule would let every member of the Cloudflare account save entries.
    - **AUD tag:** a long code shown on that application's page. (Its exact spot is from Cloudflare's docs, not
      checked: the application → Additional settings / Overview.)
    - **Team domain:** this is Cloudflare's name for your Zero Trust team, not a name you make up. The easiest
@@ -44,8 +46,9 @@ Once, in this order. Until step 3 is done the Worker refuses every save, so noth
      `https://<team>.cloudflareaccess.com/`, and that part is the team domain. A wrong one makes every save
      fail with "Dieses Konto darf keine Einsätze nachtragen", and the Worker's log says "fetching the keys
      answered 404".
-   - Login methods are under Zero Trust → Settings → Authentication. "One-time PIN" (a code by email) is on by
-     default.
+   - **Login method:** the admins need a way to log in. "One-time PIN" sends a code by email. If the login page
+     doesn't offer it, add it under Zero Trust → Integrations → Identity providers → One-time PIN. (From
+     Cloudflare's docs, not checked: newer Zero Trust teams start with Cloudflare's own login instead.)
 3. **The Worker's settings.** The Worker → Settings → Runtime variables and secrets → + Add variable:
    - `TEAM_DOMAIN` (type Text): the team domain without `https://`, like `myteam.cloudflareaccess.com`
    - `ACCESS_AUD` (type Text): the AUD tag. It is not a secret.
@@ -64,9 +67,9 @@ Once, in this order. Until step 3 is done the Worker refuses every save, so noth
 5. **Publish.** "Publish admin page" (`.github/workflows/admin.yml`) runs when this code reaches `main`, and
    by hand under Actions → Publish admin page → Run workflow. It replaces "Hello World" with the admin page and
    keeps the settings from step 3.
-6. **Check, then retire the old key.** Open the admin page, log in with the emailed code, save and delete a
+6. **Check, then retire the old key.** Open the admin page, log in, save and delete a
    test entry. Then delete the token the old admin page used: GitHub → Settings → Developer settings →
    Personal access tokens → Fine-grained tokens.
 
-A new admin: add their email to the application's policy (step 2); they log in with a code sent to that email. If the Worker's address isn't
+A new admin: add their email to the application's policy (step 2); they log in with the login method from step 2. If the Worker's address isn't
 `ff-linden-admin.ff-statistik.workers.dev`, change `ADMIN` in `web/src/lib/links.js` and the link in `web/index.html`.

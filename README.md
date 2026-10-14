@@ -44,7 +44,7 @@ flowchart TD
 - **Add an alarm the website doesn't list yet:** on the admin page. It shows as "vorläufig" until the website
   lists it, then the website's row takes over.
 - **Let a colleague add alarms:** add their email to the policy of the "ff-linden-admin" application in
-  Cloudflare Zero Trust → Access controls → Applications. They log in with a code sent to that email.
+  Cloudflare Zero Trust → Access controls → Applications. They log in with that email, see [docs/admin.md](docs/admin.md).
 - **Fix a keyword's name:** edit `web/public/data/keywords.json` on GitHub.
 - **Once a year:** add the next school year to `web/public/data/ferien.json`.
 
