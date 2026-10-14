@@ -109,28 +109,34 @@ aren't matched yet are called "vorläufig" (tag in the list and on the "Letzter 
 
 ### Setting up the admin page
 
-Once, in this order (the Worker refuses every save until steps 4 and 5 are done):
+Once, in this order. Until step 3 is done the Worker refuses every save, so nothing can go wrong in between.
 
-1. In the Cloudflare dashboard, open Zero Trust, pick a team name (its address is
-   `<team>.cloudflareaccess.com`) and the Free plan (up to 50 people). Cloudflare asks for a payment card even
-   for the Free plan and doesn't charge it. Settings → Authentication: "One-time PIN" (a code by email) is
-   there; GitHub can be added as a second login method.
-2. My Profile → API Tokens → Create Token → template "Edit Cloudflare Workers". Add it on GitHub under Settings
-   → Secrets and variables → Actions as `CLOUDFLARE_API_TOKEN`, and the Account ID (Workers & Pages, on the
-   right) as `CLOUDFLARE_ACCOUNT_ID`.
-3. Actions → "Publish admin page" → Run workflow. It creates the Worker `ff-linden-admin`; after that it runs
-   by itself when the admin page or the Worker change (`.github/workflows/admin.yml`).
-4. Workers & Pages → `ff-linden-admin` → protect it with Access (all traffic). In Zero Trust → Access →
-   Applications → its application: the policy decides who gets in (Include → Emails: one line per admin), and
-   the overview shows the "Application Audience (AUD) Tag".
-5. The Worker's Settings → Variables and Secrets: `TEAM_DOMAIN` = `<team>.cloudflareaccess.com`, `ACCESS_AUD` =
-   that tag, and the secret `GITHUB_TOKEN` = a new
-   [fine-grained token](https://github.com/settings/personal-access-tokens/new) for this repository only, with
-   "Contents: Read and write" and nothing else.
-6. Open the admin page, log in, and save and delete a test entry. Then delete the token the old admin page used
-   on GitHub (Settings → Developer settings → Fine-grained tokens).
+1. **Create the Worker.** In the Cloudflare dashboard: Workers & Pages → Create → start from "Hello World",
+   name it `ff-linden-admin`, Deploy. Its address is `https://ff-linden-admin.<your subdomain>.workers.dev`.
+2. **Put Access in front of it.** The Worker → Settings → Domains & Routes → next to workers.dev, "Enable
+   Cloudflare Access". The window that opens shows the team domain (`<team>.cloudflareaccess.com`) and the
+   "Application Audience (AUD) Tag": copy both. Then "Manage Cloudflare Access" → the policy → Include →
+   Emails: your email (one line per admin). The tag is also under Zero Trust → Access → Applications → the
+   application → Additional settings. Login methods are under Zero Trust → Settings → Authentication:
+   "One-time PIN" (a code by email) is there by default; GitHub can be added.
+3. **The Worker's settings.** The Worker → Settings → Variables and Secrets → Add:
+   - `TEAM_DOMAIN` (Text): the team domain without `https://`, like `ff-linden.cloudflareaccess.com`
+   - `ACCESS_AUD` (Text): the AUD tag
+   - `GITHUB_TOKEN` (Secret): a new [fine-grained token](https://github.com/settings/personal-access-tokens/new),
+     Repository access "Only select repositories" → FF_visualizer, Permissions → Contents: Read and write,
+     nothing else. When it expires, make a new one and replace this secret.
+4. **Let GitHub deploy it.** Cloudflare: My Profile → API Tokens → Create Token → template "Edit Cloudflare
+   Workers" → Account Resources: your account → Continue → Create. GitHub: the repository's Settings → Secrets
+   and variables → Actions → New repository secret: `CLOUDFLARE_API_TOKEN` (that token) and
+   `CLOUDFLARE_ACCOUNT_ID` (Cloudflare: Workers & Pages → Account ID on the right).
+5. **Publish.** "Publish admin page" (`.github/workflows/admin.yml`) runs when this code reaches `main`, and
+   by hand under Actions → Publish admin page → Run workflow. It replaces "Hello World" with the admin page and
+   keeps the settings from step 3.
+6. **Check, then retire the old key.** Open the admin page, log in with the emailed code, save and delete a
+   test entry. Then delete the token the old admin page used: GitHub → Settings → Developer settings →
+   Personal access tokens → Fine-grained tokens.
 
-A new admin: add their email to the Access policy (step 4). If the Worker's address isn't
+A new admin: add their email to the Access policy (step 2). If the Worker's address isn't
 `ff-linden-admin.ff-statistik.workers.dev`, change `ADMIN` in `web/src/lib/links.js` and the link in `web/index.html`.
 
 ## Jahresrückblick
