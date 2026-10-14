@@ -113,22 +113,34 @@ Once, in this order. Until step 3 is done the Worker refuses every save, so noth
 
 1. **Create the Worker.** In the Cloudflare dashboard: Workers & Pages → Create → start from "Hello World",
    name it `ff-linden-admin`, Deploy. Its address is `https://ff-linden-admin.<your subdomain>.workers.dev`.
-2. **Put Access in front of it.** The Worker → Settings → Domains & Routes → next to workers.dev, "Enable
-   Cloudflare Access". The window that opens shows the team domain (`<team>.cloudflareaccess.com`) and the
-   "Application Audience (AUD) Tag": copy both. Then "Manage Cloudflare Access" → the policy → Include →
-   Emails: your email (one line per admin). The tag is also under Zero Trust → Access → Applications → the
-   application → Additional settings. Login methods are under Zero Trust → Settings → Authentication:
-   "One-time PIN" (a code by email) is there by default; GitHub can be added.
-3. **The Worker's settings.** The Worker → Settings → Variables and Secrets → Add:
-   - `TEAM_DOMAIN` (Text): the team domain without `https://`, like `ff-linden.cloudflareaccess.com`
-   - `ACCESS_AUD` (Text): the AUD tag
-   - `GITHUB_TOKEN` (Secret): a new [fine-grained token](https://github.com/settings/personal-access-tokens/new),
-     Repository access "Only select repositories" → FF_visualizer, Permissions → Contents: Read and write,
-     nothing else. When it expires, make a new one and replace this secret.
-4. **Let GitHub deploy it.** Cloudflare: My Profile → API Tokens → Create Token → template "Edit Cloudflare
-   Workers" → Account Resources: your account → Continue → Create. GitHub: the repository's Settings → Secrets
-   and variables → Actions → New repository secret: `CLOUDFLARE_API_TOKEN` (that token) and
-   `CLOUDFLARE_ACCOUNT_ID` (Cloudflare: Workers & Pages → Account ID on the right).
+2. **Put Access in front of it.** Zero Trust must be switched on (the Free plan is enough). Open the Worker →
+   the **Access** tab → switch Access on. This creates an application called "ff-linden-admin - Cloudflare
+   Workers". Then Zero Trust → Access controls → Applications → that application → its policy → add your
+   email (one per admin). Its first policy only lets in Cloudflare account members.
+   - **AUD tag:** a long code shown on that application's page. (Its exact spot is from Cloudflare's docs, not
+     checked: the application → Additional settings / Overview.)
+   - **Team domain:** this is Cloudflare's name for your Zero Trust team, not a name you make up. The easiest
+     way to see it: open the admin page logged out. The login page's address starts with
+     `https://<team>.cloudflareaccess.com/`, and that part is the team domain. A wrong one makes every save
+     fail with "Dieses Konto darf keine Einsätze nachtragen", and the Worker's log says "fetching the keys
+     answered 404".
+   - Login methods are under Zero Trust → Settings → Authentication. "One-time PIN" (a code by email) is on by
+     default.
+3. **The Worker's settings.** The Worker → Settings → Runtime variables and secrets → + Add variable:
+   - `TEAM_DOMAIN` (type Text): the team domain without `https://`, like `myteam.cloudflareaccess.com`
+   - `ACCESS_AUD` (type Text): the AUD tag. It is not a secret.
+   - `GITHUB_TOKEN` (type **Secret**, not Text, or it is shown to anyone with dashboard access): a new
+     [fine-grained token](https://github.com/settings/personal-access-tokens/new), Repository access "Only
+     select repositories" → FF_visualizer, Permissions → Contents: Read and write, nothing else. When it
+     expires, make a new one and replace this secret.
+
+   Changing these takes effect right away, no new deploy needed.
+4. **Let GitHub deploy it.** Cloudflare: your profile → API Tokens → Create Token → template "Edit Cloudflare
+   Workers" → Account Resources: your account; remove the Zone Resources / Workers Routes row (there is no
+   own domain) → Continue → Create. GitHub: the repository's Settings → Secrets and variables → Actions → New
+   repository secret: `CLOUDFLARE_API_TOKEN` (that token) and `CLOUDFLARE_ACCOUNT_ID` (Cloudflare: Workers &
+   Pages → Account ID on the right). Paste both without a line break at the end: a stray line break makes the
+   deploy fail with "Invalid account ID".
 5. **Publish.** "Publish admin page" (`.github/workflows/admin.yml`) runs when this code reaches `main`, and
    by hand under Actions → Publish admin page → Run workflow. It replaces "Hello World" with the admin page and
    keeps the settings from step 3.
@@ -136,7 +148,7 @@ Once, in this order. Until step 3 is done the Worker refuses every save, so noth
    test entry. Then delete the token the old admin page used: GitHub → Settings → Developer settings →
    Personal access tokens → Fine-grained tokens.
 
-A new admin: add their email to the Access policy (step 2). If the Worker's address isn't
+A new admin: add their email to the application's policy (step 2); they log in with a code sent to that email. If the Worker's address isn't
 `ff-linden-admin.ff-statistik.workers.dev`, change `ADMIN` in `web/src/lib/links.js` and the link in `web/index.html`.
 
 ## Jahresrückblick
