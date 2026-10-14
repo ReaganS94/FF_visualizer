@@ -148,3 +148,25 @@ test("serves the admin page, from / too, and answers other API paths and methods
   expect((await ask("/api/other", { token })).status).toBe(404);
   expect((await ask("/api/manual", { method: "DELETE", token })).status).toBe(405);
 });
+
+test("takes the token from Access's cookie too, and settings pasted with spaces, a line break or https://", async () => {
+  const token = await login();
+  const env = { ...ENV, TEAM_DOMAIN: ` https://${TEAM}/\n`, ACCESS_AUD: `${AUD}\n` };
+  const req = new Request("https://ff-linden-admin.example.workers.dev/api/manual", { headers: { cookie: `other=1; CF_Authorization=${token}` } });
+  const res = await worker.fetch(req, env);
+  expect(res.status).toBe(200);
+  expect((await res.json()).user).toBe("reagan@example.com");
+});
+
+test("logs why a login was refused, without the token", async () => {
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const token = await login({ aud: ["another-app"] });
+  await ask("/api/manual", { token });
+  await ask("/api/manual");
+  expect(warn.mock.calls.map((c) => c[0])).toEqual([
+    "Access check failed: the token is for another application (ACCESS_AUD doesn't match)",
+    "Access check failed: no Access token in the request",
+  ]);
+  expect(warn.mock.calls.join(" ")).not.toContain(token);
+  warn.mockRestore();
+});

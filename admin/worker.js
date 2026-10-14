@@ -39,28 +39,50 @@ export default {
 // ---------- Access ----------
 
 // The signed-in person's email, if the request carries a token that Access signed for this application and
-// that hasn't run out; otherwise null.
+// that hasn't run out; otherwise null. Access puts the token in a header, and in the CF_Authorization cookie
+// of this address; either is checked the same way. A refusal is logged with its reason (never the token), so
+// Worker → Observability shows what didn't match.
 export async function accessUser(request, env) {
-  const token = request.headers.get("cf-access-jwt-assertion");
-  if (!token || !env.TEAM_DOMAIN || !env.ACCESS_AUD) return null;
+  const why = await check(request, env);
+  if (typeof why === "object") return why.email;
+  console.warn(`Access check failed: ${why}`);
+  return null;
+}
+
+async function check(request, env) {
+  // Settings pasted with a stray space or line break, or with https:// in front, still count.
+  const team = (env.TEAM_DOMAIN || "").trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  const audTag = (env.ACCESS_AUD || "").trim();
+  if (!team || !audTag) return "TEAM_DOMAIN or ACCESS_AUD is not set";
+  const token = request.headers.get("cf-access-jwt-assertion") || cookie(request, "CF_Authorization");
+  if (!token) return "no Access token in the request";
   const parts = token.split(".");
-  if (parts.length !== 3) return null;
+  if (parts.length !== 3) return "the token is not a JWT";
   let header, claims;
   try {
     header = JSON.parse(text(base64url(parts[0])));
     claims = JSON.parse(text(base64url(parts[1])));
-  } catch { return null; }
-  if (header.alg !== "RS256") return null;
-  const key = await signingKey(env.TEAM_DOMAIN, header.kid);
-  if (!key) return null;
+  } catch { return "the token is not a JWT"; }
+  if (header.alg !== "RS256") return `unexpected algorithm ${header.alg}`;
+  const key = await signingKey(team, header.kid);
+  if (!key) return `no public key ${header.kid} at https://${team}/cdn-cgi/access/certs`;
   const signed = new TextEncoder().encode(parts[0] + "." + parts[1]);
-  if (!(await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, base64url(parts[2]), signed))) return null;
+  if (!(await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, base64url(parts[2]), signed))) return "bad signature";
   const now = Date.now() / 1000;
   const aud = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-  if (!aud.includes(env.ACCESS_AUD)) return null;
-  if (claims.iss !== `https://${env.TEAM_DOMAIN}`) return null;
-  if (!(claims.exp > now) || (claims.nbf && claims.nbf > now + 60)) return null;
-  return typeof claims.email === "string" && claims.email ? claims.email : null;
+  if (!aud.includes(audTag)) return "the token is for another application (ACCESS_AUD doesn't match)";
+  if (claims.iss !== `https://${team}`) return `the token comes from ${claims.iss}, not https://${team} (TEAM_DOMAIN)`;
+  if (!(claims.exp > now) || (claims.nbf && claims.nbf > now + 60)) return "the token has run out";
+  if (typeof claims.email !== "string" || !claims.email) return "the token has no email";
+  return { email: claims.email };
+}
+
+function cookie(request, name) {
+  for (const part of (request.headers.get("cookie") || "").split(";")) {
+    const [k, ...v] = part.trim().split("=");
+    if (k === name) return v.join("=");
+  }
+  return null;
 }
 
 // Access's public keys, fetched once an hour; it changes them every few weeks.
