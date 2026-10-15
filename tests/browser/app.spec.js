@@ -172,6 +172,7 @@ test("every visitor finds the Datenschutz page, and nothing is counted outside t
   await link.click();
   await expect(page.locator("h1")).toHaveText("Datenschutz");
   await expect(page.locator("main")).toContainText("Cloudflare Web Analytics");
+  await expect(page.locator("#controller")).not.toContainText("[");
   await expect(page.locator("a", { hasText: "Zurück zur Statistik" })).toHaveAttribute("href", "./");
   expect(counter).toEqual([]);
   expect(page.errors).toEqual([]);
