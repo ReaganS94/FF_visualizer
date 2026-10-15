@@ -10,13 +10,13 @@ const page = (name) => fileURLToPath(new URL(`web/${name}`, import.meta.url));
 export default defineConfig({
   root: "web",
   base: "./", // relative links, so the site works under /FF_visualizer/ on GitHub Pages and anywhere else
-  appType: "mpa", // two pages; a missing file is a 404, as on GitHub Pages
+  appType: "mpa", // three pages; a missing file is a 404, as on GitHub Pages
   plugins: [react()], // the tabs that moved to React are written in JSX
   build: {
     outDir: "../dist",
     emptyOutDir: true,
     rolldownOptions: {
-      input: { main: page("index.html"), admin: page("admin.html") },
+      input: { main: page("index.html"), admin: page("admin.html"), privacy: page("datenschutz.html") },
       // React gets a file of its own. It only changes with React's version, so browsers keep it cached
       // when the site's own code changes.
       output: { codeSplitting: { groups: [{ name: "react", test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ }] } },

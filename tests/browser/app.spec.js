@@ -162,3 +162,18 @@ test("a device with the old admin key keeps the link, and the key is removed", a
   expect(page.errors).toEqual([]);
 });
 
+
+test("every visitor finds the Datenschutz page, and nothing is counted outside the public site", async ({ page }) => {
+  const counter = [];
+  page.on("request", (r) => r.url().includes("cloudflareinsights") && counter.push(r.url()));
+  await openApp(page);
+  const link = page.locator("footer a", { hasText: "Datenschutz" });
+  await expect(link).toBeVisible();
+  await link.click();
+  await expect(page.locator("h1")).toHaveText("Datenschutz");
+  await expect(page.locator("main")).toContainText("Cloudflare Web Analytics");
+  await expect(page.locator("#controller")).not.toContainText("[");
+  await expect(page.locator("a", { hasText: "Zurück zur Statistik" })).toHaveAttribute("href", "./");
+  expect(counter).toEqual([]);
+  expect(page.errors).toEqual([]);
+});
