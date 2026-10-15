@@ -150,3 +150,16 @@ To put it online, or to update it after `relay/nina.js` changed:
 ## "Als App speichern"
 
 `web/public/manifest.webmanifest` and `web/public/icons/` let phones add the site to the home screen as an app (icon source: `icons/icon.svg`). On phones and tablets, Übersicht shows an "Als App speichern" button while the site isn't saved yet. On Android (Chrome, Edge, Samsung Internet) it opens the browser's own install window, which the browser only offers while the app isn't installed. iPhones and iPads have no such window and can't tell whether the icon exists, so there the button opens a four-step guide; "Erledigt" or × hide it on that device. The guide starts with opening the page in Safari, because a page opened from a link in another app (a chat, say) has no "Zum Home-Bildschirm" in its list, only "In Safari öffnen". It names the buttons as the phone shows them (German, otherwise English). It never shows on computers, in Firefox, or when the site already runs from the home screen.
+
+## Visitor numbers and Datenschutz
+
+Visits are counted with Cloudflare Web Analytics: no cookies, nothing saved on the visitor's device, no
+profile, so no consent banner. `web/src/lib/analytics.js` adds Cloudflare's script only on
+reagans94.github.io and only when `ANALYTICS_TOKEN` is set, so `npm run dev`, the tests and the admin page
+never count. The numbers are in the Cloudflare dashboard under Analytics & Logs → Web Analytics. The token is
+the one Cloudflare shows there for the site; it isn't a secret. If the site moves to another address, add the
+new address there and change `SITE` in `web/src/lib/links.js`.
+
+`web/datenschutz.html` is the Datenschutz page, linked at the bottom of the statistics. It lists every outside
+service a visitor's browser talks to. Add a line there whenever the site starts loading something from a new
+outside address.

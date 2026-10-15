@@ -4,6 +4,7 @@
 import { $ } from "./dom.js";
 import { loadData } from "./data.js";
 import { ADMIN } from "./lib/links.js";
+import { startAnalytics } from "./lib/analytics.js";
 import "./components/tooltip.js"; // the box that follows the pointer over charts and maps sets itself up
 import "./components/warnings.js"; // the warnings load and refresh themselves; Warnings.jsx in App.jsx draws them
 import { show } from "./show.js"; // before the page, so React's file stays the same (browsers keep it)
@@ -20,6 +21,8 @@ try {
   $("#admin-link a").href = ADMIN;
   $("#admin-link").hidden = !localStorage.getItem("admin-link");
 } catch {}
+
+startAnalytics(); // only on the public site
 
 show($("#app"), App, {});
 loadData().then((status) => show($("#app"), App, { status }));
