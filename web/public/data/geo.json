@@ -32,6 +32,10 @@
 52.39056,
 9.72269
 ],
+"Am Markte|Mitte": [
+52.37155,
+9.73501
+],
 "Am Marstall|Mitte": [
 52.37386,
 9.73045
@@ -67,6 +71,10 @@
 "Auf dem Lärchenberge|Oststadt": [
 52.38284,
 9.75533
+],
+"August-Madsack-Straße|Seelhorst": [
+52.34945,
+9.80442
 ],
 "BAB 2 AK Ost -> AK Buchholz|Misburg-Süd": null,
 "BAB 2 Bothfeld -> Berlin|Sahlkamp": null,
@@ -633,6 +641,7 @@
 52.42253,
 9.81335
 ],
+"Im Rohre|Oberricklingen": null,
 "Inge-Machts-Weg|Calenberger Neustadt": [
 52.35575,
 9.7322
@@ -797,6 +806,10 @@
 "Leinstraße|Mitte": [
 52.37106,
 9.73312
+],
+"Lessingstraße|Mitte": [
+52.37093,
+9.75105
 ],
 "Lichtenbergplatz|Linden-Mitte": [
 52.36886,

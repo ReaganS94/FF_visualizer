@@ -1,6 +1,116 @@
 {
- "updated": "2026-11-27T13:53:37+00:00",
+ "updated": "2026-11-28T00:01:42+00:00",
  "rows": [
+  {
+   "date": "2026-11-26",
+   "time": "15:50",
+   "category": "Einsatz",
+   "keyword": "ob",
+   "event": "BMA // bestätigtes Feuer",
+   "street": "Hauptbahnhof Hannover",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-11-24",
+   "time": "17:12",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Gebäude-/ Dachstuhlbrand",
+   "street": "Im Rohre",
+   "district": "Oberricklingen",
+   "remarks": "FG SpMe"
+  },
+  {
+   "date": "2026-11-24",
+   "time": "17:12",
+   "category": "Einsatz",
+   "keyword": "b3",
+   "event": "Gebäude-/ Dachstuhlbrand",
+   "street": "Im Rohre",
+   "district": "Oberricklingen",
+   "remarks": "FG LöWaRü"
+  },
+  {
+   "date": "2026-11-19",
+   "time": "19:13",
+   "category": "Einsatz",
+   "keyword": "hm1",
+   "event": "VU 2 PKW; 3x eingeschlossen",
+   "street": "Aegidientorplatz",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-11-18",
+   "time": "18:07",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Feuer in Tiefgarage",
+   "street": "Ihmezentrum",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-11-14",
+   "time": "11:34",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung Treppenraum",
+   "street": "Lessingstraße",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-11-14",
+   "time": "05:23",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchwarnmelder",
+   "street": "Brackebuschstraße",
+   "district": "Linden-Nord",
+   "remarks": ""
+  },
+  {
+   "date": "2026-11-09",
+   "time": "23:50",
+   "category": "Einsatz",
+   "keyword": "b1",
+   "event": "Rauchentwicklung im PUB",
+   "street": "Am Markte",
+   "district": "Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-11-07",
+   "time": "09:20",
+   "category": "Einsatz",
+   "keyword": "kat",
+   "event": "Katastrophenschutzübung - Blackout",
+   "street": "Teichstraße",
+   "district": "Linden-Mitte",
+   "remarks": ""
+  },
+  {
+   "date": "2026-11-05",
+   "time": "00:17",
+   "category": "Einsatz",
+   "keyword": "abc1",
+   "event": "Gefahrstoffaustritt",
+   "street": "August-Madsack-Straße",
+   "district": "Seelhorst",
+   "remarks": ""
+  },
+  {
+   "date": "2026-11-01",
+   "time": "09:09",
+   "category": "Einsatz",
+   "keyword": "hps1",
+   "event": "Person in Notlage",
+   "street": "Tonstraße",
+   "district": "Linden-Süd",
+   "remarks": ""
+  },
   {
    "date": "2026-10-31",
    "time": "02:29",
